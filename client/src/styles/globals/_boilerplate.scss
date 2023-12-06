@@ -1,0 +1,19 @@
+html {
+  box-sizing: border-box; // if we add a padding or borders to an element it's be included in the final width and height of the element
+  font-size: 100%; // it'll match the default size set in the browser
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit; // everything inherits the border-box from html
+}
+
+body {
+  background-color: var(--background_color);
+  font-family: 'Nunito';
+  color: var(--D500);
+  // resets: they overwrite default styles that browsers set on websites when they load them
+  margin: 0;
+  padding: 0;
+}

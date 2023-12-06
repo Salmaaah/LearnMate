@@ -1,0 +1,65 @@
+@use '../../../styles/util/' as u;
+
+.button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: u.rem(20);
+  font-weight: 800;
+  width: u.rem(329);
+  height: u.rem(49);
+  border-radius: u.rem(20);
+  border-style: none;
+  padding: u.rem(11);
+  gap: u.rem(20);
+  flex-shrink: 0;
+
+  &__icon {
+    width: u.rem(24);
+    height: u.rem(24);
+  }
+
+  &__primary {
+    @extend .button;
+    background: var(--P300);
+    color: white;
+    /* Small Button/Sharp Purple Shadow */
+    box-shadow: 0 u.rem(4) 0 0 var(--P400),
+      0 u.rem(4) u.rem(7.2) u.rem(5) var(--M100);
+
+    &:hover {
+      @extend .button__primary;
+      background: var(--P200);
+    }
+
+    &:disabled {
+      @extend .button__primary;
+      background: var(--M75);
+      color: var(--M50);
+      /* Small Button/Sharp Muted Shadow */
+      box-shadow: 0 u.rem(4) 0 0 var(--M300);
+    }
+  }
+
+  &__secondary {
+    @extend .button;
+    background: white;
+    color: var(--P100);
+    /* Small Button/Simple Shadow */
+    box-shadow: 0 u.rem(4) u.rem(4) 0 hsl(254, 23%, 79%),
+      0 0 u.rem(2.7) u.rem(1) var(--M100);
+
+    &:hover {
+      @extend .button__secondary;
+      background: var(--P50);
+    }
+
+    &:disabled {
+      @extend .button__secondary;
+      background: var(--M50);
+      color: var(--M75);
+      /* Small Button/Sharp Muted Shadow */
+      box-shadow: 0 u.rem(4) 0 0 var(--M100);
+    }
+  }
+}

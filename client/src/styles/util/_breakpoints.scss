@@ -1,0 +1,29 @@
+// small: <700px, medium: <900px, large: <1440px, xlarge: >1440px
+// we're using em unit for media queries because rem causes some bugs in certain browsers
+
+@use 'functions' as f;
+
+// sass map
+$breakpoints-up: (
+  'medium': f.em(700),
+  'large': f.em(900),
+  'xlarge': f.em(1440),
+);
+
+@mixin breakpoint($size) {
+  @media (min-width: map-get($breakpoints-up, $size)) {
+    @content;
+  }
+}
+
+$breakpoints-down: (
+  'large': f.em(1440),
+  'medium': f.em(900),
+  'small': f.em(700),
+);
+
+@mixin breakpoint-max($size) {
+  @media (max-width: map-get($breakpoints-up, $size)) {
+    @content;
+  }
+}

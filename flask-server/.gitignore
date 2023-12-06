@@ -1,0 +1,4 @@
+# .gitignore
+
+# Virtual environment
+flask-server/venv/
