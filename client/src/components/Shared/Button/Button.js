@@ -1,6 +1,6 @@
 const Button = (props) => {
   return (
-    <button className="button__secondary" disabled>
+    <button className="button__secondary" type={props.type}>
       {props.icon_l && (
         <img className="button__icon" src={props.icon_l} alt="" />
       )}

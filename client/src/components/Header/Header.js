@@ -1,16 +1,13 @@
 import PropTypes from 'prop-types';
 import Button from '../Shared/Button/Button';
-import applelogo from '../../assets/icons/apple-logo.svg';
-
-const hello = 'Hello!';
+import Input from '../Shared/Input/Input';
 
 const Header = (props) => {
   return (
-    <div>
-      <h1>{props.name}</h1>
-      <h2>{hello}</h2>
-      <Button label="Log in" icon_r={applelogo} />
-    </div>
+    <nav className="navbar">
+      <h1 className="navbar__logo">LearnMate</h1>
+      <Button label="Log in" />
+    </nav>
   );
 };
 

@@ -1,0 +1,72 @@
+@use '../../../styles/util/' as u;
+
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: u.rem(5);
+
+  .input {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: u.rem(10);
+
+    border-radius: u.rem(12);
+    border: u.rem(2) solid var(--M75);
+
+    // width: 300px;
+    padding: u.rem(12) u.rem(18);
+
+    color: var(--D200);
+
+    &:hover {
+      border-color: var(--M200);
+      background: var(--M50);
+      cursor: text;
+    }
+
+    &:focus-within {
+      border-color: var(--P75);
+      background: white;
+      outline: none;
+    }
+
+    &.error {
+      border-color: var(--S_RED);
+      background: rgb(255, 244, 244);
+    }
+
+    &__field {
+      flex: 1;
+
+      font-family: 'Nunito';
+      font-size: u.rem(15);
+      font-weight: 700;
+
+      background: none;
+      border: none;
+      outline: none;
+    }
+
+    &__icon {
+      height: u.rem(15);
+      cursor: pointer;
+    }
+  }
+
+  .errorContainer {
+    display: flex;
+    align-items: center;
+    gap: u.rem(7);
+
+    &__message {
+      color: var(--S_RED);
+      font-size: u.rem(13);
+      font-weight: 700;
+    }
+
+    &__icon {
+      height: u.rem(13);
+    }
+  }
+}

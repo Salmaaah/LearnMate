@@ -4,19 +4,21 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: u.rem(20);
+
+  font-family: 'Nunito';
+  font-size: u.rem(15);
   font-weight: 800;
-  width: u.rem(329);
-  height: u.rem(49);
+
+  // width: u.rem(329);
   border-radius: u.rem(20);
   border-style: none;
-  padding: u.rem(11);
-  gap: u.rem(20);
+
+  padding: u.rem(7) u.rem(50);
+  gap: u.rem(10);
   flex-shrink: 0;
 
   &__icon {
-    width: u.rem(24);
-    height: u.rem(24);
+    height: u.rem(12);
   }
 
   &__primary {
