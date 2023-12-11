@@ -1,22 +1,27 @@
 import PropTypes from 'prop-types';
 import Button from '../Shared/Button/Button';
-import Input from '../Shared/Input/Input';
 
-const Header = (props) => {
+const Header = ({ cta }) => {
   return (
-    <nav className="navbar">
-      <h1 className="navbar__logo">LearnMate</h1>
-      <Button label="Log in" />
-    </nav>
+    <div className="navbarContainer">
+      <nav className="navbar">
+        <a className="navbar__logo" href="/">
+          LearnMate
+        </a>
+        <div className="hide-for-mobile">
+          <Button label={cta} type="button" style="secondary" />
+        </div>
+      </nav>
+    </div>
   );
 };
 
 Header.defaultProps = {
-  name: 'LearnMate',
+  cta: 'Log in',
 };
 
 Header.propTypes = {
-  name: PropTypes.string.isRequired,
+  cta: PropTypes.string.isRequired,
 };
 
 export default Header;

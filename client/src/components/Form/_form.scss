@@ -1,0 +1,86 @@
+@use '../../styles/util/' as u;
+
+.formContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 90vh; // just for now until I figure out another way to center this div according to the space that's left after the header dynamically
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  padding-inline: u.rem(30);
+  gap: u.rem(15);
+
+  @include u.breakpoint(medium) {
+    width: u.rem(400);
+  }
+
+  > h1 {
+    font-family: 'Vintage';
+    font-size: u.rem(40);
+    font-weight: 400;
+    padding-bottom: u.rem(20);
+  }
+
+  &__fields {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    align-self: stretch;
+    gap: u.rem(10);
+  }
+
+  &__divider {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: u.rem(10);
+    padding: 0 u.rem(12);
+    color: var(--D75);
+    font-weight: 700;
+
+    > span {
+      height: u.rem(2);
+      flex: 1 0 0;
+      background-color: var(--M75);
+    }
+  }
+
+  > Button {
+    width: 100%;
+  }
+
+  > Button:not(Button:first-of-type) {
+    color: var(--D500);
+  }
+
+  &__disclaimer {
+    font-weight: 400;
+    font-size: u.rem(13);
+    color: var(--D75);
+    padding-top: u.rem(20);
+
+    > a {
+      color: var(--D75);
+      font-weight: 700;
+    }
+  }
+
+  &__cta {
+    font-weight: 700;
+    font-size: u.rem(15);
+
+    @include u.breakpoint(medium) {
+      display: none;
+    }
+
+    > a {
+      color: var(--P300);
+    }
+  }
+}

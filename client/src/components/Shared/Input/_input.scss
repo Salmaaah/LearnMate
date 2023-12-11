@@ -1,37 +1,37 @@
 @use '../../../styles/util/' as u;
 
 .inputContainer {
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   gap: u.rem(5);
 
   .input {
+    border-radius: u.rem(12);
+    border: u.rem(2) solid var(--M75);
+
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: u.rem(10);
-
-    border-radius: u.rem(12);
-    border: u.rem(2) solid var(--M75);
-
-    // width: 300px;
     padding: u.rem(12) u.rem(18);
 
     color: var(--D200);
 
     &:hover {
       border-color: var(--M200);
-      background: var(--M50);
+      background-color: var(--M50);
       cursor: text;
     }
 
     &:focus-within {
       border-color: var(--P75);
-      background: white;
+      background-color: var(--background-color);
       outline: none;
     }
 
     &.error {
+      // helper class
       border-color: var(--S_RED);
       background: rgb(255, 244, 244);
     }
@@ -46,6 +46,18 @@
       background: none;
       border: none;
       outline: none;
+
+      // /* Override browser styles for autofilled input fields */
+      // &:-internal-autofill-selected {
+      //   appearance: none;
+      //   background-image: none !important;
+      //   background-color: transparent !important; /* Set to your desired background color */
+      //   color: inherit !important; /* Set to your desired text color */
+      // }
+
+      &::placeholder {
+        color: var(--D100);
+      }
     }
 
     &__icon {

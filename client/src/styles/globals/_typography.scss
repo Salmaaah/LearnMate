@@ -1,5 +1,11 @@
 @use '../util' as u;
 
+// Font sizes
+$font-lg: u.rem(28);
+$font-md: u.rem(18);
+$font-sm: u.rem(15);
+$font-xs: u.rem(13);
+
 h1,
 h2,
 h3 {

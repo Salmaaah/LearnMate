@@ -4,29 +4,37 @@ import viewIcon from '../../../assets/icons/view.svg';
 import hideIcon from '../../../assets/icons/hide.svg';
 import errorIcon from '../../../assets/icons/error.svg';
 
-const Input = (props) => {
-  const isPassword = props.type === 'password';
-  const [showIcon, setShowIcon] = useState(isPassword);
-  const [passwordIcon, setpasswordIcon] = useState(1);
+const Input = ({ label, name, type, value, onChange, onBlur, error }) => {
+  const isPassword = type === 'password';
+  const [displayIcon, setDisplayIcon] = useState(isPassword);
+  const [passwordIcon, setpasswordIcon] = useState(isPassword ? 1 : 0);
   const inputRef = useRef(null);
-  const [error] = useState(false);
+
+  const handleOnBlur = (e) => {
+    // when input is not on focus and the input type is other than password, hide the delete icon, else leave the show/hide icon always on display
+    !isPassword ? setDisplayIcon(false) : setDisplayIcon(true);
+
+    // Call the onBlur props function in case it's given
+    onBlur && onBlur(e);
+  };
 
   const resetInput = (e) => {
     e.preventDefault(); // Prevent the input from losing focus
-    // Reset the input field value
+
     if (inputRef.current) {
-      inputRef.current.value = '';
+      inputRef.current.value = ''; // Reset the input field value
     }
   };
 
-  // Define img attributes based on isPassword
+  // Define img (icon) attributes based on isPassword
   // onMouseDown instead of onClick because it's triggered before the onBlur
   const iconAttributes = isPassword
     ? {
         src: passwordIcon === 1 ? viewIcon : hideIcon,
         alt: passwordIcon === 1 ? 'Show password' : 'Hide password',
         onMouseDown: () =>
-          setpasswordIcon((prevIcon) => (prevIcon === 1 ? 2 : 1)), // access the previous state to determine the next
+          // access the previous state to determine the next, if it was set to view icon, switch to hide and vice versa
+          setpasswordIcon((prevIcon) => (prevIcon === 1 ? 2 : 1)),
       }
     : {
         src: deleteIcon,
@@ -43,17 +51,22 @@ const Input = (props) => {
         <input
           ref={inputRef}
           className="input__field"
-          type={passwordIcon === 1 ? 'password' : 'text'}
-          placeholder={props.label}
-          onFocus={() => setShowIcon(true)}
-          onBlur={() => (!isPassword ? setShowIcon(false) : setShowIcon(true))}
+          type={passwordIcon === 1 ? 'password' : 2 ? 'text' : type}
+          placeholder={label}
+          name={name}
+          value={value}
+          onFocus={() => setDisplayIcon(true)}
+          onChange={onChange}
+          onBlur={handleOnBlur}
         />
-        {showIcon && <img className="input__icon" {...iconAttributes} />}
+        {displayIcon && (
+          <img className="input__icon" {...iconAttributes} alt="" />
+        )}
       </div>
       {error && (
         <div className="errorContainer">
           <img className="errorContainer__icon" src={errorIcon} alt="" />
-          <span className="errorContainer__message">Error message.</span>
+          <span className="errorContainer__message">{error}</span>
         </div>
       )}
     </div>

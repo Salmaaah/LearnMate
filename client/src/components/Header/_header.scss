@@ -1,14 +1,27 @@
 @use '../../styles/util/' as u;
 
-.navbar {
+.navbarContainer {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: u.rem(8);
 
-  &__logo {
-    font-family: 'Vintage';
-    font-weight: normal;
-    color: var(--P300);
+  .navbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: u.rem(24);
+    width: min(70%, 1000px);
+
+    @include u.breakpoint(medium) {
+      justify-content: space-between;
+    }
+
+    &__logo {
+      // This is temporary because the logo is gonna be an image in the future
+      font-family: 'Vintage';
+      font-size: u.rem(35);
+      font-weight: normal;
+      color: var(--P300);
+    }
   }
 }

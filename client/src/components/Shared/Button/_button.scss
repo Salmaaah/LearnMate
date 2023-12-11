@@ -1,24 +1,26 @@
 @use '../../../styles/util/' as u;
 
 .button {
+  border-radius: u.rem(20);
+  border-style: none;
+
   display: flex;
   justify-content: center;
   align-items: center;
-
-  font-family: 'Nunito';
-  font-size: u.rem(15);
-  font-weight: 800;
-
-  // width: u.rem(329);
-  border-radius: u.rem(20);
-  border-style: none;
 
   padding: u.rem(7) u.rem(50);
   gap: u.rem(10);
   flex-shrink: 0;
 
+  font-family: 'Nunito';
+  font-size: u.rem(15);
+  font-weight: 700;
+
+  transition: color 200ms ease-in-out;
+  cursor: pointer;
+
   &__icon {
-    height: u.rem(12);
+    height: u.rem(11.5);
   }
 
   &__primary {
@@ -40,6 +42,7 @@
       color: var(--M50);
       /* Small Button/Sharp Muted Shadow */
       box-shadow: 0 u.rem(4) 0 0 var(--M300);
+      cursor: default;
     }
   }
 
