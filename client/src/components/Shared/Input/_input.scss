@@ -68,17 +68,18 @@
 
   .errorContainer {
     display: flex;
-    align-items: center;
     gap: u.rem(7);
 
     &__message {
       color: var(--S_RED);
       font-size: u.rem(13);
       font-weight: 700;
+      text-align: start;
     }
 
     &__icon {
       height: u.rem(13);
+      padding-top: u.rem(4);
     }
   }
 }
