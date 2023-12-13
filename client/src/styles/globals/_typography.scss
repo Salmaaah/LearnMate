@@ -1,8 +1,9 @@
 @use '../util' as u;
 
 // Font sizes
-$font-lg: u.rem(28);
-$font-md: u.rem(18);
+$font-xl: u.rem(28);
+$font-lg: u.rem(22);
+$font-md: u.rem(16);
 $font-sm: u.rem(15);
 $font-xs: u.rem(13);
 
@@ -16,6 +17,12 @@ h3 {
 
 h1 {
   font-size: clamp(u.rem(28), u.rem(16) + 2vw, u.rem(40));
+}
+h2 {
+  font-size: clamp(u.rem(22), u.rem(13) + 1.6vw, u.rem(31));
+}
+h3 {
+  font-size: u.rem(16), u.rem(10) + 1.2vw, u.rem(22);
 }
 
 p {

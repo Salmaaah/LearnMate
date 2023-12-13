@@ -1,0 +1,74 @@
+@use '../../styles/util/' as u;
+
+.footer {
+  background-color: var(--P300);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: u.rem(60);
+  padding-block: u.rem(60);
+
+  &__links {
+    display: flex;
+    justify-content: center;
+    gap: u.rem(10);
+
+    section {
+      width: u.rem(135);
+    }
+
+    h3 {
+      font-size: u.rem(15);
+      font-weight: 700;
+      color: var(--M100);
+      padding-bottom: u.rem(12);
+    }
+
+    ul {
+      font-size: u.rem(13);
+
+      // Reset default list styles
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+
+      li {
+        padding-bottom: u.rem(10);
+      }
+
+      a {
+        font-weight: 600;
+        color: var(--P75);
+      }
+    }
+  }
+
+  &__brand {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: u.rem(9);
+    font-size: u.rem(13);
+    color: var(--P100);
+  }
+
+  &__logo {
+    // This is temporary because the logo is gonna be an image in the future
+    font-family: 'Vintage';
+    font-size: u.rem(35);
+    color: var(--P75);
+  }
+
+  &__socials {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: u.rem(10);
+
+    img {
+      fill: var(--P75);
+      height: u.rem(16);
+    }
+  }
+}

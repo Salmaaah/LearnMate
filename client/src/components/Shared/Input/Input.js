@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import PropTypes from 'prop-types';
 import deleteIcon from '../../../assets/icons/delete.svg';
 import viewIcon from '../../../assets/icons/view.svg';
 import hideIcon from '../../../assets/icons/hide.svg';
@@ -71,6 +72,21 @@ const Input = ({ label, name, type, value, onChange, onBlur, error }) => {
       )}
     </div>
   );
+};
+
+Input.defaultProps = {
+  type: 'text',
+  error: '',
+};
+
+Input.propTypes = {
+  label: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  type: PropTypes.oneOf(['text', 'email', 'password']),
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onBlur: PropTypes.func.isRequired,
+  error: PropTypes.string,
 };
 
 export default Input;

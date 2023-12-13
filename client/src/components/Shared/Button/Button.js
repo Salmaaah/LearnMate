@@ -1,24 +1,42 @@
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 
-const Button = ({ label, type, style, disabled, icon_l, icon_r }) => {
-  return (
-    <button className={`button__${style}`} type={type} disabled={disabled}>
-      {icon_l && <img className="button__icon" src={icon_l} alt="" />}
-      <div>{label}</div>
-      {icon_r && <img className="button__icon" src={icon_r} alt="" />}
-    </button>
-  );
+const Button = ({ type, to, label, style, disabled, icon_l, icon_r }) => {
+  if (to) {
+    return (
+      <Link to={to}>
+        <button className={`button__${style}`} disabled={disabled}>
+          {icon_l && <img className="button__icon" src={icon_l} alt="" />}
+          <div>{label}</div>
+          {icon_r && <img className="button__icon" src={icon_r} alt="" />}
+        </button>
+      </Link>
+    );
+  } else {
+    return (
+      <button className={`button__${style}`} type={type} disabled={disabled}>
+        {icon_l && <img className="button__icon" src={icon_l} alt="" />}
+        <div>{label}</div>
+        {icon_r && <img className="button__icon" src={icon_r} alt="" />}
+      </button>
+    );
+  }
 };
 
 Button.defaultProps = {
-  label: 'label',
+  type: 'button',
   style: 'primary',
+  disabled: false,
 };
 
 Button.propTypes = {
+  type: PropTypes.oneOf(['button', 'reset', 'submit']),
+  to: PropTypes.string,
   label: PropTypes.string.isRequired,
-  type: PropTypes.string.isRequired,
   style: PropTypes.string,
+  disabled: PropTypes.bool,
+  icon_l: PropTypes.string,
+  icon_r: PropTypes.string,
 };
 
 export default Button;

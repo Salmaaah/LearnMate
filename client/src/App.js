@@ -1,14 +1,14 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Welcome from './pages/Welcome/Welcome';
 import Signup from './pages/Signup/Signup';
 import Login from './pages/Login/Login';
-import Input from './components/Shared/Input/Input';
 
 function App() {
   return (
     <Router>
       <div>
         <Routes>
-          <Route path="/" element={<Input type="password" />} />
+          <Route path="/" element={<Welcome />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
         </Routes>

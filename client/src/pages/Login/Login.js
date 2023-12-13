@@ -2,10 +2,11 @@ import useForm from '../../hooks/useForm';
 import Input from '../../components/Shared/Input/Input';
 import Button from '../../components/Shared/Button/Button';
 import Header from '../../components/Header/Header';
-import googleIcon from '../../assets/icons/google.png';
-import appleIcon from '../../assets/icons/apple.svg';
+import googleIcon from '../../assets/brandLogos/google.png';
+import appleIcon from '../../assets/brandLogos/apple.svg';
 // import Form from '../../components/Shared/Form/Form';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const Login = () => {
   const initialValues = {
@@ -43,7 +44,7 @@ const Login = () => {
 
   return (
     <div>
-      <Header cta="Sign up" />
+      <Header to="/signup" cta="Sign up" />
       <main className="formContainer">
         <form className="form" onSubmit={handleSubmit}>
           <h1>Log in</h1>
@@ -91,11 +92,11 @@ const Login = () => {
           />
           <p className="form__disclaimer">
             By signing in to LearnMate, you acknowledge that you have read and
-            understood, and agree to our <a href="#">Terms & Conditions</a> and{' '}
-            <a href="#">Privacy Policy</a>.
+            understood, and agree to our <Link to="/">Terms & Conditions</Link>{' '}
+            and <Link to="/">Privacy Policy</Link>.
           </p>
           <div className="form__cta">
-            Don't have an account? <a href="#">SIGN UP</a>
+            Don't have an account? <Link to="/signup">SIGN UP</Link>
           </div>
         </form>
       </main>

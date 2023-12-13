@@ -1,26 +1,24 @@
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 import Button from '../Shared/Button/Button';
 
-const Header = ({ cta }) => {
+const Header = ({ to, cta }) => {
   return (
-    <div className="navbarContainer">
+    <header className="navbarContainer">
       <nav className="navbar">
-        <a className="navbar__logo" href="/">
+        <Link className="navbar__logo" to="/">
           LearnMate
-        </a>
+        </Link>
         <div className="hide-for-mobile">
-          <Button label={cta} type="button" style="secondary" />
+          <Button to={to} label={cta} style="secondary" />
         </div>
       </nav>
-    </div>
+    </header>
   );
 };
 
-Header.defaultProps = {
-  cta: 'Log in',
-};
-
 Header.propTypes = {
+  to: PropTypes.string,
   cta: PropTypes.string.isRequired,
 };
 
