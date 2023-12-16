@@ -1,0 +1,10 @@
+@use '../../styles/util/' as u;
+
+.dashboard {
+  display: flex;
+  background-color: var(--M50);
+
+  main {
+    margin-right: u.rem(30);
+  }
+}

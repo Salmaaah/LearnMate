@@ -1,4 +1,5 @@
 @use '../../styles/util/' as u;
+@use '../../styles/globals/' as g;
 
 .footer {
   background-color: var(--P300);
@@ -26,11 +27,6 @@
 
     ul {
       font-size: u.rem(13);
-
-      // Reset default list styles
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
 
       li {
         padding-bottom: u.rem(10);
@@ -67,7 +63,7 @@
     gap: u.rem(10);
 
     img {
-      fill: var(--P75);
+      filter: g.$M100;
       height: u.rem(16);
     }
   }

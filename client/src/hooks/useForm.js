@@ -4,6 +4,7 @@ const useForm = (initialValues, validationFunctions, submitCallback) => {
   const [formData, setFormData] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isFormSubmitted, setFormSubmitted] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,6 +28,7 @@ const useForm = (initialValues, validationFunctions, submitCallback) => {
     try {
       await submitCallback(formData);
       setFormData(initialValues); // Reset form and loading state upon successful signup/login
+      setFormSubmitted(true);
     } catch (error) {
       if (
         error.response &&
@@ -50,6 +52,7 @@ const useForm = (initialValues, validationFunctions, submitCallback) => {
     formData,
     errors,
     isLoading,
+    isFormSubmitted,
     handleChange,
     handleBlur,
     handleSubmit,

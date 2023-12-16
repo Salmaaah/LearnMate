@@ -61,7 +61,11 @@ const Input = ({ label, name, type, value, onChange, onBlur, error }) => {
           onBlur={handleOnBlur}
         />
         {displayIcon && (
-          <img className="input__icon" {...iconAttributes} alt="" />
+          <img
+            className={`input__icon ${isPassword ? 'purple' : 'muted'}`}
+            {...iconAttributes}
+            alt=""
+          />
         )}
       </div>
       {error && (

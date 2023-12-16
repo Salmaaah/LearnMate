@@ -1,4 +1,5 @@
 @use '../../../styles/util/' as u;
+@use '../../../styles/globals/' as g;
 
 .inputContainer {
   align-self: stretch;
@@ -63,6 +64,14 @@
     &__icon {
       height: u.rem(15);
       cursor: pointer;
+
+      &.muted {
+        filter: g.$M100;
+      }
+
+      &.purple {
+        filter: g.$P300;
+      }
     }
   }
 
@@ -80,6 +89,7 @@
     &__icon {
       height: u.rem(13);
       padding-top: u.rem(4);
+      filter: g.$S_RED;
     }
   }
 }

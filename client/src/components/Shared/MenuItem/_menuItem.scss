@@ -1,0 +1,106 @@
+@use '../../../styles/util' as u;
+@use '../../../styles/globals' as g;
+
+.hidden {
+  display: none;
+  animation: fade-out 1s;
+}
+
+.visible {
+  display: flex; // this is a temporary fix for the span issue (span's display doesn't gets overwritten by hidden class so it stays visible, that's why I commented out the span's display and palced it here instead)
+  animation: fade-in 1s;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.menuItem {
+  border-radius: u.rem(10);
+  padding: u.rem(10) u.rem(15);
+  display: flex;
+  gap: u.rem(20);
+  transition: color, background-color 100ms ease-in-out;
+  position: relative;
+
+  svg {
+    width: u.rem(18);
+    height: auto;
+    flex-shrink: 0;
+    > path {
+      stroke: var(--M400);
+    }
+  }
+
+  span {
+    width: 100%;
+    // display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  div {
+    overflow: hidden;
+    font-size: u.rem(16);
+    color: var(--M400);
+  }
+
+  span > svg {
+    height: u.rem(10);
+    width: auto;
+    margin-left: u.rem(20);
+  }
+
+  &.active {
+    // &::before {
+    //   content: '';
+    //   position: absolute;
+    //   top: 15%;
+    //   left: 1px;
+    //   height: 70%;
+    //   width: 3px;
+    //   background-color: var(--P300);
+    // }
+
+    svg > path {
+      // this will affect both the left icon and more icon
+      stroke: var(--P300);
+    }
+
+    > svg > path {
+      // this will affect the left icon only
+      stroke-width: 13;
+    }
+
+    div {
+      color: var(--P300);
+      font-weight: 500;
+    }
+  }
+
+  &:hover {
+    background-color: var(--M50);
+
+    svg > path {
+      stroke: var(--P300);
+    }
+
+    div {
+      color: var(--P300);
+    }
+  }
+}

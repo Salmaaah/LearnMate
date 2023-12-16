@@ -1,0 +1,23 @@
+@use '../../../styles/util/' as u;
+
+.navItem {
+  width: u.rem(45);
+  height: u.rem(45);
+  background-color: var(--M300);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 200ms ease-in-out;
+
+  > svg {
+    height: u.rem(18);
+    > path {
+      stroke: var(--P50);
+    }
+  }
+
+  &:hover {
+    filter: brightness(120%);
+  }
+}

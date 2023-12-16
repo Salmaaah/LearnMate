@@ -35,3 +35,10 @@ a:visited,
 a:active {
   text-decoration: none;
 }
+
+ul {
+  // Reset default list styles
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}

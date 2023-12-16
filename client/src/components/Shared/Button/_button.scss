@@ -10,16 +10,19 @@
 
   padding: u.rem(7) u.rem(50);
   gap: u.rem(10);
-  flex-shrink: 0;
 
   font-family: 'Nunito';
   font-size: u.rem(15);
   font-weight: 700;
 
-  transition: color 200ms ease-in-out;
+  transition: background-color 200ms ease-in-out;
   cursor: pointer;
 
-  &__icon {
+  // &__icon {
+  //   height: u.rem(11.5);
+  // }
+  > svg {
+    width: u.rem(11.5);
     height: u.rem(11.5);
   }
 

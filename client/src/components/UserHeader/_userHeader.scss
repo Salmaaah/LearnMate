@@ -1,0 +1,25 @@
+@use '../../styles/util/' as u;
+
+.userHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-block: u.rem(28);
+
+  &__nav {
+    display: flex;
+    gap: u.rem(15);
+  }
+}
+
+.dropdown {
+  position: absolute;
+  top: 80px;
+  right: 30px;
+  width: 300px;
+  background-color: var(--background-color);
+  border: u.rem(1.5) solid var(--M75);
+  border-radius: u.rem(10);
+  padding: u.rem(16);
+  overflow: hidden;
+}

@@ -1,0 +1,101 @@
+@use '../../styles/util/' as u;
+
+.sidebar {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+
+  .sidebarIcon {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: u.rem(30);
+    height: u.rem(30);
+    cursor: pointer;
+
+    span {
+      width: u.rem(4);
+      height: u.rem(12);
+      border-radius: u.rem(4);
+      background-color: var(--D100);
+      transition: all 300ms ease-in-out; // property, duration, function, delay
+
+      &:first-child {
+        position: relative;
+      }
+      &:last-child {
+        position: relative;
+        top: u.rem(-4);
+      }
+    }
+
+    &:hover {
+      span {
+        background-color: var(--P300);
+      }
+
+      &.collapse {
+        span:first-child {
+          transform: rotate(15deg);
+        }
+        span:last-child {
+          transform: rotate(-15deg);
+        }
+      }
+
+      &.expand {
+        span:first-child {
+          transform: rotate(-15deg);
+        }
+        span:last-child {
+          transform: rotate(15deg);
+        }
+      }
+    }
+  }
+
+  .menu {
+    background-color: var(--background-color);
+    width: fit-content;
+    height: 100vh;
+    padding-block: u.rem(28);
+    display: flex;
+    flex-direction: column;
+    gap: u.rem(40);
+
+    transition: all 300ms ease-in-out;
+
+    &.collapsed {
+      border-right: u.rem(1.5) solid var(--M75);
+      padding-inline: u.rem(10);
+      align-items: center;
+    }
+
+    &.expanded {
+      padding-inline: u.rem(50);
+      box-shadow: 0 0 u.rem(30) 0 var(--D75);
+    }
+
+    &.overlay {
+      filter: brightness(85%);
+    }
+
+    &__logo {
+      // This is temporary because the logo is gonna be an image in the future
+      display: flex;
+      align-items: center;
+      gap: u.rem(10);
+      font-family: 'Vintage';
+      font-size: u.rem(28);
+      font-weight: normal;
+      color: var(--P300);
+    }
+
+    &__items {
+      display: flex;
+      flex-direction: column;
+      gap: u.rem(10);
+    }
+  }
+}

@@ -6,18 +6,18 @@ const Button = ({ type, to, label, style, disabled, icon_l, icon_r }) => {
     return (
       <Link to={to}>
         <button className={`button__${style}`} disabled={disabled}>
-          {icon_l && <img className="button__icon" src={icon_l} alt="" />}
+          {icon_l}
           <div>{label}</div>
-          {icon_r && <img className="button__icon" src={icon_r} alt="" />}
+          {icon_r}
         </button>
       </Link>
     );
   } else {
     return (
       <button className={`button__${style}`} type={type} disabled={disabled}>
-        {icon_l && <img className="button__icon" src={icon_l} alt="" />}
+        {icon_l}
         <div>{label}</div>
-        {icon_r && <img className="button__icon" src={icon_r} alt="" />}
+        {icon_r}
       </button>
     );
   }
@@ -35,8 +35,8 @@ Button.propTypes = {
   label: PropTypes.string.isRequired,
   style: PropTypes.string,
   disabled: PropTypes.bool,
-  icon_l: PropTypes.string,
-  icon_r: PropTypes.string,
+  // icon_l: PropTypes.string,
+  // icon_r: PropTypes.string,
 };
 
 export default Button;

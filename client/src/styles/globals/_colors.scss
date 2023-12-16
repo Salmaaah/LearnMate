@@ -12,7 +12,7 @@
 
   // Muted
   --M50: hsl(252, 26%, 96%);
-  --M75: hsl(257, 23%, 85%);
+  --M75: hsl(257, 24%, 85%);
   --M100: hsl(254, 23%, 79%);
   --M200: hsl(254, 22%, 69%);
   --M300: hsl(254, 23%, 63%);
@@ -21,7 +21,7 @@
 
   // Dark
   --D50: hsl(260, 8%, 92%);
-  --D75: hsl(255, 7%, 68%);
+  --D75: hsl(256, 7%, 68%);
   --D100: hsl(251, 7%, 55%);
   --D200: hsl(253, 13%, 36%);
   --D300: hsl(252, 25%, 23%);
@@ -35,3 +35,27 @@
   --S_GREEN: hsl(165, 100%, 34%);
   --S_BLUE: hsl(199, 100%, 44%);
 }
+
+// SVG filters
+
+// Purple
+$P100: invert(48%) sepia(58%) saturate(627%) hue-rotate(220deg) brightness(94%)
+  contrast(105%);
+$P200: invert(28%) sepia(86%) saturate(7221%) hue-rotate(264deg) brightness(95%)
+  contrast(98%);
+$P300: invert(19%) sepia(89%) saturate(7476%) hue-rotate(267deg) brightness(83%)
+  contrast(128%);
+
+// Muted
+$M100: invert(83%) sepia(23%) saturate(187%) hue-rotate(214deg) brightness(90%)
+  contrast(89%);
+$M400: invert(42%) sepia(18%) saturate(513%) hue-rotate(212deg) brightness(89%)
+  contrast(92%);
+
+// Dark
+$D500: invert(8%) sepia(39%) saturate(669%) hue-rotate(213deg) brightness(100%)
+  contrast(94%);
+
+// Semantic
+$S_RED: invert(8%) sepia(95%) saturate(6752%) hue-rotate(350deg) brightness(97%)
+  contrast(104%);

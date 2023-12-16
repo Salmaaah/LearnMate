@@ -2,11 +2,11 @@ import useForm from '../../hooks/useForm';
 import Input from '../../components/Shared/Input/Input';
 import Button from '../../components/Shared/Button/Button';
 import Header from '../../components/Header/Header';
-import googleIcon from '../../assets/brandLogos/google.png';
-import appleIcon from '../../assets/brandLogos/apple.svg';
+import { ReactComponent as AppleIcon } from '../../assets/brandLogos/apple.svg';
+import { ReactComponent as GoogleIcon } from '../../assets/brandLogos/google.svg';
 // import Form from '../../components/Shared/Form/Form';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 
 const Login = () => {
   const initialValues = {
@@ -37,6 +37,7 @@ const Login = () => {
     formData,
     errors,
     isLoading,
+    isFormSubmitted,
     handleChange,
     handleBlur,
     handleSubmit,
@@ -44,6 +45,7 @@ const Login = () => {
 
   return (
     <div>
+      {isFormSubmitted && <Navigate to="/dashboard" replace={true} />}
       <Header to="/signup" cta="Sign up" />
       <main className="formContainer">
         <form className="form" onSubmit={handleSubmit}>
@@ -82,13 +84,13 @@ const Login = () => {
             label="Continue with Google"
             type="submit"
             style="secondary"
-            icon_l={googleIcon}
+            icon_l={<GoogleIcon />}
           />
           <Button
             label="Continue with apple"
             type="submit"
             style="secondary"
-            icon_l={appleIcon}
+            icon_l={<AppleIcon />}
           />
           <p className="form__disclaimer">
             By signing in to LearnMate, you acknowledge that you have read and
