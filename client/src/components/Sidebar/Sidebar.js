@@ -29,41 +29,43 @@ const Menu = () => {
         <ul className="menu__items">
           <MenuItem
             to="/dashboard"
-            currentLocation={location}
+            location={location}
             icon={<HomeIcon />}
             label="Dashboard"
-            // more={true}
             expanded={isExpanded}
           />
           <MenuItem
             to="/"
-            currentLocation={location}
+            location={location}
             icon={<FilesIcon />}
             label="Courses"
             expanded={isExpanded}
           />
           <MenuItem
             to="/"
-            currentLocation={location}
+            location={location}
             icon={<NotesIcon />}
             label="Notebook"
             expanded={isExpanded}
           />
           <MenuItem
             to="/"
-            currentLocation={location}
+            location={location}
             icon={<TodoIcon />}
             label="To do"
             expanded={isExpanded}
           />
           <MenuItem
-            to="/"
-            currentLocation={location}
             icon={<MindmapIcon />}
             label="Mind maps"
             more={true}
             expanded={isExpanded}
-          />
+          >
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam,
+            quia exercitationem sed tempora, eaque rem delectus iusto
+            voluptatibus, id temporibus ab cupiditate! Recusandae architecto est
+            dolorum eos nesciunt assumenda minus!
+          </MenuItem>
         </ul>
         <div className="menu__footer"></div>
       </nav>

@@ -3,7 +3,7 @@ import { useState } from 'react';
 const useForm = (initialValues, validationFunctions, submitCallback) => {
   const [formData, setFormData] = useState(initialValues);
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormSubmitted, setFormSubmitted] = useState(false);
 
   const handleChange = (e) => {
@@ -23,11 +23,11 @@ const useForm = (initialValues, validationFunctions, submitCallback) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent the default form submission behavior
-    setIsLoading(true); // Set loading state to true when the form is being submitted
+    setIsSubmitting(true); // Set submitting state to true when the form is being submitted
 
     try {
       await submitCallback(formData);
-      setFormData(initialValues); // Reset form and loading state upon successful signup/login
+      setFormData(initialValues); // Reset form and submitting state upon successful signup/login
       setFormSubmitted(true);
     } catch (error) {
       if (
@@ -44,14 +44,14 @@ const useForm = (initialValues, validationFunctions, submitCallback) => {
         console.error('Error signing up/logging in:', error.message);
       }
     } finally {
-      setIsLoading(false); // Reset loading state regardless of success or failure
+      setIsSubmitting(false); // Reset submitting state regardless of success or failure
     }
   };
 
   return {
     formData,
     errors,
-    isLoading,
+    isSubmitting,
     isFormSubmitted,
     handleChange,
     handleBlur,

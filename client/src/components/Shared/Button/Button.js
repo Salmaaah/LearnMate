@@ -16,7 +16,13 @@ const Button = ({ type, to, label, style, disabled, icon_l, icon_r }) => {
     return (
       <button className={`button__${style}`} type={type} disabled={disabled}>
         {icon_l}
-        <div>{label}</div>
+        {label === '...' ? (
+          <div className="button__loading">
+            <span className="dot-flashing"></span>
+          </div>
+        ) : (
+          <div>{label}</div>
+        )}
         {icon_r}
       </button>
     );

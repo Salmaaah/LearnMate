@@ -9,19 +9,10 @@ const Welcome = () => {
   return (
     <div>
       <Header to="/login" cta="Log in">
-        <MenuItem to="/work" currentLocation={location} label="Work" />
-        <MenuItem to="/projects" currentLocation={location} label="Projects" />
-        <MenuItem
-          to="/"
-          currentLocation={location}
-          label="Pricing"
-          more={true}
-        />
-        <MenuItem
-          to="/solutions"
-          currentLocation={location}
-          label="Solutions"
-        />
+        <MenuItem to="/work" location={location} label="Work" />
+        <MenuItem to="/projects" location={location} label="Projects" />
+        <MenuItem to="/" location={location} label="Pricing" more={true} />
+        <MenuItem to="/solutions" location={location} label="Solutions" />
       </Header>
       <Footer />
     </div>

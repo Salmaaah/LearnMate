@@ -1,3 +1,4 @@
+import useUserAccess from '../../hooks/useUserAccess';
 import useForm from '../../hooks/useForm';
 import Input from '../../components/Shared/Input/Input';
 import Button from '../../components/Shared/Button/Button';
@@ -9,6 +10,8 @@ import axios from 'axios';
 import { Link, Navigate } from 'react-router-dom';
 
 const Login = () => {
+  const { isLoading } = useUserAccess('/login');
+
   const initialValues = {
     identifier: '',
     password: '',
@@ -27,7 +30,7 @@ const Login = () => {
   const submitCallback = async (formData) => {
     try {
       const response = await axios.post('/login', formData);
-      console.log('User logged in successfully:', response.data);
+      console.log(response.data.message);
     } catch (error) {
       throw error; // Propagate the error to be handled in the catch block of the form's handleSubmit
     }
@@ -36,7 +39,7 @@ const Login = () => {
   const {
     formData,
     errors,
-    isLoading,
+    isSubmitting,
     isFormSubmitted,
     handleChange,
     handleBlur,
@@ -47,61 +50,66 @@ const Login = () => {
     <div>
       {isFormSubmitted && <Navigate to="/dashboard" replace={true} />}
       <Header to="/signup" cta="Sign up" />
-      <main className="formContainer">
-        <form className="form" onSubmit={handleSubmit}>
-          <h1>Log in</h1>
-          <div className="form__fields">
-            <Input
-              label="Username or email"
-              type="text"
-              name="identifier"
-              value={formData.identifier}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.identifier}
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : (
+        <main className="formContainer">
+          <form className="form" onSubmit={handleSubmit}>
+            <h1>Log in</h1>
+            <div className="form__fields">
+              <Input
+                label="Username or email"
+                type="text"
+                name="identifier"
+                value={formData.identifier}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={errors.identifier}
+              />
+              <Input
+                label="Password"
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={errors.password}
+              />
+            </div>
+            <Button
+              label={isSubmitting ? '...' : 'Log in'}
+              type="submit"
+              disabled={isSubmitting}
             />
-            <Input
-              label="Password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.password}
+            <div className="form__divider">
+              <span></span>
+              <p>OR</p>
+              <span></span>
+            </div>
+            <Button
+              label="Continue with Google"
+              type="submit"
+              style="secondary"
+              icon_l={<GoogleIcon />}
             />
-          </div>
-          <Button
-            label={isLoading ? '...' : 'Log in'}
-            type="submit"
-            disabled={isLoading}
-          />
-          <div className="form__divider">
-            <span></span>
-            <p>OR</p>
-            <span></span>
-          </div>
-          <Button
-            label="Continue with Google"
-            type="submit"
-            style="secondary"
-            icon_l={<GoogleIcon />}
-          />
-          <Button
-            label="Continue with apple"
-            type="submit"
-            style="secondary"
-            icon_l={<AppleIcon />}
-          />
-          <p className="form__disclaimer">
-            By signing in to LearnMate, you acknowledge that you have read and
-            understood, and agree to our <Link to="/">Terms & Conditions</Link>{' '}
-            and <Link to="/">Privacy Policy</Link>.
-          </p>
-          <div className="form__cta">
-            Don't have an account? <Link to="/signup">SIGN UP</Link>
-          </div>
-        </form>
-      </main>
+            <Button
+              label="Continue with apple"
+              type="submit"
+              style="secondary"
+              icon_l={<AppleIcon />}
+            />
+            <p className="form__disclaimer">
+              By signing in to LearnMate, you acknowledge that you have read and
+              understood, and agree to our{' '}
+              <Link to="/">Terms & Conditions</Link> and{' '}
+              <Link to="/">Privacy Policy</Link>.
+            </p>
+            <div className="form__cta">
+              Don't have an account? <Link to="/signup">SIGN UP</Link>
+            </div>
+          </form>
+        </main>
+      )}
     </div>
   );
 };

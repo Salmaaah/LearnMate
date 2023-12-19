@@ -1,11 +1,11 @@
-from flask import Flask, redirect, render_template, session, request, jsonify
+from flask import Flask, session, request, jsonify
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from validator_collection import is_email
 from models import db, User
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_
-from helpers import login_required
+from helpers import login_required, logout_required
 
 
 # Configure application
@@ -32,96 +32,110 @@ def index():
     return "Index"
 
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
+@logout_required
 def login():
     """User login"""
+
+    if request.method == "POST":
+        data = request.json
+        identifier = data.get("identifier").strip().lower()
+        password = data.get("password")
+
+        # Server-side validation
+        errors = {}
+
+        is_username = "@" not in identifier
+        is_email = "@" in identifier
+
+        filter_criteria = or_(User.username == identifier if is_username else False, User.email == identifier if is_email else False)
+        user = User.query.filter(filter_criteria).first()
+
+        if not identifier:
+            errors["identifier"] = "Invalid username. Please try again." if is_username else "Invalid email address. Please try again."
+
+        elif user is None:
+            errors["identifier"] = f"There is no LearnMate account associated with {identifier}. Please try again."
+
+        elif len(password) < 8 or not check_password_hash(user.password, password):
+            errors["password"] = "Incorrect password. Please try again."
+
+        if errors:
+            return jsonify({"message": "Validation failed", "errors": errors}), 400
+
+        # Login successful
+        session["user_id"] = user.id
+
+        user_info = {
+            "username": user.username,
+            "email": user.email,
+        }
+
+        return jsonify({"message": "Login successful", "user": user_info}), 200
     
-    # Forget any user_id
-    session.clear()
-
-    data = request.json
-
-    identifier = data.get("identifier").strip().lower()
-    password = data.get("password")
-
-    # Server-side validation
-    errors = {}
-
-    is_username = "@" not in identifier
-    is_email = "@" in identifier
-
-    filter_criteria = or_(User.username == identifier if is_username else False, User.email == identifier if is_email else False)
-    user = User.query.filter(filter_criteria).first()
-
-    if not identifier:
-        errors["identifier"] = "Invalid username. Please try again." if is_username else "Invalid email address. Please try again."
-
-    elif user is None:
-        errors["identifier"] = f"There is no LearnMate account associated with {identifier}. Please try again."
-
-    elif len(password) < 8 or not check_password_hash(user.password, password):
-        errors["password"] = "Incorrect password. Please try again."
-
-    if errors:
-        return jsonify({"message": "Validation failed", "errors": errors}), 400
-
-    # Login successful
-    session["user_id"] = user.id
-
-    return jsonify({"message": "Login successful"}), 200
+    return jsonify({"message": "Login page loaded successfully"}), 200
 
 
-@app.route("/signup", methods=["POST"])
+@app.route("/signup", methods=["GET", "POST"])
+@logout_required
 def signup():
     """Create new user account"""
-    data = request.json
 
-    username = data.get("username").strip().lower()
-    email = data.get("email").strip().lower()
-    password = data.get("password")
-    confirmPassword = data.get("confirmPassword")
+    if request.method == "POST":
+        data = request.json
+        username = data.get("username").strip().lower()
+        email = data.get("email").strip().lower()
+        password = data.get("password")
+        confirmPassword = data.get("confirmPassword")
 
-    # Server-side validation
-    errors = {}
+        # Server-side validation
+        errors = {}
 
-    if not username or len(username) < 5:
-        errors["username"] = "Username must be at least 5 characters long."
+        if not username or len(username) < 5:
+            errors["username"] = "Username must be at least 5 characters long."
 
-    if not email or not is_email(email):
-        errors["email"] = "Invalid email format."
+        if not email or not is_email(email):
+            errors["email"] = "Invalid email format."
 
-    if not password or len(password) < 8:
-        errors["password"] = "Password must be at least 8 characters long."
+        if not password or len(password) < 8:
+            errors["password"] = "Password must be at least 8 characters long."
 
-    if not confirmPassword or password != confirmPassword:
-        errors["confirmPassword"] = "Passwords do not match."
+        if not confirmPassword or password != confirmPassword:
+            errors["confirmPassword"] = "Passwords do not match."
 
-    if errors:
-        return jsonify({"message": "Validation failed", "errors": errors}), 400
+        if errors:
+            return jsonify({"message": "Validation failed", "errors": errors}), 400
 
-    try:
-        # Add new user to database
-        new_user = User(username=username, email=email, password=generate_password_hash(password))
-        db.session.add(new_user)
-        db.session.commit()
+        try:
+            # Add new user to database
+            new_user = User(username=username, email=email, password=generate_password_hash(password))
+            db.session.add(new_user)
+            db.session.commit()
 
-        # Remember which user has logged in
-        session["user_id"] =  User.query.filter_by(username=username).first().id
+            # Remember which user has logged in
+            session["user_id"] =  User.query.filter_by(username=username).first().id
 
-        return jsonify({"message": "User created successfully"}), 201
-    
-    except IntegrityError as e:
-        db.session.rollback()
-        if "UNIQUE constraint failed: users.username" in str(e.orig):
-            errors["username"] = "Username already exists."
-            return jsonify({"message": str(e), "errors": errors}), 400
+            user_info = {
+                "username": username,
+                "email": email,
+            }
+
+            return jsonify({"message": "User created successfully", "user": user_info}), 201
         
-        elif "UNIQUE constraint failed: users.email" in str(e.orig):
-            errors["email"] = "Email already exists."
-            return jsonify({"message": str(e), "errors": errors}), 400
-        
-        else:
-            return jsonify({"message": str(e)}), 400    
+        except IntegrityError as e:
+            db.session.rollback()
+            if "UNIQUE constraint failed: users.username" in str(e.orig):
+                errors["username"] = "Username already exists."
+                return jsonify({"message": str(e), "errors": errors}), 400
+            
+            elif "UNIQUE constraint failed: users.email" in str(e.orig):
+                errors["email"] = "Email already exists."
+                return jsonify({"message": str(e), "errors": errors}), 400
+            
+            else:
+                return jsonify({"message": str(e)}), 400    
+            
+    return jsonify({"message": "Sign up page loaded successfully"}), 200
 
 
 @app.route("/dashboard")
@@ -129,19 +143,16 @@ def signup():
 def dashboard():
     """Show user dashboard"""
 
-    return "Dashboard"
+    return jsonify({"message": "Dashboard loaded successfully"}), 200
 
 
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 def logout():
     """Log user out"""
+    # Forget any user_id
+    session.clear()
 
-    return "log out"
-    # # Forget any user_id
-    # session.clear()
-
-    # # Redirect user to login form
-    # return redirect("/")
+    return jsonify({"message": "User logged out successfully"}), 200
 
 
 if __name__ == "__main__":

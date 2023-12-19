@@ -1,4 +1,5 @@
-import { useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { ReactComponent as NotificationIcon } from '../../assets/icons/notification.svg';
 import { ReactComponent as HomeIcon } from '../../assets/icons/home.svg';
 import { ReactComponent as FilesIcon } from '../../assets/icons/files.svg';
@@ -6,7 +7,23 @@ import NavItem from '../Shared/NavItem/NavItem';
 import MenuItem from '../Shared/MenuItem/MenuItem';
 
 const UserHeader = () => {
-  const location = useLocation().pathname;
+  const [isLogoutSuccess, setLogoutSuccess] = useState(false);
+
+  useEffect(() => {
+    // Redirect to the login page after successful logout
+    if (isLogoutSuccess) {
+      window.location.href = '/login'; // You can use react-router-dom for navigation instead
+    }
+  }, [isLogoutSuccess]);
+
+  const handleLogout = async () => {
+    try {
+      await axios.post('/logout');
+      setLogoutSuccess(true);
+    } catch (error) {
+      console.error('Error logging out:', error.message);
+    }
+  };
 
   return (
     <header className="userHeader">
@@ -14,22 +31,21 @@ const UserHeader = () => {
       <ul className="userHeader__nav">
         <NavItem icon={<NotificationIcon />} />
         <NavItem>
-          <div className="dropdown">
+          <ul className="dropdown">
+            <MenuItem to="/profile" icon={<HomeIcon />} label="Profile" />
             <MenuItem
-              to="/"
-              currentLocation={location}
-              icon={<HomeIcon />}
-              label="Dashboard"
-              more={true}
-            />
-            <MenuItem
-              to="/"
-              currentLocation={location}
+              to="/settings"
               icon={<FilesIcon />}
-              label="Courses"
+              label="Settings"
               more={true}
             />
-          </div>
+            <br />
+            <MenuItem
+              onClick={handleLogout}
+              icon={<FilesIcon />}
+              label="Log out"
+            />
+          </ul>
         </NavItem>
       </ul>
     </header>

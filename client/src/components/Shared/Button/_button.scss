@@ -18,9 +18,6 @@
   transition: background-color 200ms ease-in-out;
   cursor: pointer;
 
-  // &__icon {
-  //   height: u.rem(11.5);
-  // }
   > svg {
     width: u.rem(11.5);
     height: u.rem(11.5);
@@ -68,6 +65,59 @@
       color: var(--M75);
       /* Small Button/Sharp Muted Shadow */
       box-shadow: 0 u.rem(4) 0 0 var(--M100);
+    }
+  }
+
+  &__loading {
+    display: flex;
+    padding-block: u.rem(5.25);
+
+    .dot-flashing {
+      position: relative;
+      width: u.rem(10);
+      height: u.rem(10);
+      border-radius: 50%;
+      background-color: var(--M50);
+      animation: dot-flashing 1.2s infinite alternate;
+      animation-delay: 0.6s;
+    }
+
+    .dot-flashing::before,
+    .dot-flashing::after {
+      content: '';
+      display: inline-block;
+      position: absolute;
+      top: 0;
+    }
+
+    .dot-flashing::before {
+      left: -15px;
+      width: u.rem(10);
+      height: u.rem(10);
+      border-radius: 50%;
+      background-color: var(--M50);
+      animation: dot-flashing 1.2s infinite alternate;
+      animation-delay: 0s;
+    }
+
+    .dot-flashing::after {
+      left: 15px;
+      width: u.rem(10);
+      height: u.rem(10);
+      border-radius: 50%;
+      background-color: var(--M50);
+      animation: dot-flashing 1.2s infinite alternate;
+      animation-delay: 1.2s;
+    }
+
+    @keyframes dot-flashing {
+      0% {
+        background-color: var(--M200);
+      }
+      50%,
+      100% {
+        background-color: var(--M50);
+      }
     }
   }
 }
