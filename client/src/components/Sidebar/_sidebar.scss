@@ -18,7 +18,7 @@
       width: u.rem(4);
       height: u.rem(12);
       border-radius: u.rem(4);
-      background-color: var(--D100);
+      background-color: var(--M100);
       transition: all 300ms ease-in-out; // property, duration, function, delay
 
       &:first-child {
@@ -73,7 +73,7 @@
     }
 
     &.expanded {
-      padding-inline: u.rem(50);
+      padding-inline: u.rem(40);
       box-shadow: 0 0 u.rem(30) 0 var(--D75);
     }
 
@@ -96,6 +96,10 @@
       display: flex;
       flex-direction: column;
       gap: u.rem(10);
+    }
+
+    &__footer {
+      margin-top: auto;
     }
   }
 }
