@@ -32,50 +32,6 @@ def index():
     return "Index"
 
 
-@app.route("/login", methods=["GET", "POST"])
-@logout_required
-def login():
-    """User login"""
-
-    if request.method == "POST":
-        data = request.json
-        identifier = data.get("identifier").strip().lower()
-        password = data.get("password")
-
-        # Server-side validation
-        errors = {}
-
-        is_username = "@" not in identifier
-        is_email = "@" in identifier
-
-        filter_criteria = or_(User.username == identifier if is_username else False, User.email == identifier if is_email else False)
-        user = User.query.filter(filter_criteria).first()
-
-        if not identifier:
-            errors["identifier"] = "Invalid username. Please try again." if is_username else "Invalid email address. Please try again."
-
-        elif user is None:
-            errors["identifier"] = f"There is no LearnMate account associated with {identifier}. Please try again."
-
-        elif len(password) < 8 or not check_password_hash(user.password, password):
-            errors["password"] = "Incorrect password. Please try again."
-
-        if errors:
-            return jsonify({"message": "Validation failed", "errors": errors}), 400
-
-        # Login successful
-        session["user_id"] = user.id
-
-        user_info = {
-            "username": user.username,
-            "email": user.email,
-        }
-
-        return jsonify({"message": "Login successful", "user": user_info}), 200
-    
-    return jsonify({"message": "Login page loaded successfully"}), 200
-
-
 @app.route("/signup", methods=["GET", "POST"])
 @logout_required
 def signup():
@@ -138,12 +94,48 @@ def signup():
     return jsonify({"message": "Sign up page loaded successfully"}), 200
 
 
-@app.route("/dashboard")
-@login_required
-def dashboard():
-    """Show user dashboard"""
+@app.route("/login", methods=["GET", "POST"])
+@logout_required
+def login():
+    """User login"""
 
-    return jsonify({"message": "Dashboard loaded successfully"}), 200
+    if request.method == "POST":
+        data = request.json
+        identifier = data.get("identifier").strip().lower()
+        password = data.get("password")
+
+        # Server-side validation
+        errors = {}
+
+        is_username = "@" not in identifier
+        is_email = "@" in identifier
+
+        filter_criteria = or_(User.username == identifier if is_username else False, User.email == identifier if is_email else False)
+        user = User.query.filter(filter_criteria).first()
+
+        if not identifier:
+            errors["identifier"] = "Invalid username. Please try again." if is_username else "Invalid email address. Please try again."
+
+        elif user is None:
+            errors["identifier"] = f"There is no LearnMate account associated with {identifier}. Please try again."
+
+        elif len(password) < 8 or not check_password_hash(user.password, password):
+            errors["password"] = "Incorrect password. Please try again."
+
+        if errors:
+            return jsonify({"message": "Validation failed", "errors": errors}), 400
+
+        # Login successful
+        session["user_id"] = user.id
+
+        user_info = {
+            "username": user.username,
+            "email": user.email,
+        }
+
+        return jsonify({"message": "Login successful", "user": user_info}), 200
+    
+    return jsonify({"message": "Login page loaded successfully"}), 200
 
 
 @app.route("/logout", methods=["POST"])
@@ -153,6 +145,38 @@ def logout():
     session.clear()
 
     return jsonify({"message": "User logged out successfully"}), 200
+
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    """Show user dashboard"""
+
+    return jsonify({"message": "Dashboard loaded successfully"}), 200
+
+
+# Mock data for suggestions
+suggestions_data = [
+    {"label": "Home", "link": "/", "favicon": ""},
+    {"label": "About Us", "link": "/about", "favicon": ""},
+    {"label": "Contact", "link": "/contact", "favicon": ""},
+    {"label": "Products", "link": "/products", "favicon": ""},
+    {"label": "Services", "link": "/services", "favicon": ""},
+]
+
+@app.route('/api/search', methods=['GET'])
+def search():
+    query = request.args.get('query', '').lower()
+
+    # Filter suggestions based on the query
+    filtered_suggestions = [
+        {"label": suggestion["label"], "link": suggestion["link"]}
+        for suggestion in suggestions_data
+        if query in suggestion["label"].lower()
+    ]
+
+    # Return the filtered suggestions
+    return jsonify({"items": filtered_suggestions})
 
 
 if __name__ == "__main__":

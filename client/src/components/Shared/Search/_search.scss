@@ -1,0 +1,84 @@
+@use '../../../styles/util/' as u;
+
+.search {
+  overflow: hidden;
+  width: u.rem(250);
+  height: fit-content;
+  border-radius: u.rem(20);
+  background-color: var(--background-color);
+  border: u.rem(1.5) solid var(--background-color);
+  display: flex;
+  flex-direction: column;
+  transition: all 200ms ease-in-out;
+
+  &:hover {
+    border-color: var(--M75);
+  }
+
+  &:focus-within {
+    border-color: var(--P75);
+    background-color: var(--background-color);
+  }
+
+  &.typing {
+    border: none;
+    box-shadow: hsla(0, 0%, 0%, 0.25) 0 u.rem(8) u.rem(10) 0;
+  }
+
+  &__field {
+    display: flex;
+    align-items: center;
+    padding: u.rem(5) u.rem(5);
+
+    button {
+      cursor: pointer;
+      flex-shrink: 0;
+      width: u.rem(25);
+      height: u.rem(25);
+      border-radius: 50%;
+      border: none;
+      background-color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      transition: all 200ms ease-in-out;
+
+      > svg {
+        height: u.rem(12);
+        width: auto;
+        > path {
+          stroke: var(--D200);
+          stroke-width: u.rem(13);
+        }
+      }
+
+      &:hover {
+        background-color: var(--M75);
+      }
+    }
+
+    input {
+      width: 100%;
+      font-family: 'Nunito';
+      font-size: u.rem(14);
+      font-weight: 600;
+
+      background: none;
+      border: none;
+      outline: none;
+
+      &::placeholder {
+        font-weight: 400;
+        color: var(--D200);
+      }
+    }
+  }
+
+  &__suggestions {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: u.rem(5);
+  }
+}
