@@ -15,7 +15,7 @@
   font-size: u.rem(15);
   font-weight: 700;
 
-  transition: background-color 200ms ease-in-out;
+  transition: all 200ms ease-in-out;
   cursor: pointer;
 
   > svg {
@@ -27,21 +27,24 @@
     @extend .button;
     background: var(--P300);
     color: white;
-    /* Small Button/Sharp Purple Shadow */
-    box-shadow: 0 u.rem(4) 0 0 var(--P400),
-      0 u.rem(4) u.rem(7.2) u.rem(5) var(--M100);
+    border-bottom: u.rem(4) solid var(--P400);
+    box-shadow: 0 u.rem(5) u.rem(8) 0 hsla(0, 0%, 0%, 0.25);
 
     &:hover {
-      @extend .button__primary;
       background: var(--P200);
     }
 
+    &:focus {
+      padding-bottom: u.rem(9);
+      border-bottom: u.rem(2) solid var(--P400);
+      box-shadow: 0 u.rem(2) u.rem(4) 0 hsla(0, 0%, 0%, 0.25);
+    }
+
     &:disabled {
-      @extend .button__primary;
       background: var(--M75);
       color: var(--M50);
-      /* Small Button/Sharp Muted Shadow */
-      box-shadow: 0 u.rem(4) 0 0 var(--M300);
+      border-bottom: u.rem(4) solid var(--M300);
+      box-shadow: 0 u.rem(5) u.rem(8) 0 hsla(0, 0%, 0%, 0.1);
       cursor: default;
     }
   }
@@ -50,17 +53,19 @@
     @extend .button;
     background: white;
     color: var(--P100);
-    /* Small Button/Simple Shadow */
     box-shadow: 0 u.rem(4) u.rem(4) 0 hsl(254, 23%, 79%),
       0 0 u.rem(2.7) u.rem(1) var(--M100);
 
     &:hover {
-      @extend .button__secondary;
       background: var(--P50);
     }
 
+    &:focus {
+      box-shadow: 0 u.rem(2) u.rem(3) 0 hsl(254, 23%, 79%),
+        0 0 u.rem(0.7) 0 var(--M100);
+    }
+
     &:disabled {
-      @extend .button__secondary;
       background: var(--M50);
       color: var(--M75);
       /* Small Button/Sharp Muted Shadow */
@@ -91,7 +96,7 @@
     }
 
     .dot-flashing::before {
-      left: -15px;
+      left: u.rem(-15);
       width: u.rem(10);
       height: u.rem(10);
       border-radius: 50%;
@@ -101,7 +106,7 @@
     }
 
     .dot-flashing::after {
-      left: 15px;
+      left: u.rem(15);
       width: u.rem(10);
       height: u.rem(10);
       border-radius: 50%;

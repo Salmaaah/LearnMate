@@ -1,4 +1,5 @@
 # .gitignore
 
-# Virtual environment
 flask-server/venv/
+flask-server/filetypes.py
+flask-server/instance/drop_tables.sql

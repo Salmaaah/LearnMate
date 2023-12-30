@@ -51,6 +51,7 @@
     border-radius: u.rem(10);
     padding: u.rem(16);
     overflow: hidden;
+    z-index: 100;
 
     &.br-tr {
       top: u.rem(37);

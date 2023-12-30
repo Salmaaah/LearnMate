@@ -69,9 +69,9 @@ const Input = ({ label, name, type, value, onChange, onBlur, error }) => {
         )}
       </div>
       {error && (
-        <div className="errorContainer">
-          <img className="errorContainer__icon" src={errorIcon} alt="" />
-          <span className="errorContainer__message">{error}</span>
+        <div className="inputError">
+          <img className="inputError__icon" src={errorIcon} alt="" />
+          <span className="inputError__message">{error}</span>
         </div>
       )}
     </div>

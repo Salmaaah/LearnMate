@@ -4,22 +4,28 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-block: u.rem(28);
+  padding-block: u.rem(14);
+
+  > h3 {
+    color: var(--P300);
+  }
+
+  &__centerSpace {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    flex: 1;
+    height: u.rem(38);
+
+    > div {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
 
   &__nav {
     display: flex;
     gap: u.rem(15);
   }
-}
-
-.dropdown {
-  position: absolute;
-  top: 80px;
-  right: 30px;
-  width: 300px;
-  background-color: var(--background-color);
-  border: u.rem(1.5) solid var(--M75);
-  border-radius: u.rem(10);
-  padding: u.rem(16);
-  overflow: hidden;
 }

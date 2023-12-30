@@ -186,6 +186,7 @@
 
   &__submenu {
     display: none;
+    z-index: 100;
   }
 
   // Tooltip with label when hovering over iconOnly menuitems

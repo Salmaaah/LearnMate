@@ -54,7 +54,7 @@ const Menu = () => {
             iconOnly={!isExpanded}
           />
           <MenuItem
-            to="/"
+            to="/courses"
             icon={<FilesIcon />}
             label="Courses"
             iconOnly={!isExpanded}
@@ -88,7 +88,7 @@ const Menu = () => {
         </ul>
         <ul className="menu__footer">
           <NavItem
-            icon={<img src={profilePicture} alt="Profile picture" />}
+            icon={<img src={profilePicture} alt="Profile avatar" />}
             label="Username"
             position={`${isExpanded ? 'tl-bl' : 'br-bl'}`}
           >

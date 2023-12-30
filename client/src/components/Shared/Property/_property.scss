@@ -1,0 +1,32 @@
+@use '../../../styles/util/' as u;
+
+.property {
+  width: fit-content;
+  margin: u.rem(1);
+  border-radius: u.rem(10);
+  display: flex;
+  align-items: center;
+  padding-inline: u.rem(10);
+  padding-block: u.rem(2);
+  gap: u.rem(10);
+  font-size: u.rem(13);
+  font-weight: 600;
+  text-wrap: nowrap;
+
+  > svg {
+    height: u.rem(8);
+    width: auto;
+  }
+
+  &.gray {
+    background-color: var(--D50);
+  }
+
+  &.purple {
+    background-color: var(--P50);
+  }
+
+  &.red {
+    background-color: var(--S_RED);
+  }
+}

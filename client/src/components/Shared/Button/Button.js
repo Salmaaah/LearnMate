@@ -41,8 +41,8 @@ Button.propTypes = {
   label: PropTypes.string.isRequired,
   style: PropTypes.string,
   disabled: PropTypes.bool,
-  // icon_l: PropTypes.string,
-  // icon_r: PropTypes.string,
+  icon_l: PropTypes.object,
+  icon_r: PropTypes.object,
 };
 
 export default Button;

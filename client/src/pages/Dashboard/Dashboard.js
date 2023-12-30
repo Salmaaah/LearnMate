@@ -12,7 +12,7 @@ const Dashboard = () => {
         <div>Loading...</div>
       ) : (
         <main>
-          <UserHeader />
+          <UserHeader pageName="Dashboard" />
           <div>
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad eius
             blanditiis maiores, facere voluptate hic. Assumenda repellat

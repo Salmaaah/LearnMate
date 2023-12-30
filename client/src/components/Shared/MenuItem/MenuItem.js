@@ -66,7 +66,7 @@ MenuItem.defaultProps = {
 
 MenuItem.propTypes = {
   to: PropTypes.string,
-  icon: PropTypes.string,
+  icon: PropTypes.object,
   label: PropTypes.string,
   iconOnly: PropTypes.bool,
   onClick: PropTypes.func,

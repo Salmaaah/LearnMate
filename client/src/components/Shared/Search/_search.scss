@@ -2,7 +2,7 @@
 
 .search {
   overflow: hidden;
-  width: u.rem(250);
+  width: u.rem(400);
   height: fit-content;
   border-radius: u.rem(20);
   background-color: var(--background-color);
@@ -22,7 +22,7 @@
 
   &.typing {
     border: none;
-    box-shadow: hsla(0, 0%, 0%, 0.25) 0 u.rem(8) u.rem(10) 0;
+    box-shadow: 0 u.rem(8) u.rem(10) 0 hsla(0, 0%, 0%, 0.15);
   }
 
   &__field {
