@@ -8,7 +8,7 @@ const NavItem = ({ children, icon, label, position }) => {
   const { isExpanded } = useSidebar(); // This will mess things up in cases where a navitem is not in a sidebar
   const navItemRef = useRef(null);
 
-  useOutsideClick(navItemRef, setOpen);
+  useOutsideClick(navItemRef, () => setOpen(false));
 
   return (
     <li className="navItem" ref={navItemRef}>

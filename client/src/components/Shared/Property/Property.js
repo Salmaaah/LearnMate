@@ -1,11 +1,11 @@
 import { ReactComponent as DeleteIcon } from '../../../assets/icons/delete_2.svg';
 import PropTypes from 'prop-types';
 
-const Property = ({ name, color, textOnly, onClick }) => {
+const Property = ({ name, color, textOnly, handleRemove }) => {
   return (
-    <li className={`property ${color}`} onClick={onClick}>
+    <li className="property" style={{ backgroundColor: color }}>
       <div>{name}</div>
-      {!textOnly && <DeleteIcon />}
+      {!textOnly && <DeleteIcon onClick={handleRemove} />}
     </li>
   );
 };
@@ -13,7 +13,7 @@ const Property = ({ name, color, textOnly, onClick }) => {
 export default Property;
 
 Property.defaultProps = {
-  color: 'gray',
+  color: '#eae9ec',
   textOnly: false,
 };
 

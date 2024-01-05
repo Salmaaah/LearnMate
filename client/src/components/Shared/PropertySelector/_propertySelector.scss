@@ -4,17 +4,16 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  padding-block: u.rem(5);
 
   transition: all 0.2s ease-in-out;
 
   &__header {
-    padding-inline: u.rem(15);
+    padding: u.rem(5) u.rem(15);
     display: flex;
     justify-content: space-between;
     gap: u.rem(30);
 
-    label {
+    > div {
       padding-block: u.rem(2);
       font-size: u.rem(13);
       font-weight: 600;
@@ -28,7 +27,8 @@
       align-items: center;
 
       > input {
-        width: u.rem(80);
+        width: u.rem(90);
+        padding: u.rem(3) u.rem(10);
         text-align: right;
         font-size: u.rem(13);
 
@@ -59,26 +59,36 @@
     }
   }
 
-  &:hover {
-    z-index: 1;
-    background-color: var(--M50);
-    box-shadow: 0 0 u.rem(5) u.rem(2) hsla(0, 0%, 0%, 0.15);
-  }
-
   &.closed {
+    cursor: pointer;
+
     * {
       cursor: pointer;
     }
+
+    &:hover {
+      z-index: 1;
+      background-color: var(--M50);
+      box-shadow: 0 0 u.rem(5) u.rem(2) hsla(0, 0%, 0%, 0.15);
+    }
   }
+
   &.open {
-    background-color: var(--M50);
+    // background-color: var(--M50);
+    box-shadow: 0 0 u.rem(5) u.rem(2) hsla(0, 0%, 0%, 0.15);
 
     > div:nth-of-type(1) {
       // &__header
-      background-color: var(--D50);
+      background-color: var(--M50);
       padding-block: u.rem(5);
-      border-block: u.rem(1) solid var(--M75);
+      border-bottom: u.rem(1) solid var(--M75);
       margin-bottom: u.rem(5);
+
+      > div {
+        color: var(--P300);
+        font-size: u.rem(14);
+        font-weight: 700;
+      }
 
       > ul {
         justify-content: start;

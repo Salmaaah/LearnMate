@@ -3,6 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { ReactComponent as MoreIcon } from '../../../assets/icons/more.svg';
 
+// TODO: create small version
+
 const MenuItem = ({ children, to, icon, label, iconOnly, onClick }) => {
   const location = useLocation();
   const active = to === location.pathname;

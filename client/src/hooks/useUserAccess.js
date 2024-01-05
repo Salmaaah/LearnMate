@@ -29,15 +29,23 @@ const useUserAccess = (apiEndpoint) => {
           // Trying to access user pages without authentication
           error.response &&
           error.response.status === 401 &&
-          error.response.data.message === 'Authentication required.'
+          error.response.data.error === 'Authentication required.'
         ) {
           console.error(error.response.data.message);
           navigate('/login');
         } else if (
+          // Trying to access user pages with invalid credentials
+          error.response &&
+          error.response.status === 400 &&
+          error.response.data.error === 'User does not exist.'
+        ) {
+          console.error(error.response.data.message);
+          navigate('/welcome');
+        } else if (
           // Trying to access login or signup pages after authentication
           error.response &&
           error.response.status === 403 &&
-          error.response.data.message === 'User already logged in.'
+          error.response.data.error === 'User already logged in.'
         ) {
           console.error(error.response.data.message);
           navigate('/dashboard');

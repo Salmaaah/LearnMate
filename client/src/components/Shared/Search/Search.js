@@ -21,7 +21,7 @@ const Search = () => {
         const data = await response.json();
         setSuggestions(data.items);
       } catch (error) {
-        console.error('Error fetching suggestions:', error);
+        console.error('Error fetching suggestions:', error.message);
       }
     };
 
@@ -39,7 +39,12 @@ const Search = () => {
         <button type="submit">
           <SearchIcon />
         </button>
-        <input type="text" placeholder="Search" onChange={handleInputChange} />
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search"
+          onChange={handleInputChange}
+        />
       </div>
       {isTyping && suggestions.length > 0 && (
         <ul className="search__suggestions">

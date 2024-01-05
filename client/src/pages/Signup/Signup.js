@@ -112,13 +112,13 @@ const Signup = () => {
             <Button
               label="Continue with Google"
               type="submit"
-              style="secondary"
+              variant="secondary"
               icon_l={<GoogleIcon />}
             />
             <Button
               label="Continue with apple"
               type="submit"
-              style="secondary"
+              variant="secondary"
               icon_l={<AppleIcon />}
             />
             <p className="form__disclaimer">

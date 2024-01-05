@@ -6,7 +6,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import magic
 from validator_collection import is_email
-from models import db, User, File, Subject, Tag
+from models import db, User, File, Subject, Tag, Project
+from flask_migrate import Migrate
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_
 from helpers import login_required, logout_required
@@ -25,6 +26,8 @@ Session(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///learnmate.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Disable modification tracking
 db.init_app(app)
+migrate = Migrate()
+migrate.init_app(app, db)
 
 # Create database tables
 with app.app_context():
@@ -66,7 +69,7 @@ def signup():
             errors["confirmPassword"] = "Passwords do not match."
 
         if errors:
-            return jsonify({"message": "Validation failed", "errors": errors}), 400
+            return jsonify({"error": errors}), 400
 
         try:
             # Add new user to database
@@ -95,14 +98,14 @@ def signup():
             db.session.rollback()
             if "UNIQUE constraint failed: users.username" in str(e.orig):
                 errors["username"] = "Username already exists."
-                return jsonify({"message": str(e), "errors": errors}), 400
+                return jsonify({"error": errors}), 400
 
             elif "UNIQUE constraint failed: users.email" in str(e.orig):
                 errors["email"] = "Email already exists."
-                return jsonify({"message": str(e), "errors": errors}), 400
+                return jsonify({"error": errors}), 400
 
             else:
-                return jsonify({"message": str(e)}), 400
+                return jsonify({"error": str(e)}), 400
 
     return jsonify({"message": "Sign up page loaded successfully"}), 200
 
@@ -143,7 +146,7 @@ def login():
             errors["password"] = "Incorrect password. Please try again."
 
         if errors:
-            return jsonify({"message": "Validation failed", "errors": errors}), 400
+            return jsonify({"error": errors}), 400
 
         # Login successful
         session["user_id"] = user.id
@@ -163,6 +166,9 @@ def logout():
     """Log user out"""
     # Forget any user_id
     session.clear()
+
+    if session.get("user_id") is not None:
+        return jsonify({"error": "Logout failed"}), 400
 
     return jsonify({"message": "User logged out successfully"}), 200
 
@@ -214,84 +220,124 @@ app.config["UPLOADED_FILES_DEST"] = "uploads"
 @app.route("/upload", methods=["POST"])
 def upload_files():
     """Upload files to server"""
-    user = User.query.filter_by(id=session["user_id"]).first()
+    
+    files = request.files.getlist("files")
+    if files:
+        for file in files:
+            # Sanitize file name to prevent security vulnerabilities like directory traversal attacks
+            filename = secure_filename(file.filename)
+            user_id = session["user_id"]
+            
+            existing_file = File.query.filter_by(name=filename, user_id=user_id).first()
 
-    if user:
-        files = request.files.getlist("files")
-        if files:
-            for file in files:
-                # Sanitize filename to prevent security vulnerabilities like directory traversal attacks
-                filename = secure_filename(file.filename)
-                
-                existing_file = File.query.filter_by(filename=filename, user_id=user.id).first()
+            if filename == "":
+                return jsonify({"error": "Problem generating secure file name"}), 400
+            
+            if existing_file:
+                return jsonify({"error": "File already exists"}), 400
 
-                if filename == "":
-                    return jsonify({"error": "Problem generating secure file name"}), 400
-                
-                if existing_file:
-                    return jsonify({"error": "File already exists"}), 400
+            # Validate file type
+            file_type = magic.from_buffer(file.read(2048), mime=True)  
+            file.seek(0)  # Move file pointer back to the start
 
-                # Validate file type
-                file_type = magic.from_buffer(file.read(2048), mime=True)  
-                file.seek(0)  # Move file pointer back to the start
+            if "executable" in file_type.lower():
+                return jsonify({"error": "Executable files are not allowed"}), 400
 
-                if "executable" in file_type.lower():
-                    return jsonify({"error": "Executable files are not allowed"}), 400
+            # Create user folder if it doesn't exist
+            user_folder = os.path.join(app.config["UPLOADED_FILES_DEST"], f"user_{user_id}")
+            os.makedirs(user_folder, exist_ok=True)
 
-                # Create user folder if it doesn't exist
-                user_folder = os.path.join(app.config["UPLOADED_FILES_DEST"], f"user_{user.id}")
-                os.makedirs(user_folder, exist_ok=True)
+            # Save file to user folder
+            file_path = os.path.join(user_folder, filename)
+            file.save(file_path)
 
-                # Save file to user folder
-                file_path = os.path.join(user_folder, filename)
-                file.save(file_path)
+            # Save file information to the database
+            new_file = File(
+                name=filename,
+                type=file_type,
+                user_id=user_id,
+                path=file_path,
+            )
+            db.session.add(new_file)
 
-                # Save file information to the database
-                new_file = File(
-                    filename=filename,
-                    file_type=file_type,
-                    user_id=user.id,
-                    path=file_path,
-                )
-                db.session.add(new_file)
+        db.session.commit()
 
-            db.session.commit()
-
-            return jsonify({"message": "Files uploaded successfully"}), 200
-        else:
-            return jsonify({"error": "No files provided"}), 400
+        return jsonify({"message": "Files uploaded successfully"}), 200
     else:
-        return jsonify({"error": "User not authenticated"}), 401
+        return jsonify({"error": "No files provided"}), 400
 
 
 # @uploaded_files_bp.route("/files", methods=["GET"])
 @login_required
-@app.route("/files", methods=["GET"])
-def get_user_files():
+@app.route("/data", methods=["GET"])
+def get_user_data():
     user = User.query.filter_by(id=session["user_id"]).first()
-    if user:
-        files = user.files
-        file_list = [
-            {
-                "id": file.id,
-                "filename": file.filename,
-                "file_type": file.file_type,
-                #  "path": file.path,
-                "created_at": file.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                "subject": {
-                    "id": file.subject.id,
-                    "name": file.subject.name,
-                    "color": file.subject.name,
-                }
-                if file.subject
-                else {},
-                "tags": [tag.name for tag in file.tags],
-            }
-            for file in files
-        ]
-        return jsonify({"files": file_list}), 200
-    else:
-        return jsonify({"error": "User not authenticated"}), 401
+
+    files = user.files
+    file_list = [
+        {
+            "id": file.id,
+            "name": file.name,
+            "type": file.type,
+            #  "path": file.path,
+            "created_at": file.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "subject": [{
+                "id": file.subject.id,
+                "name": file.subject.name,
+                "color": file.subject.color,
+            }]
+            if file.subject
+            else [],
+            "project": [{
+                "id": file.project.id,
+                "name": file.project.name,
+                "color": file.project.color,
+            }]
+            if file.project
+            else [],
+            "tags": [
+                {
+                    "id": tag.id,
+                    "name": tag.name,
+                    "color": tag.color,
+                } 
+                for tag in file.tags
+            ],
+        }
+        for file in files
+    ]
+    
+    subjects = user.subjects
+    subjects_list = [
+        {
+            "id": subject.id,
+            "name": subject.name,
+            "color": subject.color,
+        }
+        for subject in subjects
+    ]
+
+    projects = user.projects
+    projects_list = [
+        {
+            "id": project.id,
+            "name": project.name,
+            "color": project.color,
+        }
+        for project in projects
+    ]
+
+    tags = user.tags
+    tags_list = [
+        {
+            "id": tag.id,
+            "name": tag.name,
+            "color": tag.color,
+        }
+        for tag in tags
+    ]
+    
+    return jsonify({"files": file_list, "subjects": subjects_list, "projects": projects_list, "tags": tags_list}), 200
 
 
 @login_required
@@ -301,10 +347,236 @@ def serve_file(file_id):
 
     if file:
         directory = os.path.join(app.config["UPLOADED_FILES_DEST"], f'user_{session["user_id"]}')
-        return send_from_directory(directory, file.filename)
+        return send_from_directory(directory, file.name)
     else:
         return jsonify({"error": "File not found"}), 404
 
+
+@login_required
+@app.route("/update/<file_id>", methods=["POST"])
+def update_file(file_id):
+    file = File.query.filter_by(id=file_id).first()
+    data = request.json
+
+    if file:
+        file_name = data.get("name").strip()
+        # file_subject = data.get("subject")
+        # file_project = data.get("project")
+        # file_tags = data.get("tags")
+        
+        # Server-side validation
+        if not file_name:
+            return jsonify({"error": "File name must be at least 1 character long."}), 400
+        if file_name.startswith("."):
+            return jsonify({"error": "File name cannot start with a period."}), 400
+
+        try:
+            # update file in user folder
+            user_folder = os.path.join(app.config["UPLOADED_FILES_DEST"], f"user_{session['user_id']}")
+            os.rename(os.path.join(user_folder, file.name), os.path.join(user_folder, file_name))
+
+            # update file in database
+            file.name = file_name
+            # file.subject_id = file_subject
+            # file.project_id = file_project
+            # file.tags = file_tags
+            db.session.commit()
+
+
+            return jsonify({"message": "File updated successfully"}), 200
+        
+        except IntegrityError as e:
+            db.session.rollback()
+            if f"UNIQUE constraint failed: file.name" in str(e.orig):
+                return jsonify({"error": "File name already exists."}), 400
+
+            else:
+                return jsonify({"error": str(e)}), 400
+
+    else:
+        return jsonify({"error": "File not found"}), 404
+
+
+@login_required
+@app.route("/delete/<file_id>", methods=["POST"])
+def delete_file(file_id):
+    file = File.query.filter_by(id=file_id).first()
+
+    if file:
+        # delete file from user folder
+        user_folder = os.path.join(app.config["UPLOADED_FILES_DEST"], f"user_{session['user_id']}")
+        os.remove(os.path.join(user_folder, file.name))
+
+        # delete file from database
+        db.session.delete(file)
+        db.session.commit()
+
+        return jsonify({"message": "File deleted successfully"}), 200
+
+    else:
+        return jsonify({"error": "File not found"}), 404
+
+
+@login_required
+@app.route("/add/<property_type>/<property_id>", methods=["POST"])
+def add_property(property_type, property_id):
+
+    property_models = {
+        'Subject': Subject,
+        'Project': Project,
+        'Tag': Tag,
+    }
+
+    PropertyModel = property_models.get(property_type)
+    property = PropertyModel.query.filter_by(id=property_id).first()
+    data = request.json
+
+    if not property:
+        property_name = data.get("name").strip()
+        property_color = data.get("color").strip()
+
+        # Server-side validation
+        if not property_name:
+            return jsonify({"error": f"{property_type} name must be at least 1 character long."}), 400
+
+        # Add new property to database
+        try:
+            new_property = PropertyModel(
+                name=property_name,
+                color=property_color,
+                user_id=session["user_id"],
+            )
+            db.session.add(new_property)
+            db.session.commit()
+
+            property = new_property
+        
+        except IntegrityError as e:
+            db.session.rollback()
+            if f"UNIQUE constraint failed: {property_type.lower()}.name" in str(e.orig):
+                return jsonify({"error": f"{property_type} name already exists."}), 400
+
+            else:
+                return jsonify({"error": str(e)}), 400
+
+    # Add property to file
+    file_id = data.get("file_id")
+    file = File.query.filter_by(id=file_id).first()
+    
+    if property_type == 'Subject':
+        file.subject = property
+    elif property_type == 'Project':
+        file.project = property
+    elif property_type == 'Tag':
+        if property not in file.tags:
+            file.tags.append(property)
+    db.session.commit()
+
+    return jsonify({"message": f"{property_type} created and/or added successfully"}), 200
+
+
+@login_required
+@app.route("/remove/<property_type>/<property_id>", methods=["POST"])
+def remove_property(property_type, property_id):
+
+    property_models = {
+        'Subject': Subject,
+        'Project': Project,
+        'Tag': Tag,
+    }
+
+    PropertyModel = property_models.get(property_type)
+    property = PropertyModel.query.filter_by(id=property_id).first()
+    data = request.json
+
+    if property:
+        file_id = data.get("file_id")
+        file = File.query.filter_by(id=file_id).first()
+        
+        if property_type == 'Subject':
+            file.subject = None
+        elif property_type == 'Project':
+            file.projects.remove(property) 
+        elif property_type == 'Tag':
+            file.tags.remove(property)
+
+        db.session.commit()
+
+        return jsonify({"message": f"{property_type} removed successfully"}), 200
+
+    else:
+        return jsonify({"error": f"{property_type} {data.get("name")} not found"}), 404
+
+
+@login_required
+@app.route("/update/<property_type>/<property_id>", methods=["POST"])
+def update_property(property_type, property_id):
+
+    property_models = {
+        'Subject': Subject,
+        'Project': Project,
+        'Tag': Tag,
+    }
+
+    PropertyModel = property_models.get(property_type)
+    property = PropertyModel.query.filter_by(id=property_id).first()
+    data = request.json
+
+    if property:
+
+        if "name" in data:
+            property_name = data.get("name").strip()
+            
+            # Server-side validation
+            if not property_name:
+                return jsonify({"error": f"{property_type} name must be at least 1 character long."}), 400
+
+            # Update property name in database
+            property.name = property_name
+
+        else:
+            property_color = data.get("color").strip()
+
+            # Update property color in database
+            property.color = property_color
+
+        try:            
+            db.session.commit()
+            return jsonify({"message": f"{property_type} updated successfully"}), 200
+        
+        except IntegrityError as e:
+            db.session.rollback()
+            if f"UNIQUE constraint failed: {property_type.lower()}.name" in str(e.orig):
+                return jsonify({"error": f"{property_type} name already exists."}), 400
+
+            else:
+                return jsonify({"error": str(e)}), 400
+
+    else:
+        return jsonify({"error": f"{property_type} {property_name} not found"}), 404
+
+
+@login_required
+@app.route("/delete/<property_type>/<property_id>", methods=["POST"])
+def delete_property(property_type, property_id):
+
+    property_models = {
+        'Subject': Subject,
+        'Project': Project,
+        'Tag': Tag,
+    }
+
+    PropertyModel = property_models.get(property_type)
+    property = PropertyModel.query.filter_by(id=property_id).first()
+
+    if property:
+        db.session.delete(property)
+        db.session.commit()
+
+        return jsonify({"message": f"{property_type} deleted successfully"}), 200
+
+    else:
+        return jsonify({"error": f"{property_type} not found"}), 404
 
 if __name__ == "__main__":
     app.run(debug=True)

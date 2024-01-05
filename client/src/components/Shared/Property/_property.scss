@@ -16,17 +16,6 @@
   > svg {
     height: u.rem(8);
     width: auto;
-  }
-
-  &.gray {
-    background-color: var(--D50);
-  }
-
-  &.purple {
-    background-color: var(--P50);
-  }
-
-  &.red {
-    background-color: var(--S_RED);
+    cursor: pointer;
   }
 }

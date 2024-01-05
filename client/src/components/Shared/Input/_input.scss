@@ -50,7 +50,7 @@ input:-webkit-autofill {
     }
 
     &__field {
-      flex: 1;
+      width: 100%;
 
       font-family: 'Nunito';
       font-size: u.rem(15);

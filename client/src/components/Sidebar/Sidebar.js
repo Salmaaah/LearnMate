@@ -29,6 +29,9 @@ const Menu = () => {
       await axios.post('/logout');
       setLogoutSuccess(true);
     } catch (error) {
+      if (error.response && error.response.status === 400) {
+        console.error(error.response.data.error);
+      }
       console.error('Error logging out:', error.message);
     }
   };

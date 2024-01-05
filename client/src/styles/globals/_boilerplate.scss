@@ -20,6 +20,10 @@ body {
   padding: 0;
 }
 
+input {
+  font-family: 'Nunito';
+}
+
 // Visibility
 .hide-for-mobile {
   @include u.breakpoint-max(medium) {

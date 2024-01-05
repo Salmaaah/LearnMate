@@ -1,0 +1,63 @@
+@use '../../../styles/util/' as u;
+
+.propertySelection {
+  width: 100%;
+  cursor: pointer;
+  border-radius: u.rem(10);
+  padding: u.rem(5) u.rem(10);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s ease-in-out;
+
+  &__name {
+    display: flex;
+    align-items: center;
+    gap: u.rem(10);
+
+    > svg {
+      height: u.rem(12);
+      width: auto;
+    }
+  }
+
+  &__menu {
+    position: relative;
+
+    > div {
+      height: u.rem(20);
+      width: u.rem(20);
+      border-radius: u.rem(6);
+      display: flex;
+      justify-content: center;
+      transition: background-color 0.1s ease-in-out;
+
+      > svg {
+        width: u.rem(12);
+        height: auto;
+      }
+
+      &:hover {
+        background-color: var(--M75);
+      }
+    }
+  }
+
+  &:hover {
+    background-color: var(--M50);
+  }
+}
+
+.propertyCreation {
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: u.rem(10);
+
+  > div {
+    font-size: u.rem(13);
+    font-weight: 700;
+    color: var(--D200);
+  }
+}

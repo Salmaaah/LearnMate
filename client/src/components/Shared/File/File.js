@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FileProvider } from '../../../contexts/FileContext';
 import EditMenu from '../../EditMenu/EditMenu';
 import useOutsideClick from '../../../hooks/useOutsideClick';
 
 const File = ({ file }) => {
-  const fileType = file.file_type.split('/')[0];
+  const fileType = file.type.split('/')[0];
   const maxCharacters = 30;
   const [clickCount, setClickCount] = useState(0);
   const [openContextMenu, setOpenContextMenu] = useState(false);
@@ -12,19 +13,19 @@ const File = ({ file }) => {
   const navigate = useNavigate();
   const fileRef = useRef(null);
 
-  useOutsideClick(fileRef, setOpenEditMenu);
-  useOutsideClick(fileRef, setOpenContextMenu);
+  useOutsideClick(fileRef, () => setOpenEditMenu(false));
+  useOutsideClick(fileRef, () => setOpenContextMenu(false));
 
-  let displayedFilename = file.filename;
-  if (file.filename.length > maxCharacters) {
-    const middleIndex = Math.floor(file.filename.length / 2);
+  let displayedFilename = file.name;
+  if (file.name.length > maxCharacters) {
+    const middleIndex = Math.floor(file.name.length / 2);
     const charactersToRemove = Math.ceil(
-      (file.filename.length - maxCharacters + 3) / 2
+      (file.name.length - maxCharacters + 3) / 2
     );
     displayedFilename =
-      file.filename.slice(0, middleIndex - charactersToRemove) +
+      file.name.slice(0, middleIndex - charactersToRemove) +
       '...' +
-      file.filename.slice(middleIndex + charactersToRemove);
+      file.name.slice(middleIndex + charactersToRemove);
   }
 
   //   const handleClick = (event) => {
@@ -60,17 +61,17 @@ const File = ({ file }) => {
           navigate('/');
         } else if (prevCount === 1) {
           //   console.log('Single click');
-          setOpenEditMenu(true);
+          setOpenEditMenu(!openEditMenu);
         }
         return 0;
       });
-    }, 300);
+    }, 100);
 
     setClickCount((prevCount) => prevCount + 1);
   };
 
   const handleContextMenu = (event) => {
-    event.preventDefault();
+    // event.preventDefault();
     setOpenContextMenu(true);
     // console.log('Right click');
   };
@@ -79,7 +80,7 @@ const File = ({ file }) => {
     <div ref={fileRef} className="file" onContextMenu={handleContextMenu}>
       <div className="file__thumbnail" onClick={handleClick}>
         {fileType === 'image' ? (
-          <img src={`files/${file.id}`} alt={file.filename} />
+          <img src={`/files/${file.id}`} alt={file.name} />
         ) : fileType === 'video' ? (
           <video>
             <source src={`/files/${file.id}`} type={file.type} />
@@ -90,11 +91,16 @@ const File = ({ file }) => {
       </div>
       <p>{displayedFilename}</p>
       {openEditMenu && (
-        <EditMenu
-          name={file.filename}
-          subject={file.subject}
-          tags={file.tags}
-        />
+        // <EditMenu
+        //   file_id={file.id}
+        //   name={file.name}
+        //   subject={file.subject}
+        //   project={file.project}
+        //   tags={file.tags}
+        // />
+        <FileProvider file={file}>
+          <EditMenu />
+        </FileProvider>
       )}
     </div>
   );
@@ -105,14 +111,14 @@ export default File;
 //   const RenderFilePreview = ({ file }) => {
 //     const [src, setSrc] = useState(null);
 //     const [loading, setLoading] = useState(true);
-//     const fileType = file.file_type.split('/')[0];
+//     const fileType = file.type.split('/')[0];
 
 //     useEffect(() => {
 //       axios
 //         .get(`/files/${file.id}`, { responseType: 'blob' })
 //         .then((response) => {
 //           const url = URL.createObjectURL(
-//             new Blob([response.data], { type: file.file_type })
+//             new Blob([response.data], { type: file.type })
 //           );
 //           setSrc(url);
 //           setLoading(false);
@@ -128,11 +134,11 @@ export default File;
 //     }
 
 //     if (fileType === 'image') {
-//       return <img src={src} alt={file.filename} />;
+//       return <img src={src} alt={file.name} />;
 //     } else if (fileType === 'video') {
 //       return (
 //         <video controls>
-//           <source src={src} type={file.file_type} />
+//           <source src={src} type={file.type} />
 //         </video>
 //       );
 //     } else {

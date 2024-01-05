@@ -11,7 +11,7 @@ const Header = ({ children, to, cta }) => {
         </Link>
         <ul>{children}</ul>
         <div className="hide-for-mobile">
-          <Button to={to} label={cta} style="secondary" />
+          <Button to={to} label={cta} variant="secondary" />
         </div>
       </nav>
     </header>

@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import UserHeader from '../../components/UserHeader/UserHeader';
 import useUserAccess from '../../hooks/useUserAccess';
+import { useDataContext } from '../../contexts/DataContext';
 import { ReactComponent as UploadIcon } from '../../assets/icons/upload.svg';
 import { ReactComponent as FilterIcon } from '../../assets/icons/filter.svg';
 import { ReactComponent as SortIcon } from '../../assets/icons/sort.svg';
@@ -14,46 +15,34 @@ import File from '../../components/Shared/File/File';
 import Button from '../../components/Shared/Button/Button';
 
 const Courses = () => {
-  const { isLoading } = useUserAccess('/courses');
-  const [existingFiles, setExistingFiles] = useState([]);
-  const [filePreviews, setFilePreviews] = useState([]);
-
-  // Fetch existing files from the server
-  const fetchExistingFiles = async () => {
-    try {
-      const response = await axios.get('/files');
-      setExistingFiles(response.data.files);
-    } catch (error) {
-      console.error('Error fetching existing files:', error);
-    }
-  };
-
-  // Fetch existing files on page load
-  useEffect(() => {
-    fetchExistingFiles();
-  }, []);
+  const { isLoading: userAccessIsLoading } = useUserAccess('/courses');
+  const { data, dataIsLoading, fetchData } = useDataContext();
+  // const [filePreviews, setFilePreviews] = useState([]);
 
   // Upload files to the server
-  const onDrop = useCallback((selectedFiles) => {
-    const formData = new FormData();
-    selectedFiles.forEach((file) => {
-      formData.append('files', file);
-    });
-
-    axios
-      .post('/upload', formData)
-      .then((response) => {
-        console.log(response.data);
-        fetchExistingFiles();
-      })
-      .catch((error) => {
-        if (error.response.data.error === 'File already exists') {
-          console.error(error.response.data.error);
-        } else {
-          console.error(error.response.data.error);
-        }
+  const onDrop = useCallback(
+    (selectedFiles) => {
+      const formData = new FormData();
+      selectedFiles.forEach((file) => {
+        formData.append('files', file);
       });
-  }, []);
+
+      axios
+        .post('/upload', formData)
+        .then((response) => {
+          fetchData();
+          console.log(response.data.message);
+        })
+        .catch((error) => {
+          if (error.response.status === 400) {
+            console.error(error.response.data.error);
+          } else {
+            console.error(error.message);
+          }
+        });
+    },
+    [fetchData]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
@@ -77,7 +66,7 @@ const Courses = () => {
           <div className="toolbar__displays">
             <MenuItem label="List" />
             <MenuItem label="Grid" />
-            {existingFiles.length !== 0 && (
+            {data.files.length !== 0 && (
               <div {...getRootProps()}>
                 <input {...getInputProps()} />
                 <Button icon_l={<NewIcon />} label="New" />
@@ -85,9 +74,9 @@ const Courses = () => {
             )}
           </div>
         </div>
-        {isLoading ? (
+        {userAccessIsLoading || dataIsLoading ? (
           <div>Loading...</div>
-        ) : !existingFiles.length ? (
+        ) : !data.files.length ? (
           <div
             {...getRootProps()}
             className={`dropzone ${isDragActive ? 'active' : ''}`}
@@ -105,7 +94,7 @@ const Courses = () => {
           </div>
         ) : (
           <div className="files">
-            {existingFiles.map((file, index) => (
+            {data.files.map((file, index) => (
               <div key={index}>
                 <File file={file} />
               </div>

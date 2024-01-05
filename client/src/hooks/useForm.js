@@ -6,12 +6,14 @@ const useForm = (initialValues, validationFunctions, submitCallback) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormSubmitted, setFormSubmitted] = useState(false);
 
+  // Update the values of the input fields as the user types
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value }); // Update the values of the input fiels as the user types
+    setFormData({ ...formData, [name]: value }); // Update the values of the input fields as the user types
     setErrors({ ...errors, [name]: '' }); // Clear the error message when the user starts typing in a field
   };
 
+  // Validate the input field when the user leaves the field
   const handleBlur = (e) => {
     const { name, value } = e.target;
     const validationFunction = validationFunctions[name];
@@ -22,26 +24,23 @@ const useForm = (initialValues, validationFunctions, submitCallback) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent the default form submission behavior
+    if (e) e.preventDefault(); // Prevent the default form submission behavior
     setIsSubmitting(true); // Set submitting state to true when the form is being submitted
 
     try {
-      await submitCallback(formData);
-      setFormData(initialValues); // Reset form and submitting state upon successful signup/login
-      setFormSubmitted(true);
-    } catch (error) {
-      if (
-        error.response &&
-        error.response.status === 400 &&
-        error.response.data.errors
-      ) {
-        setErrors({ ...errors, ...error.response.data.errors });
-        console.error(
-          'Error signing up/logging in:',
-          error.response.data.errors
-        );
+      if (JSON.stringify(formData) !== JSON.stringify(initialValues)) {
+        await submitCallback(formData);
+        // setFormData(initialValues); // Reset form upon successful submit
+        setFormSubmitted(true);
       } else {
-        console.error('Error signing up/logging in:', error.message);
+        console.log('Form values have not changed. Skipping submitCallback.');
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        setErrors({ ...errors, ...error.response.data.error });
+        console.error(error.response.data.error);
+      } else {
+        console.error('Error submitting form:', error.message);
       }
     } finally {
       setIsSubmitting(false); // Reset submitting state regardless of success or failure
