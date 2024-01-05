@@ -9,6 +9,7 @@ import errorIcon from '../../../assets/icons/error.svg';
 
 const Input = ({
   inputRef, // recently added for propertyMenu
+  size,
   label,
   name,
   type,
@@ -67,7 +68,7 @@ const Input = ({
   return (
     <div className="inputContainer">
       <div
-        className={`input ${error ? 'error' : ''}`} // adds error class in case of an error
+        className={`input ${size} ${error ? 'error' : ''}`} // adds size and error classes in case of an error
         onClick={() => inputRef.current.focus()} // activates input element when clicked anywhere even outside the input element itself
       >
         <input
@@ -101,11 +102,13 @@ const Input = ({
 };
 
 Input.defaultProps = {
+  size: 'large',
   type: 'text',
   error: '',
 };
 
 Input.propTypes = {
+  size: PropTypes.oneOf(['small', 'medium', 'large']),
   label: PropTypes.string,
   name: PropTypes.string.isRequired,
   type: PropTypes.oneOf(['text', 'email', 'password']),

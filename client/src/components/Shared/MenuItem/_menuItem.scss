@@ -41,12 +41,67 @@
 
 .menuItem {
   position: relative;
+  height: fit-content;
   border-radius: u.rem(10);
   display: flex;
   flex-direction: column;
-  padding: u.rem(10) u.rem(15);
+  justify-content: center;
   cursor: pointer;
   transition: color, background-color 100ms ease-in-out;
+
+  &.large {
+    padding: u.rem(10) u.rem(15);
+  }
+
+  &.medium {
+    padding: u.rem(7) u.rem(12);
+
+    // &__title
+    > a {
+      gap: u.rem(15);
+
+      // Icon
+      svg {
+        width: u.rem(16);
+      }
+
+      span {
+        // Label
+        div {
+          font-size: u.rem(15);
+        }
+        // More icon
+        svg {
+          height: u.rem(9);
+        }
+      }
+    }
+  }
+
+  &.small {
+    padding: u.rem(5) u.rem(10);
+
+    // &__title
+    > a {
+      gap: u.rem(10);
+
+      // Icon
+      svg {
+        width: u.rem(14);
+      }
+
+      span {
+        // Label
+        div {
+          font-size: u.rem(14);
+        }
+        // More icon
+        svg {
+          height: u.rem(8.5);
+        }
+      }
+    }
+  }
 
   &:hover,
   &.sub1 {
@@ -146,22 +201,22 @@
       // display: flex;
       justify-content: space-between;
       align-items: center;
-    }
 
-    // Label styles
-    div {
-      overflow: hidden;
-      font-size: u.rem(16);
-      color: var(--M400);
-    }
+      // Label styles
+      div {
+        overflow: hidden;
+        font-size: u.rem(16);
+        color: var(--M400);
+      }
 
-    // More icon styles
-    span > svg {
-      height: u.rem(10);
-      width: auto;
-      margin-left: u.rem(20);
-      transform: rotate(0deg);
-      transition: transform 500ms ease-out;
+      // More icon styles
+      svg {
+        height: u.rem(10);
+        width: auto;
+        margin-left: u.rem(20);
+        transform: rotate(0deg);
+        transition: transform 500ms ease-out;
+      }
     }
 
     // Icon, label, and more icon highlighted when to === current location

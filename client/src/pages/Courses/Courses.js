@@ -52,27 +52,27 @@ const Courses = () => {
       <main>
         <UserHeader pageName="Courses" />
         <div className="toolbar">
-          <div className="toolbar__controls">
-            <MenuItem icon={<GroupIcon />} label="Group">
+          <ul className="toolbar__controls">
+            <MenuItem size="medium" icon={<GroupIcon />} label="Group">
               something
             </MenuItem>
-            <MenuItem icon={<FilterIcon />} label="Filter">
+            <MenuItem size="medium" icon={<FilterIcon />} label="Filter">
               something
             </MenuItem>{' '}
-            <MenuItem icon={<SortIcon />} label="Sort">
+            <MenuItem size="medium" icon={<SortIcon />} label="Sort">
               something
             </MenuItem>
-          </div>
-          <div className="toolbar__displays">
-            <MenuItem label="List" />
-            <MenuItem label="Grid" />
+          </ul>
+          <ul className="toolbar__displays">
+            <MenuItem size="medium" label="List" />
+            <MenuItem size="medium" label="Grid" />
             {data.files.length !== 0 && (
-              <div {...getRootProps()}>
+              <li {...getRootProps()}>
                 <input {...getInputProps()} />
-                <Button icon_l={<NewIcon />} label="New" />
-              </div>
+                <Button icon_l={<NewIcon />} size="medium" label="New" />
+              </li>
             )}
-          </div>
+          </ul>
         </div>
         {userAccessIsLoading || dataIsLoading ? (
           <div>Loading...</div>

@@ -19,9 +19,38 @@ input:-webkit-autofill {
     justify-content: space-between;
     align-items: center;
     gap: u.rem(10);
-    padding: u.rem(12) u.rem(18);
 
     color: var(--D200);
+
+    &.large {
+      padding: u.rem(12) u.rem(18);
+    }
+
+    &.medium {
+      padding: u.rem(10) u.rem(16);
+
+      > input {
+        // &__field
+        font-size: u.rem(14);
+      }
+      > img {
+        // &__icon
+        height: u.rem(14);
+      }
+    }
+
+    &.small {
+      padding: u.rem(8) u.rem(13);
+
+      > input {
+        // &__field
+        font-size: u.rem(13);
+      }
+      > img {
+        // &__icon
+        height: u.rem(13);
+      }
+    }
 
     &:hover {
       cursor: text;

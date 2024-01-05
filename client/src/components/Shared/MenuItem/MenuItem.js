@@ -5,7 +5,7 @@ import { ReactComponent as MoreIcon } from '../../../assets/icons/more.svg';
 
 // TODO: create small version
 
-const MenuItem = ({ children, to, icon, label, iconOnly, onClick }) => {
+const MenuItem = ({ children, to, icon, label, size, iconOnly, onClick }) => {
   const location = useLocation();
   const active = to === location.pathname;
   const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +29,7 @@ const MenuItem = ({ children, to, icon, label, iconOnly, onClick }) => {
 
   return (
     <li
-      className={`menuItem ${
+      className={`menuItem ${size} ${
         isOpen && !iconOnly // don't need !iconOnly because of the condition in useEffect
           ? 'sub1'
           : children && isHovered && iconOnly
@@ -64,12 +64,14 @@ const MenuItem = ({ children, to, icon, label, iconOnly, onClick }) => {
 
 MenuItem.defaultProps = {
   iconOnly: false,
+  size: 'large',
 };
 
 MenuItem.propTypes = {
   to: PropTypes.string,
   icon: PropTypes.object,
   label: PropTypes.string,
+  size: PropTypes.oneOf(['large', 'medium', 'small']),
   iconOnly: PropTypes.bool,
   onClick: PropTypes.func,
 };

@@ -86,6 +86,7 @@ const PropertyMenu = ({ property, value }) => {
     >
       <Input
         inputRef={inputRef}
+        size="small"
         name="name"
         type="text"
         value={formData.name}
@@ -95,11 +96,17 @@ const PropertyMenu = ({ property, value }) => {
         error={errors.name}
         autoFocus
       />
-      <MenuItem icon={<DeleteIcon />} label="Delete" onClick={handleDelete} />
       <ChromePicker
         color={color}
         onChange={handleColorChange}
         disableAlpha={true}
+      />
+      {/* TODO: figure out how to put this MenuItem in a <ul> because it's a <li>, and when done edit the scss to fit this */}
+      <MenuItem
+        size="small"
+        icon={<DeleteIcon />}
+        label="Delete"
+        onClick={handleDelete}
       />
     </form>
   );

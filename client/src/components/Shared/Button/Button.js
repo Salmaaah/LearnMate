@@ -1,13 +1,20 @@
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
-// TODO: create small version
-
-const Button = ({ type, to, label, variant, disabled, icon_l, icon_r }) => {
+const Button = ({
+  type,
+  to,
+  label,
+  variant,
+  size,
+  disabled,
+  icon_l,
+  icon_r,
+}) => {
   if (to) {
     return (
       <Link to={to}>
-        <button className={`button__${variant}`} disabled={disabled}>
+        <button className={`button__${variant} ${size}`} disabled={disabled}>
           {icon_l}
           <div>{label}</div>
           {icon_r}
@@ -16,7 +23,11 @@ const Button = ({ type, to, label, variant, disabled, icon_l, icon_r }) => {
     );
   } else {
     return (
-      <button className={`button__${variant}`} type={type} disabled={disabled}>
+      <button
+        className={`button__${variant} ${size}`}
+        type={type}
+        disabled={disabled}
+      >
         {icon_l}
         {label === '...' ? (
           <div className="button__loading">
@@ -34,6 +45,7 @@ const Button = ({ type, to, label, variant, disabled, icon_l, icon_r }) => {
 Button.defaultProps = {
   type: 'button',
   variant: 'primary',
+  size: 'large',
   disabled: false,
 };
 
@@ -42,6 +54,7 @@ Button.propTypes = {
   to: PropTypes.string,
   label: PropTypes.string.isRequired,
   variant: PropTypes.oneOf(['primary', 'secondary']),
+  size: PropTypes.oneOf(['small', 'medium', 'large']),
   disabled: PropTypes.bool,
   icon_l: PropTypes.object,
   icon_r: PropTypes.object,

@@ -91,7 +91,12 @@ const EditMenu = () => {
         availableValues={data.tags}
       />
       <li className="editMenu__seperator"></li>
-      <MenuItem icon={<DeleteIcon />} label="Delete" onClick={handleDelete} />
+      <MenuItem
+        icon={<DeleteIcon />}
+        size="small"
+        label="Delete"
+        onClick={handleDelete}
+      />
     </ul>
   );
 };

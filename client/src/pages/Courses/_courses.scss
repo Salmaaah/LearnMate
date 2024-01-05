@@ -1,11 +1,14 @@
 @use '../../styles/util/' as u;
 
 .toolbar {
+  // border-block: u.rem(1) solid var(--M75);
+  border: u.rem(1) solid var(--M75);
+  border-radius: u.rem(20);
+  background-color: var(--background-color);
   padding: u.rem(5);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-block: u.rem(1) solid var(--M75);
 
   &__controls {
     display: flex;
@@ -14,6 +17,7 @@
 
   &__displays {
     display: flex;
+    align-items: center;
     gap: u.rem(15);
   }
 }

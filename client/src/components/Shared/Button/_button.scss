@@ -3,24 +3,22 @@
 .button {
   border-radius: u.rem(20);
   border-style: none;
+  height: fit-content;
 
   display: flex;
   justify-content: center;
   align-items: center;
-
-  padding: u.rem(7) u.rem(50);
   gap: u.rem(10);
 
   font-family: 'Nunito';
-  font-size: u.rem(15);
   font-weight: 700;
 
   transition: all 200ms ease-in-out;
   cursor: pointer;
 
-  > svg {
-    width: u.rem(11.5);
-    height: u.rem(11.5);
+  svg > path {
+    // This could go wrong for brand icons with stroke widths
+    stroke: var(--background-color);
   }
 
   &__primary {
@@ -123,6 +121,36 @@
       100% {
         background-color: var(--M50);
       }
+    }
+  }
+
+  &.large {
+    padding: u.rem(7) u.rem(50);
+    font-size: u.rem(15);
+
+    > svg {
+      width: u.rem(11.5);
+      height: u.rem(11.5);
+    }
+  }
+
+  &.medium {
+    padding: u.rem(6) u.rem(40);
+    font-size: u.rem(13);
+
+    > svg {
+      width: u.rem(10);
+      height: u.rem(10);
+    }
+  }
+
+  &.small {
+    padding: u.rem(5) u.rem(30);
+    font-size: u.rem(11);
+
+    > svg {
+      width: u.rem(9);
+      height: u.rem(9);
     }
   }
 }

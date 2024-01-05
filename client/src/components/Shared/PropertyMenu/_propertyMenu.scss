@@ -7,6 +7,7 @@
   top: 100%;
   left: 0;
   width: u.rem(200);
+  border: u.rem(0.5) solid var(--M75);
   border-radius: u.rem(10);
   padding: u.rem(10);
 
@@ -17,15 +18,24 @@
   background-color: var(--background-color);
   box-shadow: 0 u.rem(8) u.rem(10) 0 hsla(0, 0%, 0%, 0.15);
 
+  .input {
+    border: u.rem(1.5) solid var(--D50);
+  }
+
+  .menuItem {
+    border-radius: u.rem(10);
+    border: u.rem(1.5) solid var(--D50);
+  }
+
   .chrome-picker {
     width: auto !important;
     box-shadow: none !important;
-    border: 1px solid var(--D50);
-    border-radius: 5px !important;
+    border: u.rem(1.5) solid var(--D50);
+    border-radius: u.rem(10) !important;
     font-family: 'Nunito' !important;
 
     > div:nth-of-type(1) {
-      border-radius: 5px 5px 0 0 !important;
+      border-radius: u.rem(10) u.rem(10) 0 0 !important;
     }
   }
 }
