@@ -1,5 +1,7 @@
-# .gitignore
-
-flask-server/venv/
-flask-server/filetypes.py
-flask-server/instance/drop_tables.sql
+.DS_Store
+/__pycache__
+/flask_session
+/filetypes.py
+/instance
+/uploads
+/venv
