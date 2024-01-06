@@ -1,11 +1,10 @@
 import Input from '../Input/Input';
 import MenuItem from '../MenuItem/MenuItem';
 import useForm from '../../../hooks/useForm';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useDataContext } from '../../../contexts/DataContext';
 import { ReactComponent as DeleteIcon } from '../../../assets/icons/delete_3.svg';
 import axios from 'axios';
-import useOutsideClick from '../../../hooks/useOutsideClick';
 import { ChromePicker } from 'react-color';
 
 const PropertyMenu = ({ property, value }) => {
@@ -45,9 +44,6 @@ const PropertyMenu = ({ property, value }) => {
     handleSubmit,
   } = useForm(initialValues, validationFunctions, submitCallback);
 
-  const inputRef = useRef(null);
-  useOutsideClick(inputRef, handleSubmit);
-
   // TODO: display errors
 
   const handleColorChange = (color) => {
@@ -85,7 +81,6 @@ const PropertyMenu = ({ property, value }) => {
       onClick={handleClick}
     >
       <Input
-        inputRef={inputRef}
         size="small"
         name="name"
         type="text"
@@ -96,6 +91,8 @@ const PropertyMenu = ({ property, value }) => {
         error={errors.name}
         autoFocus
       />
+      {/* According to the HTML specification, the form submission event is not triggered when you hit Enter in an input field if the form only contains that one input field. To fix this, I added a hidden submit button to the form. */}
+      <button type="submit" style={{ display: 'none' }} />
       <ChromePicker
         color={color}
         onChange={handleColorChange}

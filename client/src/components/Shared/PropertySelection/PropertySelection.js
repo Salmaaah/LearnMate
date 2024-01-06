@@ -11,7 +11,7 @@ const PropertySelection = ({ property, value, searchTerm }) => {
 
   const handleClick = (event) => {
     event.stopPropagation();
-    setIsPropertyMenuOpen(true);
+    setIsPropertyMenuOpen(!isPropertyMenuOpen);
   };
 
   useOutsideClick(selectorRef, () => setIsPropertyMenuOpen(false));

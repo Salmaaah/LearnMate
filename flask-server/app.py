@@ -496,7 +496,7 @@ def remove_property(property_type, property_id):
         if property_type == 'Subject':
             file.subject = None
         elif property_type == 'Project':
-            file.projects.remove(property) 
+            file.project = None 
         elif property_type == 'Tag':
             file.tags.remove(property)
 

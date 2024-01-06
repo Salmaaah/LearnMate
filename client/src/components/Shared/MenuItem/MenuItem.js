@@ -1,13 +1,24 @@
 import PropTypes from 'prop-types';
 import { Link, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import useOutsideClick from '../../../hooks/useOutsideClick';
 import { ReactComponent as MoreIcon } from '../../../assets/icons/more.svg';
 
 // TODO: create small version
 
-const MenuItem = ({ children, to, icon, label, size, iconOnly, onClick }) => {
+const MenuItem = ({
+  children,
+  to,
+  active,
+  icon,
+  label,
+  size,
+  iconOnly,
+  onClick,
+}) => {
   const location = useLocation();
-  const active = to === location.pathname;
+  const ref = useRef(null);
+  const highlight = to === location.pathname || active;
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -27,8 +38,11 @@ const MenuItem = ({ children, to, icon, label, size, iconOnly, onClick }) => {
     }
   }, [iconOnly]);
 
+  useOutsideClick(ref, () => setIsOpen(false));
+
   return (
     <li
+      ref={ref}
       className={`menuItem ${size} ${
         isOpen && !iconOnly // don't need !iconOnly because of the condition in useEffect
           ? 'sub1'
@@ -40,7 +54,7 @@ const MenuItem = ({ children, to, icon, label, size, iconOnly, onClick }) => {
       onMouseOut={() => setIsHovered(false)}
     >
       <Link
-        className={`menuItem__title ${active ? 'active' : ''}`}
+        className={`menuItem__title ${highlight ? 'highlight' : ''}`}
         to={to}
         onClick={handleClick}
       >
@@ -65,6 +79,7 @@ const MenuItem = ({ children, to, icon, label, size, iconOnly, onClick }) => {
 MenuItem.defaultProps = {
   iconOnly: false,
   size: 'large',
+  active: false,
 };
 
 MenuItem.propTypes = {
@@ -72,6 +87,7 @@ MenuItem.propTypes = {
   icon: PropTypes.object,
   label: PropTypes.string,
   size: PropTypes.oneOf(['large', 'medium', 'small']),
+  active: PropTypes.bool, // in case the MenuItem is not a Link and needs to be highlighted
   iconOnly: PropTypes.bool,
   onClick: PropTypes.func,
 };

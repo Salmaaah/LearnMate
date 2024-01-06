@@ -12,7 +12,7 @@ import { ReactComponent as NotesIcon } from '../../assets/icons/notes.svg';
 import { ReactComponent as TodoIcon } from '../../assets/icons/toDo.svg';
 import { ReactComponent as MindmapIcon } from '../../assets/icons/mindMap.svg';
 
-const Menu = () => {
+const Sidebar = () => {
   const { isExpanded, toggleSidebar } = useSidebar();
   const [isHovered, setIsHovered] = useState(false);
   const [isLogoutSuccess, setLogoutSuccess] = useState(false);
@@ -119,4 +119,4 @@ const Menu = () => {
   );
 };
 
-export default Menu;
+export default Sidebar;

@@ -5,10 +5,7 @@ import viewIcon from '../../../assets/icons/view.svg';
 import hideIcon from '../../../assets/icons/hide.svg';
 import errorIcon from '../../../assets/icons/error.svg';
 
-// TODO: create small version of the input component for the propertyMenu
-
 const Input = ({
-  inputRef, // recently added for propertyMenu
   size,
   label,
   name,
@@ -23,12 +20,7 @@ const Input = ({
   const isPassword = type === 'password';
   const [displayIcon, setDisplayIcon] = useState(isPassword);
   const [passwordIcon, setpasswordIcon] = useState(isPassword ? 1 : 0);
-  const tempinputRef = useRef(null);
-
-  // in case inputRef is not passed as a prop, use the tempinputRef
-  if (!inputRef) {
-    inputRef = tempinputRef;
-  }
+  const inputRef = useRef(null);
 
   const handleFocus = (e) => {
     setDisplayIcon(true);

@@ -220,7 +220,7 @@
     }
 
     // Icon, label, and more icon highlighted when to === current location
-    &.active {
+    &.highlight {
       // this will affect both the left icon and more icon
       svg > path {
         stroke: var(--P300);

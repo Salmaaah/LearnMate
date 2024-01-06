@@ -1,9 +1,9 @@
 @use '../../styles/util/' as u;
 
 .editMenu {
-  z-index: 100;
+  z-index: 1;
   position: absolute;
-  top: u.rem(-11);
+  top: u.rem(-38.75);
   left: 107%;
 
   width: u.rem(280);
@@ -20,7 +20,7 @@
   &::before {
     content: '';
     position: absolute;
-    top: u.rem(74.5);
+    top: u.rem(92.5);
     right: 100%;
     margin-top: u.rem(-7); /* Half of the arrow height */
     border-width: u.rem(7);

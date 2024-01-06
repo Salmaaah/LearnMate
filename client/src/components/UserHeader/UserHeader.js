@@ -2,9 +2,9 @@ import { ReactComponent as NotificationIcon } from '../../assets/icons/notificat
 import Search from '../Shared/Search/Search';
 import NavItem from '../Shared/NavItem/NavItem';
 
-const UserHeader = ({ pageName }) => {
+const UserHeader = ({ pageName, style }) => {
   return (
-    <header className="userHeader">
+    <header className="userHeader" style={style}>
       <h3>{pageName}</h3>
       <div className="userHeader__centerSpace">
         <div>
