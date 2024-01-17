@@ -58,14 +58,14 @@ const File = ({ file }) => {
       setClickCount((prevCount) => {
         if (prevCount === 2) {
           //   console.log('Double click');
-          navigate('/');
+          navigate('/learn', { state: { file: file } }); //`/${file.id}`
         } else if (prevCount === 1) {
           //   console.log('Single click');
           setOpenEditMenu(!openEditMenu);
         }
         return 0;
       });
-    }, 100);
+    }, 200);
 
     setClickCount((prevCount) => prevCount + 1);
   };

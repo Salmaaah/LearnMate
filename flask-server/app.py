@@ -211,6 +211,11 @@ def search():
 def courses():
     return jsonify({"message": "Courses page loaded successfully"}), 200
 
+@app.route("/learn")
+@login_required
+def learn():
+    return jsonify({"message": "Learning page loaded successfully"}), 200
+
 
 # Configure file upload destination
 app.config["UPLOADED_FILES_DEST"] = "uploads"

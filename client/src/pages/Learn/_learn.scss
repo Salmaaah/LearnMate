@@ -1,0 +1,50 @@
+@use '../../styles/util/' as u;
+
+.grid {
+  display: grid;
+  grid-template-columns: 4fr 2fr;
+
+
+  &__docviewer {
+    max-width: 100%;
+    
+    #header-bar {
+      display: none;
+    }
+
+    #pdf-renderer {
+      position: relative;
+      width: 100%;
+
+      #pdf-controls {
+        position: absolute;
+        background: none;
+        box-shadow: none;
+
+        #pdf-download > svg,
+        #pdf-zoom-out > svg,
+        #pdf-zoom-in > svg,
+        #pdf-zoom-reset > svg {
+          height: u.rem(18);
+          width: auto;
+          flex-shrink: 0;
+        }
+
+        //   #pdf-download > svg {
+        //     display: none; // Hide the existing SVG
+        //   }
+
+        //   #pdf-download {
+        //     // Add a new background image
+        //     background-image: url('/Users/salma/Documents/Software Engineering/LearnMate/client/src/assets/icons/delete_2.svg');
+        //     background-repeat: no-repeat;
+        //     background-size: contain; // Adjust as needed
+        //   }
+      }
+
+      // > div:last-of-type {
+      //   margin: 0;
+      // }
+    }
+  }
+}
