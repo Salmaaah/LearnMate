@@ -13,13 +13,8 @@
   font-family: 'Nunito';
   font-weight: 700;
 
-  transition: all 200ms ease-in-out;
+  transition: all 150ms ease-in-out;
   cursor: pointer;
-
-  svg > path {
-    // This could go wrong for brand icons with stroke widths
-    stroke: var(--background-color);
-  }
 
   &__primary {
     @extend .button;
@@ -28,12 +23,19 @@
     border-bottom: u.rem(4) solid var(--P400);
     box-shadow: 0 u.rem(5) u.rem(8) 0 hsla(0, 0%, 0%, 0.25);
 
+    svg > path {
+      // This could go wrong for brand icons with stroke widths
+      stroke: var(--background-color);
+      fill: var(--background-color);
+    }
+
     &:hover {
       background: var(--P200);
     }
 
-    &:focus {
-      padding-bottom: u.rem(9);
+    &:active {
+      //Using important so that we can override the paddings from the helper classes when the button is active
+      padding-block: u.rem(8) !important;
       border-bottom: u.rem(2) solid var(--P400);
       box-shadow: 0 u.rem(2) u.rem(4) 0 hsla(0, 0%, 0%, 0.25);
     }
@@ -54,11 +56,17 @@
     box-shadow: 0 u.rem(4) u.rem(4) 0 hsl(254, 23%, 79%),
       0 0 u.rem(2.7) u.rem(1) var(--M100);
 
+    svg > path {
+      // This could go wrong for brand icons with stroke widths
+      stroke: var(--P100);
+      fill: var(--P100);
+    }
+
     &:hover {
       background: var(--P50);
     }
 
-    &:focus {
+    &:active {
       box-shadow: 0 u.rem(2) u.rem(3) 0 hsl(254, 23%, 79%),
         0 0 u.rem(0.7) 0 var(--M100);
     }

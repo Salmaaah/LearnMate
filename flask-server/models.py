@@ -23,6 +23,7 @@ class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=True, nullable=False)
     path = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     modified_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
     type = db.Column(db.String(100), nullable=False)
@@ -79,4 +80,30 @@ class Project(db.Model):
 class ProjectTag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+    tag_id = db.Column(db.Integer, db.ForeignKey('tag.id'), nullable=False)
+
+class Note(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), unique=True, nullable=False)
+    content = db.Column(db.Text)
+    created_date = db.Column(db.DateTime, default=datetime.utcnow)
+    modified_date = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('notes', lazy=True))
+
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id'))
+    file = db.relationship('File', backref=db.backref('notes', lazy=True))
+
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'))
+    subject = db.relationship('Subject', backref=db.backref('notes', lazy=True))
+
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    project = db.relationship('Project', backref=db.backref('notes', lazy=True))
+
+    tags = db.relationship('Tag', secondary='note_tag', backref=db.backref('notes', lazy=True))
+
+class NoteTag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    note_id = db.Column(db.Integer, db.ForeignKey('note.id'), nullable=False)
     tag_id = db.Column(db.Integer, db.ForeignKey('tag.id'), nullable=False)

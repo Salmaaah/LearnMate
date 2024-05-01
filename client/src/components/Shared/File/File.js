@@ -1,13 +1,15 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileProvider } from '../../../contexts/FileContext';
+import { useFile } from '../../../contexts/FileContext';
+
 import EditMenu from '../../EditMenu/EditMenu';
 import useOutsideClick from '../../../hooks/useOutsideClick';
 
 const File = ({ file }) => {
-  const fileType = file.type.split('/')[0];
+  const { id, name, type } = useFile();
+
+  const fileType = type.split('/')[0];
   const maxCharacters = 30;
-  const [clickCount, setClickCount] = useState(0);
   const [openContextMenu, setOpenContextMenu] = useState(false);
   const [openEditMenu, setOpenEditMenu] = useState(false);
   const navigate = useNavigate();
@@ -16,92 +18,40 @@ const File = ({ file }) => {
   useOutsideClick(fileRef, () => setOpenEditMenu(false));
   useOutsideClick(fileRef, () => setOpenContextMenu(false));
 
-  let displayedFilename = file.name;
-  if (file.name.length > maxCharacters) {
-    const middleIndex = Math.floor(file.name.length / 2);
-    const charactersToRemove = Math.ceil(
-      (file.name.length - maxCharacters + 3) / 2
-    );
+  let displayedFilename = name;
+  if (name.length > maxCharacters) {
+    const middleIndex = Math.floor(name.length / 2);
+    const charactersToRemove = Math.ceil((name.length - maxCharacters + 3) / 2);
     displayedFilename =
-      file.name.slice(0, middleIndex - charactersToRemove) +
+      name.slice(0, middleIndex - charactersToRemove) +
       '...' +
-      file.name.slice(middleIndex + charactersToRemove);
+      name.slice(middleIndex + charactersToRemove);
   }
-
-  //   const handleClick = (event) => {
-  //     event.preventDefault();
-
-  //     setTimeout(() => {
-  //       if (clickCount === 1) {
-  //         console.log('Double click');
-  //         navigate('/');
-  //       } else {
-  //         console.log('Single click');
-  //         setOpenEditMenu(true);
-  //       }
-  //       setClickCount(0);
-  //     }, 300);
-
-  //     setClickCount((prevCount) => prevCount + 1);
-  //   };
-
-  let clickTimeout = null;
-
-  const handleClick = (event) => {
-    event.preventDefault();
-
-    if (clickTimeout !== null) {
-      clearTimeout(clickTimeout);
-    }
-
-    clickTimeout = setTimeout(() => {
-      setClickCount((prevCount) => {
-        if (prevCount === 2) {
-          //   console.log('Double click');
-          navigate('/learn', { state: { file: file } }); //`/${file.id}`
-        } else if (prevCount === 1) {
-          //   console.log('Single click');
-          setOpenEditMenu(!openEditMenu);
-        }
-        return 0;
-      });
-    }, 200);
-
-    setClickCount((prevCount) => prevCount + 1);
-  };
 
   const handleContextMenu = (event) => {
     // event.preventDefault();
     setOpenContextMenu(true);
-    // console.log('Right click');
   };
 
   return (
     <div ref={fileRef} className="file" onContextMenu={handleContextMenu}>
-      <div className="file__thumbnail" onClick={handleClick}>
+      <div
+        className="file__thumbnail"
+        onClick={() => setTimeout(() => setOpenEditMenu(!openEditMenu), 180)} // a delay so that the edit menu does not appear on double click
+        onDoubleClick={() => navigate(`/learn/${id}`)} // TODO: find a way to pass on the file object to the Learn component without state because as soon as you click on an menu in the sidebar the state gets lost, context could be a solution although not sure how it'll work in case of files open in different tabs
+      >
         {fileType === 'image' ? (
-          <img src={`/files/${file.id}`} alt={file.name} />
+          <img src={`/files/${id}`} alt={name} />
         ) : fileType === 'video' ? (
           <video>
-            <source src={`/files/${file.id}`} type={file.type} />
+            <source src={`/files/${id}`} type={file.type} />
           </video>
         ) : (
           <p>No preview available for this file type.</p>
         )}
       </div>
       <p>{displayedFilename}</p>
-      {openEditMenu && (
-        // <EditMenu
-        //   file_id={file.id}
-        //   name={file.name}
-        //   subject={file.subject}
-        //   project={file.project}
-        //   tags={file.tags}
-        // />
-        <FileProvider file={file}>
-          <EditMenu />
-        </FileProvider>
-      )}
+      {openEditMenu && <EditMenu />}
     </div>
   );
 };
@@ -115,7 +65,7 @@ export default File;
 
 //     useEffect(() => {
 //       axios
-//         .get(`/files/${file.id}`, { responseType: 'blob' })
+//         .get(`/files/${id}`, { responseType: 'blob' })
 //         .then((response) => {
 //           const url = URL.createObjectURL(
 //             new Blob([response.data], { type: file.type })
@@ -134,7 +84,7 @@ export default File;
 //     }
 
 //     if (fileType === 'image') {
-//       return <img src={src} alt={file.name} />;
+//       return <img src={src} alt={name} />;
 //     } else if (fileType === 'video') {
 //       return (
 //         <video controls>

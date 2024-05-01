@@ -1,0 +1,35 @@
+@use '../../styles/util/' as u;
+
+.popupBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(5px); /* Apply blur filter */
+  z-index: 999; /* Ensure the backdrop is above other content */
+  display: flex;
+  cursor: auto;
+}
+
+.popup {
+  width: u.rem(400);
+  border: u.rem(1) solid var(--D75);
+  border-radius: u.rem(20);
+  box-shadow: 0 u.rem(8) u.rem(10) 0 hsla(0, 0%, 0%, 0.15);
+  padding: u.rem(20);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: center;
+  gap: u.rem(10);
+  color: var(--D500);
+  overflow: auto;
+  text-align: center;
+
+  > div {
+    margin-top: u.rem(10);
+    display: flex;
+    gap: u.rem(10);
+  }
+}

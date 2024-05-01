@@ -9,17 +9,26 @@ const Dashboard = () => {
       {isLoading ? (
         <div>Loading...</div>
       ) : (
-        <div>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad eius
-          blanditiis maiores, facere voluptate hic. Assumenda repellat
-          accusantium molestias nulla odit eaque expedita, optio rem quasi ad
-          qui iure officia. Lorem ipsum dolor sit amet consectetur adipisicing
-          elit. Ad eius blanditiis maiores, facere voluptate hic. Assumenda
-          repellat accusantium molestias nulla odit eaque expedita, optio rem
-          quasi ad qui iure officia. Lorem ipsum dolor sit amet consectetur
-          adipisicing elit. Ad eius blanditiis maiores, facere voluptate hic.
-          Assumenda repellat accusantium molestias nulla odit eaque expedita,
-          optio rem quasi ad qui iure officia.
+        <div style={{ display: 'flex' }}>
+          <div
+            style={{
+              whiteSpace: 'nowrap',
+            }}
+          >
+            something here
+          </div>
+          <div
+            style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Illo sequi
+            deserunt neque, at tenetur corporis officia, laudantium dicta ut
+            quisquam minima alias exercitationem consequuntur! Repellat modi sed
+            ipsa laboriosam amet.
+          </div>
         </div>
       )}
     </Layout>

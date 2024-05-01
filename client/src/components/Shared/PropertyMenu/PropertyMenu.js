@@ -24,7 +24,7 @@ const PropertyMenu = ({ property, value }) => {
   const submitCallback = async (formData) => {
     try {
       const response = await axios.post(
-        `update/${property.replace(/s$/, '')}/${value.id}`,
+        `updateProperty/${property.replace(/s$/, '')}/${value.id}`,
         formData
       );
       await fetchData();
@@ -37,14 +37,12 @@ const PropertyMenu = ({ property, value }) => {
   const {
     formData,
     errors,
-    isSubmitting,
-    isFormSubmitted,
+    // isSubmitting,
+    // isFormSubmitted,
     handleChange,
-    handleBlur,
+    // handleBlur, // don't need this because we submit on blur
     handleSubmit,
   } = useForm(initialValues, validationFunctions, submitCallback);
-
-  // TODO: display errors
 
   const handleColorChange = (color) => {
     setColor(color.hex);
@@ -57,7 +55,7 @@ const PropertyMenu = ({ property, value }) => {
   const handleDelete = async () => {
     try {
       const response = await axios.post(
-        `delete/${property.replace(/s$/, '')}/${value.id}`
+        `deleteProperty/${property.replace(/s$/, '')}/${value.id}`
       );
       await fetchData();
       console.log(response.data.message);
@@ -87,7 +85,7 @@ const PropertyMenu = ({ property, value }) => {
         value={formData.name}
         onFocus={(event) => event.target.select()}
         onChange={handleChange}
-        onBlur={handleBlur}
+        onBlur={handleSubmit}
         error={errors.name}
         autoFocus
       />
@@ -98,8 +96,8 @@ const PropertyMenu = ({ property, value }) => {
         onChange={handleColorChange}
         disableAlpha={true}
       />
-      {/* TODO: figure out how to put this MenuItem in a <ul> because it's a <li>, and when done edit the scss to fit this */}
       <MenuItem
+        as="div"
         size="small"
         icon={<DeleteIcon />}
         label="Delete"

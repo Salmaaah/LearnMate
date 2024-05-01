@@ -1,12 +1,14 @@
 import os
+import json
 from flask import Flask, session, request, jsonify, send_from_directory
 from flask_session import Session
 from flask_cors import CORS
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import magic
+from pypdf import PdfReader
 from validator_collection import is_email
-from models import db, User, File, Subject, Tag, Project
+from models import db, User, File, Subject, Tag, Project, Note
 from flask_migrate import Migrate
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_
@@ -211,10 +213,11 @@ def search():
 def courses():
     return jsonify({"message": "Courses page loaded successfully"}), 200
 
-@app.route("/learn")
+
+@app.route("/learn/<id>")
 @login_required
-def learn():
-    return jsonify({"message": "Learning page loaded successfully"}), 200
+def learn(id):
+    return jsonify({"message": f"Learning page {id} loaded successfully"}), 200
 
 
 # Configure file upload destination
@@ -256,12 +259,28 @@ def upload_files():
             file_path = os.path.join(user_folder, filename)
             file.save(file_path)
 
+            # Extract file content
+            try:
+                if "pdf" in file_type.lower():
+                    # TODO: find a better pdf to text converter 
+                    file_content = extract_text_from_pdf(file)
+
+                else:
+                    #text, code, markup, and data files
+                    with open(file_path, 'r') as f:
+                        file_content = f.read()
+
+            except Exception:
+                    file_content = "Error reading file"
+
+
             # Save file information to the database
             new_file = File(
                 name=filename,
                 type=file_type,
                 user_id=user_id,
                 path=file_path,
+                content=file_content,
             )
             db.session.add(new_file)
 
@@ -270,6 +289,25 @@ def upload_files():
         return jsonify({"message": "Files uploaded successfully"}), 200
     else:
         return jsonify({"error": "No files provided"}), 400
+
+def extract_text_from_pdf(pdf_file):
+    reader = PdfReader(pdf_file)
+    text = ''
+    for page_num in range(reader.get_num_pages()):
+        text += reader.get_page(page_num).extract_text()
+        # extract text in a fixed width format that closely adheres to the rendered layout in the source pdf 
+        # extract_text(extraction_mode="layout")
+
+        # extract text preserving horizontal positioning without excess vertical whitespace (removes blank and "whitespace only" lines)
+        # extract_text(extraction_mode="layout", layout_mode_space_vertically=False)
+
+        # adjust horizontal spacing
+        # extract_text(extraction_mode="layout", layout_mode_scale_weight=1.0)
+
+        # exclude (default) or include (as shown below) text rotated w.r.t. the page
+        # extract_text(extraction_mode="layout", layout_mode_strip_rotated=False)
+
+    return text.strip()
 
 
 # @uploaded_files_bp.route("/files", methods=["GET"])
@@ -285,6 +323,7 @@ def get_user_data():
             "name": file.name,
             "type": file.type,
             #  "path": file.path,
+            "content": file.content,
             "created_at": file.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             "subject": [{
                 "id": file.subject.id,
@@ -300,6 +339,15 @@ def get_user_data():
             }]
             if file.project
             else [],
+            "notes": [
+                {
+                    "id": note.id,
+                    "name": note.name,
+                    "content": json.loads(note.content) if note.content is not None else '',
+                    "modified_date" : note.modified_date,
+                } 
+                for note in file.notes
+            ],
             "tags": [
                 {
                     "id": tag.id,
@@ -332,6 +380,16 @@ def get_user_data():
         for project in projects
     ]
 
+    notes = user.notes
+    notes_list = [
+        {
+            "id": note.id,
+            "name": note.name,
+            "content": note.content,
+        }
+        for note in notes
+    ]
+    
     tags = user.tags
     tags_list = [
         {
@@ -342,7 +400,7 @@ def get_user_data():
         for tag in tags
     ]
     
-    return jsonify({"files": file_list, "subjects": subjects_list, "projects": projects_list, "tags": tags_list}), 200
+    return jsonify({"files": file_list, "subjects": subjects_list, "projects": projects_list, "notes": notes_list, "tags": tags_list}), 200
 
 
 @login_required
@@ -423,19 +481,21 @@ def delete_file(file_id):
 
 
 @login_required
-@app.route("/add/<property_type>/<property_id>", methods=["POST"])
+@app.route("/addProperty/<property_type>/<property_id>", methods=["POST"])
 def add_property(property_type, property_id):
 
     property_models = {
         'Subject': Subject,
         'Project': Project,
         'Tag': Tag,
+        'Note': Note,
     }
 
     PropertyModel = property_models.get(property_type)
     property = PropertyModel.query.filter_by(id=property_id).first()
     data = request.json
 
+    # Create property if it does not exist already (notes are excluded from this logic)
     if not property:
         property_name = data.get("name").strip()
         property_color = data.get("color").strip()
@@ -475,19 +535,24 @@ def add_property(property_type, property_id):
     elif property_type == 'Tag':
         if property not in file.tags:
             file.tags.append(property)
+    elif property_type == 'Note':
+        if property not in file.notes:
+            file.notes.append(property)
+    
     db.session.commit()
 
     return jsonify({"message": f"{property_type} created and/or added successfully"}), 200
 
 
 @login_required
-@app.route("/remove/<property_type>/<property_id>", methods=["POST"])
+@app.route("/removeProperty/<property_type>/<property_id>", methods=["POST"])
 def remove_property(property_type, property_id):
 
     property_models = {
         'Subject': Subject,
         'Project': Project,
         'Tag': Tag,
+        'Note': Note,
     }
 
     PropertyModel = property_models.get(property_type)
@@ -504,6 +569,8 @@ def remove_property(property_type, property_id):
             file.project = None 
         elif property_type == 'Tag':
             file.tags.remove(property)
+        elif property_type == 'Note':
+            file.notes.remove(property)
 
         db.session.commit()
 
@@ -514,7 +581,7 @@ def remove_property(property_type, property_id):
 
 
 @login_required
-@app.route("/update/<property_type>/<property_id>", methods=["POST"])
+@app.route("/updateProperty/<property_type>/<property_id>", methods=["POST"])
 def update_property(property_type, property_id):
 
     property_models = {
@@ -552,7 +619,7 @@ def update_property(property_type, property_id):
         except IntegrityError as e:
             db.session.rollback()
             if f"UNIQUE constraint failed: {property_type.lower()}.name" in str(e.orig):
-                return jsonify({"error": f"{property_type} name already exists."}), 400
+                return jsonify({"error": {"name": f"{property_type} name already exists."}}), 400
 
             else:
                 return jsonify({"error": str(e)}), 400
@@ -562,7 +629,7 @@ def update_property(property_type, property_id):
 
 
 @login_required
-@app.route("/delete/<property_type>/<property_id>", methods=["POST"])
+@app.route("/deleteProperty/<property_type>/<property_id>", methods=["POST"])
 def delete_property(property_type, property_id):
 
     property_models = {
@@ -582,6 +649,101 @@ def delete_property(property_type, property_id):
 
     else:
         return jsonify({"error": f"{property_type} not found"}), 404
+
+
+@login_required
+@app.route('/createNote/<file_id>', defaults={'note_name': None}, methods=["POST"])
+@app.route('/createNote/<file_id>/<note_name>', methods=["POST"])
+def create_note(file_id, note_name=None):
+
+    if note_name is None:
+        untitled_notes = Note.query.filter(Note.name.like("%Untitled note%")).all()
+
+        if len(untitled_notes) == 0 or all([note.name != "Untitled note" for note in untitled_notes]):
+                note_num = ""
+        else:
+            # leave only the untitled notes with numbers
+            untitled_notes = [note.name for note in untitled_notes if note.name !="Untitled note" and "Untitled note" in note.name]
+            # extract and sort the existing numbers used in the untitled notes
+            nums = sorted([int(note.replace('Untitled note ', '')) for note in untitled_notes])
+
+            expected_num = 2
+            for num in nums:
+                if num != expected_num:
+                    note_num = " " + str(expected_num)
+                    break
+                expected_num += 1
+            note_num = " " + str(expected_num)
+
+        note_name="Untitled note" + note_num
+        
+    # Add new note to database
+    try:
+        new_note = Note(
+            name=note_name,
+            user_id=session["user_id"],
+            file_id=file_id,
+        )
+        db.session.add(new_note)
+        db.session.commit()
+
+        note_data = {
+            "id": new_note.id,
+            "name": new_note.name,
+            "content": new_note.content
+        }
+
+        return jsonify({"message": "Note created successfully", "note": note_data}), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@login_required
+@app.route("/updateNote/<note_id>/<element>", methods=["POST"])
+def update_note(note_id, element):
+
+    note = Note.query.filter_by(id=note_id).first()
+    data = request.json.get("value")
+    
+    if element == "name":
+        note.name = data.strip()
+    else:
+        note.content = json.dumps(data)
+
+    note_data = {
+        "id": note.id,
+        "name": note.name,
+        "content": json.loads(note.content) if note.content is not None else '',
+    }
+
+    try:
+        db.session.commit()
+        return jsonify({"message": "Note updated successfully", "note": note_data}), 200
+    
+    except IntegrityError as e:
+        db.session.rollback()
+        if f"UNIQUE constraint failed: note.name" in str(e.orig):
+            return jsonify({"error": {"name": f"note name already exists."}}), 400
+
+        else:
+            return jsonify({"error": str(e)}), 400
+
+
+@login_required
+@app.route("/deleteNote/<note_id>", methods=["POST"])
+def delete_note(note_id):
+    
+    note = Note.query.filter_by(id=note_id).first()
+    db.session.delete(note)
+
+    try:
+        db.session.commit()
+        return jsonify({"message": "Note deleted successfully"}), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 
 if __name__ == "__main__":
     app.run(debug=True)
