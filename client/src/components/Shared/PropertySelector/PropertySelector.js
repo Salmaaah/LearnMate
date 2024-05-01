@@ -13,16 +13,29 @@ const PropertySelector = ({
   availableValues,
 }) => {
   const { id: file_id } = useFile();
+  const { fetchData } = useDataContext();
 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const selectorRef = useRef(null);
+  const headerRef = useRef(null);
   const inputRef = useRef(null);
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { fetchData } = useDataContext();
+  // header show more/show less feature start
+  // const [maxHeight, setMaxHeight] = useState(0);
+
+  // useEffect(() => {
+  //   if (headerRef.current) {
+  //     setMaxHeight(
+  //       getComputedStyle(headerRef.current).getPropertyValue(
+  //         '--max-height-propertySelector__header'
+  //       )
+  //     );
+  //   }
+  // }, []);
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
@@ -49,24 +62,41 @@ const PropertySelector = ({
   const handleSelection = async (selectedValue) => {
     setInputValue('');
     setSearchTerm('');
-
-    try {
-      const response = await axios.post(
-        // `${property.toLowerCase()}/${selectedValue.id}`,
-        `add/${property.replace(/s$/, '')}/${selectedValue.id}`,
-        {
-          file_id: file_id,
-          name: selectedValue.name,
-          color: selectedValue.color,
+    if (property === 'Notes' && searchTerm && availableValues.length === 0) {
+      // handleCreateNote which litterally exists in ActionItem.js minus the setCurrentNote part but plus the name, this is repetitive because for now I won't create a seperate file for all note related functions until I acess their other usages first
+      try {
+        const response = await axios.post(
+          `/createNote/${file_id}/${searchTerm}`
+        );
+        await fetchData();
+        console.log(response.data.message);
+        console.log(response.data.note);
+        return response.data.note.id;
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          console.error(error.response.data.error);
+        } else {
+          console.error('Error creating note:', error.message);
         }
-      );
-      await fetchData();
-      console.log(response.data.message);
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        console.error(error.response.data.error);
-      } else {
-        console.error('Error adding property:', error.message);
+      }
+    } else {
+      try {
+        const response = await axios.post(
+          `addProperty/${property.replace(/s$/, '')}/${selectedValue.id}`,
+          {
+            file_id: file_id,
+            name: selectedValue.name,
+            color: selectedValue.color,
+          }
+        );
+        await fetchData();
+        console.log(response.data.message);
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          console.error(error.response.data.error);
+        } else {
+          console.error('Error adding property:', error.message);
+        }
       }
     }
   };
@@ -75,7 +105,7 @@ const PropertySelector = ({
     event.stopPropagation();
     try {
       const response = await axios.post(
-        `remove/${property.replace(/s$/, '')}/${removedValue.id}`,
+        `removeProperty/${property.replace(/s$/, '')}/${removedValue.id}`,
         {
           file_id: file_id,
           name: removedValue.name,
@@ -97,17 +127,28 @@ const PropertySelector = ({
       ref={selectorRef}
       className={`propertySelector ${isDropdownOpen ? 'open' : 'closed'}`}
     >
-      <div className="propertySelector__header" onClick={handleClick}>
+      <div
+        ref={headerRef}
+        className="propertySelector__header"
+        onClick={handleClick}
+      >
         <div>{property}</div>
-        <ul>
+        <ul
+        // style={{
+        //   flexDirection: property === 'Notes' ? 'column' : '',
+        //   alignItems: property === 'Notes' ? 'flex-end' : 'center',
+        // }}
+        >
           {selectedValues.length > 0 && (
             <>
               {selectedValues.map((value) => (
                 <Property
                   key={value.id}
+                  as="li"
                   name={value.name}
                   color={value.color}
-                  handleRemove={(event) => handleRemove(event, value)}
+                  link={property === 'Notes' ? `/notebook/${value.id}` : ''}
+                  handleRemove={(e) => handleRemove(e, value)}
                 />
               ))}
             </>
@@ -130,25 +171,25 @@ const PropertySelector = ({
           <div>Select an option or create one</div>
           <ul>
             {availableValues.map((value) => (
-              // TODO: figure out how to make this a <li> instead of a <div> because the parent is a <ul>
-              <div key={value.id} onClick={() => handleSelection(value)}>
-                <PropertySelection property={property} value={value} />
-              </div>
+              <PropertySelection
+                key={value.id}
+                property={property}
+                value={value}
+                onClick={() => handleSelection(value)}
+              />
             ))}
             {searchTerm && availableValues.length === 0 && (
-              // TODO: figure out how to make this a <li> instead of a <div> because the parent is a <ul>
-              <div
+              <PropertySelection
                 key="searchTerm"
+                searchTerm={searchTerm}
                 onClick={() =>
                   handleSelection({
                     id: '99999999999999',
                     name: searchTerm,
-                    color: 'gray',
+                    color: '#eae9ec',
                   })
                 }
-              >
-                <PropertySelection searchTerm={searchTerm} />
-              </div>
+              />
             )}
           </ul>
         </div>

@@ -1,0 +1,64 @@
+@use '../../../styles/util/' as u;
+
+.note {
+  border-radius: u.rem(20);
+  padding: u.rem(8) u.rem(25) u.rem(10) u.rem(30);
+  display: flex;
+  justify-content: space-between;
+  gap: u.rem(10);
+  align-items: center;
+  transition: all 200ms ease-in-out;
+
+  &:hover {
+    background-color: var(--M50);
+    cursor: pointer;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    max-width: calc(100% - 41.5px); // gap (10) + button full width (31.5)
+  }
+  &__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: noWrap;
+    font-family: 'Bellaboo';
+    font-weight: 600;
+    font-size: u.rem(25);
+  }
+
+  &__other {
+    display: flex;
+    flex-direction: row;
+    gap: u.rem(10);
+    font-size: u.rem(14);
+
+    > div:first-of-type {
+      white-space: noWrap;
+    }
+    > div:last-of-type {
+      color: var(--D100);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  > button {
+    border-radius: 50%;
+    padding: u.rem(10) !important;
+    box-shadow: none;
+    background: none;
+
+    > svg {
+      // if height ever changes the max-width of the note__info class will need to be changed as well
+      height: u.rem(15) !important;
+      width: auto;
+
+      > path {
+        fill: none;
+      }
+    }
+  }
+}

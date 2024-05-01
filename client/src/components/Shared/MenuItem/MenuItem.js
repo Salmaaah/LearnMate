@@ -7,13 +7,14 @@ import { ReactComponent as MoreIcon } from '../../../assets/icons/more.svg';
 // TODO: create small version
 
 const MenuItem = ({
+  as: Element = 'li',
   children,
   to,
-  active,
+  active = false,
   icon,
   label,
-  size,
-  iconOnly,
+  size = 'large',
+  iconOnly = false,
   onClick,
 }) => {
   const location = useLocation();
@@ -41,7 +42,7 @@ const MenuItem = ({
   useOutsideClick(ref, () => setIsOpen(false));
 
   return (
-    <li
+    <Element
       ref={ref}
       className={`menuItem ${size} ${
         isOpen && !iconOnly // don't need !iconOnly because of the condition in useEffect
@@ -72,17 +73,12 @@ const MenuItem = ({
       >
         {label}
       </div>
-    </li>
+    </Element>
   );
 };
 
-MenuItem.defaultProps = {
-  iconOnly: false,
-  size: 'large',
-  active: false,
-};
-
 MenuItem.propTypes = {
+  as: PropTypes.string,
   to: PropTypes.string,
   icon: PropTypes.object,
   label: PropTypes.string,

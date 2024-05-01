@@ -1,30 +1,45 @@
 @use '../../../styles/util/' as u;
 
 .propertySelection {
-  width: 100%;
+  max-width: 100%;
   cursor: pointer;
   border-radius: u.rem(10);
   padding: u.rem(5) u.rem(10);
   display: flex;
   justify-content: space-between;
+  gap: u.rem(10);
   align-items: center;
   transition: background-color 0.2s ease-in-out;
 
-  &__name {
+  &__leftSection {
+    max-width: calc(100% - u.rem(30));
+    // gap (10) + menu icon container div width (20)
     display: flex;
     align-items: center;
     gap: u.rem(10);
 
+    // overwrite property width to fit the available space
+    .property {
+      max-width: calc(100% - u.rem(calc(10 + 0.66 * 12)));
+      // gap (10) + drag icon width (0.66 * height (12))
+    }
+
+    // drag icon
     > svg {
+      flex-shrink: 0;
+      // if height ever changes the modification of the property class inside &__leftSection will need to be changed as well
       height: u.rem(12);
       width: auto;
     }
   }
 
-  &__menu {
+  &__rightSection {
+    flex-shrink: 0;
     position: relative;
 
+    // Menu icon container div
     > div {
+      // if h and w ever change the max-width of &__leftSection will need to be changed as well
       height: u.rem(20);
       width: u.rem(20);
       border-radius: u.rem(6);
@@ -56,8 +71,15 @@
   gap: u.rem(10);
 
   > div {
+    // if these 2 ever change the modification of the property class inside propertyCreation will need to be changed as well
     font-size: u.rem(13);
     font-weight: 700;
     color: var(--D200);
+  }
+
+  // overwrite property width to fit the available space
+  .property {
+    max-width: calc(100% - u.rem(49.9688));
+    // gap (10) + 'create' width (39.9688)
   }
 }

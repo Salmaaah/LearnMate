@@ -1,0 +1,253 @@
+@use '../../../styles/util/' as u;
+
+.actionItem {
+  margin: u.rem(5) u.rem(8) u.rem(5) u.rem(8);
+  height: 97%;
+  background-color: var(--background-color);
+  border-radius: u.rem(20);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: all 200ms ease-in-out;
+
+  &.hidden {
+    display: none;
+  }
+
+  &.full {
+    // &__header
+    > div:first-of-type {
+      cursor: pointer;
+    }
+
+    &.closed:hover {
+      background-color: rgb(237, 233, 242);
+    }
+
+    &:hover,
+    &.open {
+      box-shadow: 0 u.rem(8) u.rem(10) 0 hsla(0, 0%, 0%, 0.15);
+
+      #title {
+        color: var(--P300) !important;
+      }
+      //   svg > path {
+      //     stroke: var(--P300);
+      //   }
+    }
+
+    &.open {
+      // height: 100%;
+      justify-content: flex-start;
+
+      > div:first-of-type {
+        // &__header
+        border-bottom: u.rem(1) solid var(--M75);
+      }
+    }
+  }
+
+  &__header {
+    padding: u.rem(15) u.rem(35);
+    display: flex;
+    justify-content: space-between;
+    gap: u.rem(10);
+    align-items: center;
+
+    #leftSection {
+      width: calc(100% - u.rem(45));
+      display: flex;
+      flex-direction: column;
+      gap: u.rem(5);
+
+      #title,
+      #title2 > input {
+        font-weight: 800;
+        font-size: u.rem(22);
+        color: var(--D300);
+      }
+
+      #title2 {
+        display: flex;
+        gap: u.rem(10);
+
+        > input {
+          // TODO: add this to the global styles
+          width: 100%;
+          overflow: hidden;
+          background: none;
+          outline: none;
+          border: none;
+        }
+      }
+
+      #subtitle {
+        display: flex;
+        align-items: center;
+        gap: u.rem(10);
+        font-weight: 700;
+        font-size: u.rem(15);
+        color: var(--D100);
+
+        > svg {
+          height: u.rem(15);
+          width: auto;
+
+          > path {
+            stroke: var(--D100);
+          }
+        }
+
+        > button {
+          display: flex;
+          border-radius: 50%;
+          padding: u.rem(3);
+          background: none;
+          border: none;
+          cursor: pointer;
+          transition: all 100ms ease-in-out;
+          background-color: var(--M50);
+          box-shadow: 0 0 u.rem(2) 0 hsla(0, 0%, 0%, 0.15);
+
+          svg {
+            height: u.rem(15);
+            width: auto;
+
+            path {
+              stroke: var(--D100);
+              fill: var(--D100);
+            }
+          }
+
+          &:hover {
+            background-color: var(--M100);
+            // box-shadow: ;
+
+            svg > path {
+              stroke: var(--P300);
+              fill: var(--P300);
+            }
+          }
+        }
+        > button:nth-of-type(2) > svg {
+          height: u.rem(14);
+          path {
+            stroke-width: u.rem(20);
+          }
+        }
+      }
+
+      #CTA {
+        display: flex;
+        align-items: center;
+        gap: u.rem(10);
+        margin-block: u.rem(15);
+
+        button:first-of-type {
+          padding: u.rem(7) u.rem(20);
+        }
+
+        button:last-of-type {
+          cursor: pointer;
+          background: none;
+          border: none;
+          font: 'Nunito';
+          font-size: u.rem(15);
+          font-weight: 700;
+          color: var(--P300);
+        }
+      }
+    }
+
+    // illustration (right section of the header when closed)
+    > svg {
+      height: u.rem(120);
+      width: auto;
+      //   width: auto;
+      //   margin-left: u.rem(10);
+
+      //   > path {
+      //     stroke-width: u.rem(10);
+      //   }
+    }
+
+    // OLD
+    // // Right side buttons of the header when open
+    // #rightSection {
+    //   display: flex;
+    //   gap: u.rem(10);
+
+    //   > button {
+    //     border-radius: 50%;
+    //     padding: u.rem(10);
+    //     border: none;
+    //     box-shadow: 0 u.rem(2) u.rem(3) 0 hsl(254, 23%, 79%),
+    //       0 0 u.rem(0.7) 0 var(--M100);
+
+    //     > svg {
+    //       height: u.rem(15);
+    //       width: auto;
+    //     }
+    //   }
+    // }
+
+    // NEW
+    // Right side div of buttons of the header when open
+    > #rightSection {
+      display: flex;
+      gap: u.rem(10);
+    }
+    // Right side buttons of the header when open
+    // and left side back button of the header when open
+    #rightSection > button,
+    #title2 > button {
+      border-radius: 50%;
+      padding: u.rem(10);
+      border: none;
+      box-shadow: 0 u.rem(2) u.rem(3) 0 hsl(254, 23%, 79%),
+        0 0 u.rem(0.7) 0 var(--M100);
+
+      > svg {
+        height: u.rem(15);
+        width: auto;
+      }
+    }
+  }
+
+  &__content {
+    overflow: hidden;
+    padding: u.rem(15) u.rem(10) u.rem(30) u.rem(15);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: u.rem(10);
+
+    // notes_items/create/generate
+    > div:first-of-type {
+      flex: 1;
+      overflow: auto;
+    }
+
+    #notes_items {
+      overflow-y: scroll;
+      overflow-x: hidden;
+    }
+
+    #notes_create {
+      padding-inline: u.rem(65) u.rem(25);
+    }
+
+    #notes_generate {
+      height: 100%;
+      margin-top: auto;
+      padding-inline: u.rem(20);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: u.rem(10);
+    }
+    .menuItem__title > svg > path {
+      stroke-width: 13px;
+    }
+  }
+}

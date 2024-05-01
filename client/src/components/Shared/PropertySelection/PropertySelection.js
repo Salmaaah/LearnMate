@@ -3,33 +3,46 @@ import useOutsideClick from '../../../hooks/useOutsideClick';
 import Property from '../Property/Property';
 import PropertyMenu from '../PropertyMenu/PropertyMenu';
 import { ReactComponent as MeatballsMenuIcon } from '../../../assets/icons/meatballs_menu.svg';
+import { ReactComponent as NewTabIcon } from '../../../assets/icons/newTab.svg';
 import { ReactComponent as DragIcon } from '../../../assets/icons/drag.svg';
 
-const PropertySelection = ({ property, value, searchTerm }) => {
+const PropertySelection = ({ property, value, searchTerm, onClick }) => {
   const [isPropertyMenuOpen, setIsPropertyMenuOpen] = useState(false);
   const selectorRef = useRef(null);
 
   const handleClick = (event) => {
     event.stopPropagation();
-    setIsPropertyMenuOpen(!isPropertyMenuOpen);
+
+    if (property !== 'Notes') {
+      setIsPropertyMenuOpen(!isPropertyMenuOpen);
+    } else {
+      // Open note in a new tab
+      const newWindow = window.open(
+        `notebook/${value.id}`,
+        '_blank',
+        'noopener,noreferrer'
+      );
+      if (newWindow) newWindow.opener = null;
+    }
   };
 
   useOutsideClick(selectorRef, () => setIsPropertyMenuOpen(false));
 
   return (
-    <li className={value ? 'propertySelection' : 'propertyCreation'}>
+    <li
+      className={value ? 'propertySelection' : 'propertyCreation'}
+      onClick={onClick}
+    >
       {value && (
         <>
-          <div className="propertySelection__name">
+          <div className="propertySelection__leftSection">
             <DragIcon />
-            <ul>
-              {/* Using <ul> here is not semantic, it's because the Property component is a <li> */}
-              <Property name={value.name} color={value.color} textOnly={true} />
-            </ul>
+            <Property name={value.name} color={value.color} textOnly={true} />
           </div>
-          <div className="propertySelection__menu" ref={selectorRef}>
+          <div className="propertySelection__rightSection" ref={selectorRef}>
             <div onClick={handleClick}>
-              <MeatballsMenuIcon />
+              {property !== 'Notes' && <MeatballsMenuIcon />}
+              {property === 'Notes' && <NewTabIcon />}
             </div>
             {isPropertyMenuOpen && (
               <PropertyMenu property={property} value={value} />
@@ -40,10 +53,7 @@ const PropertySelection = ({ property, value, searchTerm }) => {
       {searchTerm && (
         <>
           <div>Create</div>
-          <ul>
-            {/* Using <ul> here is not semantic, it's because the Property component is a <li> */}
-            <Property name={searchTerm} textOnly={true} />
-          </ul>
+          <Property name={searchTerm} textOnly={true} />
         </>
       )}
     </li>

@@ -16,6 +16,7 @@ export const DataProvider = ({ children }) => {
     files: [],
     subjects: [],
     projects: [],
+    notes: [],
     tags: [],
   });
   const [dataIsLoading, setDataIsLoading] = useState(true);
@@ -23,13 +24,20 @@ export const DataProvider = ({ children }) => {
   // Fetch existing files from the server
   const fetchData = async () => {
     try {
+      // Check if data exists in browser storage
+      // const storedData = localStorage.getItem('data');
+
+      // if (storedData) {
+      //   // Data exists in browser storage, parse and set it
+      //   setData(JSON.parse(storedData));
+      // } else {
+      // Data doesn't exist in browser storage, fetch it from the server
       const response = await axios.get('/data');
-      setData({
-        files: response.data.files,
-        subjects: response.data.subjects,
-        projects: response.data.projects,
-        tags: response.data.tags,
-      });
+      // // Store fetched data in browser storage
+      // localStorage.setItem('data', JSON.stringify(response.data));
+      // Set data state
+      setData(response.data);
+      // }
       setDataIsLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error.message);

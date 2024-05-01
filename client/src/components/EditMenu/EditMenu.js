@@ -9,9 +9,8 @@ import { ReactComponent as DeleteIcon } from '../../assets/icons/delete_3.svg';
 import MenuItem from '../Shared/MenuItem/MenuItem';
 
 const EditMenu = () => {
-  // { file_id, name, subject, project, tags }
   const { data, fetchData } = useDataContext();
-  const { id, name, subject, project, tags } = useFile();
+  const { id, name, subject, project, tags, notes } = useFile();
 
   const initialValues = { name: name };
 
@@ -72,25 +71,45 @@ const EditMenu = () => {
           }}
         />
       </li>
-      <PropertySelector
-        // file_id={id}
+      {['subject', 'project', 'tags', 'notes'].map((value, index) => (
+        <PropertySelector
+          key={index}
+          property={value.charAt(0).toUpperCase() + value.slice(1)}
+          selectedValues={eval(value)}
+          availableValues={data[
+            value.endsWith('s') ? value : value + 's'
+          ].filter((obj1) => !eval(value).some((obj2) => obj1.id === obj2.id))}
+        />
+      ))}
+      {/* <PropertySelector
         property="Subject"
         selectedValues={subject}
-        availableValues={data.subjects}
+        availableValues={data.subjects.filter(
+          (subject1) => !subject.some((subject2) => subject1.id === subject2.id)
+        )}
       />
       <PropertySelector
-        // file_id={id}
         property="Project"
         selectedValues={project}
-        availableValues={data.projects}
+        availableValues={data.projects.filter(
+          (project1) => !project.some((project2) => project1.id === project2.id)
+        )}
       />
       <PropertySelector
-        // file_id={id}
         property="Tags"
         selectedValues={tags}
-        availableValues={data.tags}
+        availableValues={data.tags.filter(
+          (tag1) => !tags.some((tag2) => tag1.id === tag2.id)
+        )}
       />
-      <li className="editMenu__seperator"></li>
+      <PropertySelector
+        property="Notes"
+        selectedValues={notes}
+        availableValues={data.notes.filter(
+          (note1) => !notes.some((note2) => note1.id === note2.id)
+        )}
+      /> */}
+      <li className="editMenu__separator"></li>
       <MenuItem
         icon={<DeleteIcon />}
         size="small"

@@ -1,7 +1,7 @@
 @use '../../../styles/util/' as u;
 
 .property {
-  width: fit-content;
+  max-width: 100%; // depends on available space inside the parent element, by default we assume that property is the only child so it can take up the entire space, this can be overwitten from the scss of the parent element to fit the available space, example propertySelection in the editMenu
   margin: u.rem(1);
   border-radius: u.rem(10);
   display: flex;
@@ -13,7 +13,20 @@
   font-weight: 600;
   text-wrap: nowrap;
 
+  &__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &.link {
+      text-decoration: underline;
+      text-decoration-color: var(--D100);
+      cursor: pointer;
+    }
+  }
+
   > svg {
+    flex-shrink: 0;
     height: u.rem(8);
     width: auto;
     cursor: pointer;

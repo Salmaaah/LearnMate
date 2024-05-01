@@ -4,6 +4,7 @@ import axios from 'axios';
 import Layout from '../Layout/Layout';
 import useUserAccess from '../../hooks/useUserAccess';
 import { useDataContext } from '../../contexts/DataContext';
+import { FileProvider } from '../../contexts/FileContext';
 import { ReactComponent as UploadIcon } from '../../assets/icons/upload.svg';
 import { ReactComponent as FilterIcon } from '../../assets/icons/filter.svg';
 import { ReactComponent as SortIcon } from '../../assets/icons/sort.svg';
@@ -27,7 +28,6 @@ const Courses = () => {
       selectedFiles.forEach((file) => {
         formData.append('files', file);
       });
-
       axios
         .post('/upload', formData)
         .then((response) => {
@@ -44,6 +44,15 @@ const Courses = () => {
     },
     [fetchData]
   );
+
+  // Debugging logs
+  // if (data.files) {
+  //   data.files.map((file) => {
+  //     console.log(file.name);
+  //     console.log(file.type);
+  //     console.log(file.content);
+  //   });
+  // }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
@@ -146,9 +155,9 @@ const Courses = () => {
               )}
               <div className="filesContainer__files">
                 {files.map((file, index) => (
-                  <div key={index}>
-                    <File file={file} />
-                  </div>
+                  <FileProvider file={file} key={index}>
+                    <File />
+                  </FileProvider>
                 ))}
               </div>
             </div>

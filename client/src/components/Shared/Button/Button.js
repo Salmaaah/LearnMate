@@ -10,11 +10,16 @@ const Button = ({
   disabled,
   icon_l,
   icon_r,
+  onClick,
 }) => {
   if (to) {
     return (
       <Link to={to}>
-        <button className={`button__${variant} ${size}`} disabled={disabled}>
+        <button
+          className={`button__${variant} ${size}`}
+          disabled={disabled}
+          onClick={onClick}
+        >
           {icon_l}
           <div>{label}</div>
           {icon_r}
@@ -27,6 +32,7 @@ const Button = ({
         className={`button__${variant} ${size}`}
         type={type}
         disabled={disabled}
+        onClick={onClick}
       >
         {icon_l}
         {label === '...' ? (
@@ -34,7 +40,7 @@ const Button = ({
             <span className="dot-flashing"></span>
           </div>
         ) : (
-          <div>{label}</div>
+          <>{label}</>
         )}
         {icon_r}
       </button>
@@ -52,12 +58,13 @@ Button.defaultProps = {
 Button.propTypes = {
   type: PropTypes.oneOf(['button', 'reset', 'submit']),
   to: PropTypes.string,
-  label: PropTypes.string.isRequired,
+  label: PropTypes.string,
   variant: PropTypes.oneOf(['primary', 'secondary']),
   size: PropTypes.oneOf(['small', 'medium', 'large']),
   disabled: PropTypes.bool,
   icon_l: PropTypes.object,
   icon_r: PropTypes.object,
+  onClick: PropTypes.func,
 };
 
 export default Button;
