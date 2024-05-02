@@ -25,7 +25,6 @@ const ActionItem = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isAI, setIsAI] = useState(false);
   const [selectedChild, setSelectedChild] = useState('items');
   const childrenArray = React.Children.toArray(children);
   const existingItems = childrenArray.some((child) =>
@@ -95,6 +94,42 @@ const ActionItem = ({
       } else {
         console.error('Error deleting note:', error.message);
       }
+    }
+  };
+
+  // TODO: Determine why streaming is not working
+  const askAI = async (keyword) => {
+    try {
+      console.log('Starting request...');
+      const response = await fetch(`/askAI/${keyword}/${file_id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('Request completed. Response:', response);
+
+      // Create a ReadableStream from the response body and read data from the stream
+      const reader = response.body.getReader();
+
+      // Function to read chunks from the stream
+      const readStream = async () => {
+        console.log('Reading stream...');
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            console.log('Stream ended');
+            break;
+          }
+          // Convert the chunk to a string and log it
+          console.log('Received chunk:', new TextDecoder().decode(value));
+        }
+      };
+
+      // Start reading from the stream
+      readStream();
+    } catch (error) {
+      console.error('Error:', error);
     }
   };
 
@@ -205,7 +240,6 @@ const ActionItem = ({
 
     // Back button - step 2: Reset isEditing and currentNote states
     isOpen && setIsEditing(false) && setCurrentNote(noNote);
-    setIsAI(false);
 
     // ActionItem - Opening: Select the items div in case of existing items
     existingItems && setSelectedChild('items');
@@ -314,11 +348,17 @@ const ActionItem = ({
               {existingItems ? (
                 <>
                   {/* <FilesIcon /> */}
-                  <div>{notes.length} ITEMS</div>
+                  {notes.length === 1 ? (
+                    <div>1 ITEM</div>
+                  ) : (
+                    <div>{notes.length} ITEMS</div>
+                  )}
+
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleButtonClick('generate');
+                      // handleButtonClick('generate');
+                      askAI('summary');
                     }}
                   >
                     {<StarsIcon />}

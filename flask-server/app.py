@@ -1,12 +1,14 @@
 import os
+from dotenv import load_dotenv
 import json
-from flask import Flask, session, request, jsonify, send_from_directory
+from flask import Flask, session, request, jsonify, send_from_directory, Response, stream_with_context
 from flask_session import Session
 from flask_cors import CORS
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import magic
 from pypdf import PdfReader
+from openai import OpenAI, APIError, APIConnectionError, RateLimitError
 from validator_collection import is_email
 from models import db, User, File, Subject, Tag, Project, Note
 from flask_migrate import Migrate
@@ -34,6 +36,15 @@ migrate.init_app(app, db)
 # Create database tables
 with app.app_context():
     db.create_all()
+
+load_dotenv()
+
+# Initialize OpenAI client
+client = OpenAI(
+  organization=os.getenv("OPENAI_ORGANIZATION"),
+  project=os.getenv("OPENAI_PROJECT"),
+  api_key=os.getenv("OPENAI_API_KEY"),
+)
 
 
 @app.route("/")
@@ -192,7 +203,7 @@ suggestions_data = [
     {"label": "Services", "link": "/services", "favicon": ""},
 ]
 
-
+# TODO: Remove api/ from route
 @app.route("/api/search", methods=["GET"])
 def search():
     query = request.args.get("query", "").lower()
@@ -743,6 +754,59 @@ def delete_note(note_id):
     
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@login_required
+@app.route("/askAI/<keyword>/<file_id>", methods=["POST"])
+def askAI(keyword, file_id):
+    # Retrieve file content from the database
+    file = File.query.filter_by(id=file_id).first()
+    if file is None:
+        return jsonify({'error': 'File not found'}), 404
+    
+    text = file.content
+    if text == "Error reading file":
+        return jsonify({"error": "File content not available"}), 400
+    
+    if keyword == "summary":
+        prompt = "Using Markdown format, generate a <Subject> heading and structured summary of the provided text. Organize the key concepts into concise sections and use bite-sized bullet points to highlight important details within each section: "
+    
+    # TODO: Create prompts for other keywords
+
+    # Make request to OpenAI API
+    try:
+        stream = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{
+                "role": "user", 
+                "content": prompt + text,
+            }],
+            stream=True,
+            # max_tokens=150,
+        )
+
+    # Handle OpenAI API errors
+    except RateLimitError as e:
+        return jsonify({'error': f'OpenAI API request exceeded rate limit: {e}'}), 429
+    
+    except APIConnectionError as e:
+        return jsonify({'error': f'Failed to connect to OpenAI API: {e}'}), 500
+    
+    except APIError as e:
+        return jsonify({'error': f'OpenAI API returned an API Error: {e}'}), 500
+    
+    # Handle other exceptions
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+    def generate_chunks():
+        # Yield each chunk from the stream
+        for chunk in stream:
+            if chunk.choices[0].delta.content is not None:
+                yield chunk.choices[0].delta.content
+    
+    # Stream AI response chunks to client
+    return Response(stream_with_context(generate_chunks()), status=200, content_type='text/plain')
 
 
 if __name__ == "__main__":
