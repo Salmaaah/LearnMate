@@ -41,9 +41,8 @@ export const EditorProvider = ({ children }) => {
   const editorInstanceRef = useRef(null);
   // const [paddingBottom, setPaddingBottom] = useState(300);
   // const [numBlocks, setNumBlocks] = useState(1);
-  const currentNoteIdRef = useRef(null);
 
-  const initEditor = (createNote, updateNote, data) => {
+  const initEditor = (noteId, updateNote, data) => {
     const debouncedUpdateNote = debounce(
       (id, type, value) => updateNote(id, type, value),
       200
@@ -204,18 +203,11 @@ export const EditorProvider = ({ children }) => {
       onReady: async () => {
         new DragDrop(editor);
         new Undo({ editor });
-
-        if (createNote) {
-          const id = await createNote(); // Create note in the backend and fetch its id
-          currentNoteIdRef.current = id;
-        } else {
-          currentNoteIdRef.current = data.id;
-        }
       },
 
       onChange: async () => {
         const updatedData = await editor.save();
-        debouncedUpdateNote(currentNoteIdRef.current, 'content', updatedData);
+        debouncedUpdateNote(noteId || data.id, 'content', updatedData);
       },
 
       data: data.content,

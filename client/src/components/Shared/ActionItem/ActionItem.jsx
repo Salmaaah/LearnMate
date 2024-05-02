@@ -1,15 +1,15 @@
-import axios from 'axios';
 import React, { useState, useRef, useEffect } from 'react';
-import { useFile } from '../../../contexts/FileContext';
+import { useFileContext } from '../../../contexts/FileContext';
 import { useEditorContext } from '../../../contexts/EditorContext';
 import { useDataContext } from '../../../contexts/DataContext';
+import useNote from '../../../hooks/useNote';
 import { ReactComponent as BackIcon } from '../../../assets/icons/arrow.svg';
 import { ReactComponent as NewIcon } from '../../../assets/icons/new.svg';
 // import { ReactComponent as OpenTabIcon } from '../../../assets/icons/newTab.svg';
 import { ReactComponent as ExpandIcon } from '../../../assets/icons/expand.svg';
 import { ReactComponent as ReduceIcon } from '../../../assets/icons/reduce.svg';
 import { ReactComponent as StarsIcon } from '../../../assets/icons/stars.svg';
-import { ReactComponent as FilesIcon } from '../../../assets/icons/files.svg';
+// import { ReactComponent as FilesIcon } from '../../../assets/icons/files.svg';
 import Button from '../Button/Button';
 import MenuItem from '../MenuItem/MenuItem';
 import Note from '../Note/Note';
@@ -31,13 +31,14 @@ const ActionItem = ({
     child.props.id.includes('items')
   );
   const { data, fetchData } = useDataContext();
-  const { id: file_id, name, subject, project, notes, tags } = useFile();
+  const { id: fileId, name, subject, project, notes, tags } = useFileContext();
   const noNote = {
     id: null,
     name: '',
     content: null,
   };
   const [currentNote, setCurrentNote] = useState(noNote);
+  const { handleCreateNote, handleUpdateNote, handleDeleteNote } = useNote();
 
   const { initEditor, editorInstanceRef } = useEditorContext();
   const editorRef = useRef(null);
@@ -45,63 +46,30 @@ const ActionItem = ({
   const [paddingBottom, setPaddingBottom] = useState(300);
   const [numBlocks, setNumBlocks] = useState(1);
 
-  // Create note sever side
-  const handleCreateNote = async () => {
-    try {
-      const response = await axios.post(`/createNote/${file_id}`);
-      await fetchData();
-      console.log(response.data.message);
-      console.log(response.data.note);
-      setCurrentNote(response.data.note);
-      return response.data.note.id;
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        console.error(error.response.data.error);
-      } else {
-        console.error('Error creating note:', error.message);
+  // Update currentNote state when note is updated server-side
+  useEffect(() => {
+    const noteFromData = data.notes.find(
+      (note) => note.id === parseInt(currentNote.id)
+    );
+    if (noteFromData) {
+      if (
+        noteFromData.name !== currentNote.name ||
+        noteFromData.content !== currentNote.content
+      ) {
+        setCurrentNote((prevNote) => ({
+          ...prevNote,
+          name: noteFromData.name,
+          content: JSON.parse(noteFromData.content),
+        }));
       }
     }
-  };
-
-  // Update note name or content
-  const handleUpdateNote = async (noteId, element, value) => {
-    try {
-      const response = await axios.post(`/updateNote/${noteId}/${element}`, {
-        value: value,
-      });
-      await fetchData();
-      console.log(response.data.message);
-      setCurrentNote(response.data.note);
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        console.error(error.response.data.error);
-      } else {
-        console.error('Error creating note:', error.message);
-      }
-    }
-  };
-
-  // Delete note
-  const handleDeleteNote = async (noteId) => {
-    try {
-      const response = await axios.post(`/deleteNote/${noteId}`);
-      await fetchData();
-      console.log(response.data.message);
-      console.log(response.data.note);
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        console.error(error.response.data.error);
-      } else {
-        console.error('Error deleting note:', error.message);
-      }
-    }
-  };
+  }, [data]);
 
   // TODO: Determine why streaming is not working
   const askAI = async (keyword) => {
     try {
       console.log('Starting request...');
-      const response = await fetch(`/askAI/${keyword}/${file_id}`, {
+      const response = await fetch(`/askAI/${keyword}/${fileId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,13 +107,15 @@ const ActionItem = ({
    * @param {string} keyword - either 'create' or 'edit'
    * @param {object} data - needed only for when keyword is 'edit'
    */
-  const handleButtonClick = (keyword, data) => {
+  const handleButtonClick = async (keyword, data) => {
     setIsOpen(true);
     setSelectedChild(keyword);
 
     // Initialize the editor
     if (keyword === 'create') {
-      initEditor(handleCreateNote, handleUpdateNote, '');
+      const note = await handleCreateNote(fileId);
+      setCurrentNote(note);
+      initEditor(note.id, handleUpdateNote, '');
       // show suggestions on top of editor
       // show aibar
     } else if (keyword === 'edit') {
@@ -157,7 +127,6 @@ const ActionItem = ({
       setSelectedChild('create'); // Because in handleChildren we select the editorJs element based on the name of its parent which is the 'create' element
       initEditor(undefined, handleUpdateNote, data);
     }
-
     editorRef.current = true;
     setIsEditing(true);
 
@@ -222,11 +191,16 @@ const ActionItem = ({
     }, 1);
   };
 
-  // Handles clicking on the "actionItem" or on the "back button" when a note is open
-  const handleClick = () => {
-    // Actions to be handled when opening/closing ActionItem
+  // Handles opening and closing of ActionItem
+  const handleClick = async () => {
+    !isOpen && existingItems && setSelectedChild('items');
+    setIsOpen(!isOpen);
+  };
 
-    // Back button - step 1: Delete created note if empty
+  // Handles click on back button
+  const handleBackClick = async (e) => {
+    e.stopPropagation();
+
     if (
       isEditing &&
       (currentNote.content === null ||
@@ -235,23 +209,12 @@ const ActionItem = ({
           return element.data.text.replace(/&nbsp;/g, '') === '';
         }))
     ) {
-      handleDeleteNote(currentNote.id);
+      await handleDeleteNote(currentNote.id);
     }
 
-    // Back button - step 2: Reset isEditing and currentNote states
-    isOpen && setIsEditing(false) && setCurrentNote(noNote);
-
-    // ActionItem - Opening: Select the items div in case of existing items
-    existingItems && setSelectedChild('items');
-
-    // ActionItem - Opening/closing: Toggle open state only when there are items or when previous state is open
-    (existingItems || isOpen) && setIsOpen(!isOpen);
-  };
-
-  const handleBackClick = (e) => {
-    e.stopPropagation();
-    handleClick();
-    setIsOpen(true);
+    setIsEditing(false);
+    setCurrentNote(noNote);
+    setSelectedChild('items');
     setIsEnlarged(
       Object.fromEntries(Object.keys(isEnlarged).map((key) => [key, false]))
     );
