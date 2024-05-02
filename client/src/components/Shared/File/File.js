@@ -1,12 +1,12 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFile } from '../../../contexts/FileContext';
+import { useFileContext } from '../../../contexts/FileContext';
 
 import EditMenu from '../../EditMenu/EditMenu';
 import useOutsideClick from '../../../hooks/useOutsideClick';
 
 const File = ({ file }) => {
-  const { id, name, type } = useFile();
+  const { id, name, type } = useFileContext();
 
   const fileType = type.split('/')[0];
   const maxCharacters = 30;

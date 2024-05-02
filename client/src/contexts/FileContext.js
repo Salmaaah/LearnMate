@@ -17,10 +17,10 @@ export const FileProvider = ({ children, file }) => {
 };
 
 // Create a custom hook for using the file context
-export const useFile = () => {
+export const useFileContext = () => {
   const context = useContext(FileContext);
   if (context === undefined) {
-    throw new Error('useFile must be used within a FileProvider');
+    throw new Error('useFileContext must be used within a FileProvider');
   }
   return context;
 };

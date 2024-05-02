@@ -1,6 +1,6 @@
 import PropertySelector from '../Shared/PropertySelector/PropertySelector';
 import { useDataContext } from '../../contexts/DataContext';
-import { useFile } from '../../contexts/FileContext';
+import { useFileContext } from '../../contexts/FileContext';
 import useForm from '../../hooks/useForm';
 import useOutsideClick from '../../hooks/useOutsideClick';
 import { useRef } from 'react';
@@ -10,7 +10,7 @@ import MenuItem from '../Shared/MenuItem/MenuItem';
 
 const EditMenu = () => {
   const { data, fetchData } = useDataContext();
-  const { id, name, subject, project, tags, notes } = useFile();
+  const { id, name, subject, project, tags, notes } = useFileContext();
 
   const initialValues = { name: name };
 

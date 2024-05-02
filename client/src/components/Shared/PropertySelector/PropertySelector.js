@@ -1,19 +1,22 @@
 import { useState, useRef } from 'react';
 import useOutsideClick from '../../../hooks/useOutsideClick';
 import { useDataContext } from '../../../contexts/DataContext';
-import { useFile } from '../../../contexts/FileContext';
+import { useFileContext } from '../../../contexts/FileContext';
+import useNote from '../../../hooks/useNote';
 import Property from '../Property/Property';
 import PropertySelection from '../PropertySelection/PropertySelection';
 import axios from 'axios';
 
 const PropertySelector = ({
-  // file_id,
+  // fileId,
   property,
   selectedValues,
   availableValues,
 }) => {
-  const { id: file_id } = useFile();
+  const { id: fileId } = useFileContext();
   const { fetchData } = useDataContext();
+
+  const { handleCreateNote } = useNote();
 
   const selectorRef = useRef(null);
   const headerRef = useRef(null);
@@ -62,29 +65,15 @@ const PropertySelector = ({
   const handleSelection = async (selectedValue) => {
     setInputValue('');
     setSearchTerm('');
+
     if (property === 'Notes' && searchTerm && availableValues.length === 0) {
-      // handleCreateNote which litterally exists in ActionItem.js minus the setCurrentNote part but plus the name, this is repetitive because for now I won't create a seperate file for all note related functions until I acess their other usages first
-      try {
-        const response = await axios.post(
-          `/createNote/${file_id}/${searchTerm}`
-        );
-        await fetchData();
-        console.log(response.data.message);
-        console.log(response.data.note);
-        return response.data.note.id;
-      } catch (error) {
-        if (error.response && error.response.status === 400) {
-          console.error(error.response.data.error);
-        } else {
-          console.error('Error creating note:', error.message);
-        }
-      }
+      await handleCreateNote(fileId, searchTerm);
     } else {
       try {
         const response = await axios.post(
           `addProperty/${property.replace(/s$/, '')}/${selectedValue.id}`,
           {
-            file_id: file_id,
+            fileId: fileId,
             name: selectedValue.name,
             color: selectedValue.color,
           }
@@ -107,7 +96,7 @@ const PropertySelector = ({
       const response = await axios.post(
         `removeProperty/${property.replace(/s$/, '')}/${removedValue.id}`,
         {
-          file_id: file_id,
+          fileId: fileId,
           name: removedValue.name,
         }
       );
