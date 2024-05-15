@@ -28,7 +28,6 @@ import { debounce } from 'lodash';
 
 const EditorContext = createContext();
 
-// This custom hook is designed to be used in conjunction with the EditorProvider component. When you use useEditor within a component that is a descendant of EditorProvider, it provides access to the user information stored in the context. If used outside of a EditorProvider, it throws an error to alert the developer about the incorrect usage.
 export const useEditorContext = () => {
   const context = useContext(EditorContext);
   if (!context) {
@@ -38,6 +37,11 @@ export const useEditorContext = () => {
 };
 
 export const EditorProvider = ({ children }) => {
+  const [blockInfo, setBlockInfo] = useState({
+    block: null,
+    editableBlock: null,
+    isEmpty: false,
+  });
   const editorInstanceRef = useRef(null);
   // const [paddingBottom, setPaddingBottom] = useState(300);
   // const [numBlocks, setNumBlocks] = useState(1);
@@ -50,6 +54,10 @@ export const EditorProvider = ({ children }) => {
 
     const editor = new EditorJS({
       holder: 'editorjs',
+      // TODO: the longer the placeholder the bigger the heigth of each new block gets, even when the block is empty
+      // find a solution so that this no longer happens
+      // placeholder:
+      //   "Start writing, or press 'space' for AI, '/' for commands...",
       placeholder: 'Start writing...',
       tunes: ['alignmentTune', 'indentTune'],
       tools: {
@@ -57,9 +65,9 @@ export const EditorProvider = ({ children }) => {
           class: AlignmentTuneTool,
           config: {
             default: 'left',
-            blocks: {
-              header: 'center',
-            },
+            // blocks: {
+            //   header: 'center',
+            // },
           },
         },
         indentTune: {
@@ -69,7 +77,7 @@ export const EditorProvider = ({ children }) => {
         aiText: {
           class: AIText,
           config: {
-            openaiKey: 'YOUR_OPEN_AI_KEY',
+            openaiKey: 'YOUR_OPEN_AI_KEY', // TODO: insery api key
           },
         },
         paragraph: {
@@ -104,6 +112,7 @@ export const EditorProvider = ({ children }) => {
           },
         },
         list: {
+          // TODO: Find an alternative nested list that's not buggy
           class: List,
           inlineToolbar: true,
           config: {
@@ -182,7 +191,7 @@ export const EditorProvider = ({ children }) => {
             ],
             defaultColor: '#FF1300',
             type: 'text',
-            customPicker: true,
+            customPicker: true, // TODO: Fix custom picker not showing up
           },
         },
         // Marker: {
@@ -205,7 +214,27 @@ export const EditorProvider = ({ children }) => {
         new Undo({ editor });
       },
 
-      onChange: async () => {
+      onChange: async (api, event) => {
+        // Update blockInfo state on change
+        if (event.type === 'block-changed' || event.type === 'block-added') {
+          const index = api.blocks.getCurrentBlockIndex();
+          const currentBlock = document.querySelectorAll('.ce-block')[index];
+          // We've chosen index block retrieval over any event related retrieval (event.detail.target.holder/event.detail.target.id)
+          // is because of the weird way EditoJS adds new blocks from empty blocks
+          setBlockInfo((prevInfo) => ({
+            ...prevInfo,
+            block: currentBlock,
+            editableBlock: currentBlock.querySelector(
+              '[contenteditable="true"]'
+            ),
+            isEmpty: event.detail.target.isEmpty,
+          }));
+        } else {
+          // TODO: figure out how to get info on block on top in case of block remove to update blockInfo and be able to correctly predict AIsearch position
+          console.log('untreated event', event.type);
+        }
+
+        // Save content updates to note
         const updatedData = await editor.save();
         debouncedUpdateNote(noteId || data.id, 'content', updatedData);
       },
@@ -249,7 +278,9 @@ export const EditorProvider = ({ children }) => {
   };
 
   return (
-    <EditorContext.Provider value={{ initEditor, editorInstanceRef }}>
+    <EditorContext.Provider
+      value={{ initEditor, editorInstanceRef, blockInfo, setBlockInfo }}
+    >
       {children}
     </EditorContext.Provider>
   );

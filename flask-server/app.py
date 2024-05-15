@@ -768,20 +768,25 @@ def askAI(keyword, file_id):
     if text == "Error reading file":
         return jsonify({"error": "File content not available"}), 400
     
-    if keyword == "summary":
+    if keyword == "summarize":
         prompt = "Using Markdown format, generate a <Subject> heading and structured summary of the provided text. Organize the key concepts into concise sections and use bite-sized bullet points to highlight important details within each section: "
+    elif keyword == "write":
+        prompt = ""
+    else:
+        prompt = keyword
     
     # TODO: Create prompts for other keywords
 
     # Make request to OpenAI API
     try:
-        stream = client.chat.completions.create(
+        # stream = client.chat.completions.create(
+        completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{
                 "role": "user", 
                 "content": prompt + text,
             }],
-            stream=True,
+            # stream=True,
             # max_tokens=150,
         )
 
@@ -798,16 +803,17 @@ def askAI(keyword, file_id):
     # Handle other exceptions
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-    def generate_chunks():
-        # Yield each chunk from the stream
-        for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                yield chunk.choices[0].delta.content
     
-    # Stream AI response chunks to client
-    return Response(stream_with_context(generate_chunks()), status=200, content_type='text/plain')
+    return jsonify({'message': completion.choices[0].message.content}), 200
 
+    # def generate_chunks():
+    #     # Yield each chunk from the stream
+    #     for chunk in stream:
+    #         if chunk.choices[0].delta.content is not None:
+    #             yield chunk.choices[0].delta.content
+    
+    # # Stream AI response chunks to client
+    # return Response(stream_with_context(generate_chunks()), status=200, content_type='text/plain')
 
 if __name__ == "__main__":
     app.run(debug=True)
