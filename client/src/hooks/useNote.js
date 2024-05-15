@@ -8,14 +8,13 @@ const useNote = () => {
 
   // Create note server side
   const handleCreateNote = async (fileId, noteName) => {
-    console.log('noteName', noteName);
+    console.log('Creating note', noteName);
     try {
       const response = await axios.post(
         `/createNote/${fileId}${noteName ? `/${noteName}` : ''}`
       );
       await fetchData();
       console.log(response.data.message);
-      console.log(response.data.note);
       return response.data.note;
     } catch (error) {
       if (error.response && error.response.status === 400) {
@@ -28,7 +27,7 @@ const useNote = () => {
 
   // Update note name or content
   const handleUpdateNote = async (noteId, element, value) => {
-    console.log('updating', element, value);
+    console.log('Updating', element, 'of note to', value);
     try {
       const response = await axios.post(`/updateNote/${noteId}/${element}`, {
         value: value,
@@ -46,11 +45,11 @@ const useNote = () => {
 
   // Delete note
   const handleDeleteNote = async (noteId) => {
+    console.log('Deleting note', noteId);
     try {
       const response = await axios.post(`/deleteNote/${noteId}`);
       await fetchData();
       console.log(response.data.message);
-      console.log(response.data.note);
     } catch (error) {
       if (error.response && error.response.status === 400) {
         console.error(error.response.data.error);

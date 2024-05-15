@@ -7,9 +7,9 @@ import Layout from '../../pages/Layout/Layout';
 import DocViewer from '../../components/Docviewer/Docviewer';
 import ActionItem from '../../components/Shared/ActionItem/ActionItem';
 import Note from '../../components/Shared/Note/Note';
+import AIsearch from '../../components/Shared/AIsearch/AIsearch';
 import { ReactComponent as NotesIllustration } from '../../assets/illustrations/notes.svg';
 import { ReactComponent as TodosIllustration } from '../../assets/illustrations/todos.svg';
-
 // import { ReactComponent as ChangeCaseIcon } from '../../assets/icons/changeCase.svg';
 // import ReactDOM from 'react-dom/client';
 
@@ -102,7 +102,8 @@ const Learn = () => {
               setIsEnlarged={setIsEnlarged}
             >
               <div id="notes_create">
-                <div id="editorjs"></div>
+                <AIsearch />
+                <div id="editorjs" tabIndex={0}></div>
               </div>
               <div id="notes_generate">generate </div>
               {file.notes.length > 0 && (

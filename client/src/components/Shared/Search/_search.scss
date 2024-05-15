@@ -28,7 +28,7 @@
   &__field {
     display: flex;
     align-items: center;
-    padding: u.rem(5) u.rem(5);
+    padding: u.rem(7);
 
     button {
       cursor: pointer;
@@ -79,6 +79,6 @@
   &__suggestions {
     display: flex;
     flex-direction: column;
-    padding-bottom: u.rem(5);
+    padding-bottom: u.rem(15);
   }
 }
