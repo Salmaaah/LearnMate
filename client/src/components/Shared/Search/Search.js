@@ -1,40 +1,19 @@
-import { useState, useEffect } from 'react';
 import { ReactComponent as SearchIcon } from '../../../assets/icons/search.svg';
 import { ReactComponent as NotFoundIcon } from '../../../assets/icons/notFound.svg';
 import SearchItem from '../SearchItem/SearchItem';
+import useSearch from '../../../hooks/useSearch';
+import useOutsideClick from '../../../hooks/useOutsideClick';
+import { useRef } from 'react';
 
 const Search = () => {
-  const [isTyping, setIsTyping] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
+  const formRef = useRef();
+  const { handleInputChange, setIsTyping, isTyping, searchTerm, suggestions } =
+    useSearch('/api/search');
 
-  const handleInputChange = (event) => {
-    const inputValue = event.target.value;
-    setSearchTerm(inputValue);
-    setIsTyping(inputValue.length > 0);
-  };
-
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      try {
-        const response = await fetch(`/api/search?query=${searchTerm}`);
-        const data = await response.json();
-        setSuggestions(data.items);
-      } catch (error) {
-        console.error('Error fetching suggestions:', error.message);
-      }
-    };
-
-    if (isTyping) {
-      fetchSuggestions();
-    }
-  }, [searchTerm, isTyping]);
+  useOutsideClick(formRef, () => setIsTyping(false));
 
   return (
-    <form
-      className={`search ${isTyping ? 'typing' : ''}`}
-      onBlur={() => setIsTyping(false)}
-    >
+    <form ref={formRef} className={`search ${isTyping ? 'typing' : ''}`}>
       <div className="search__field">
         <button type="submit">
           <SearchIcon />
@@ -46,7 +25,7 @@ const Search = () => {
           onChange={handleInputChange}
         />
       </div>
-      {isTyping && suggestions.length > 0 && (
+      {isTyping && (
         <ul className="search__suggestions">
           {suggestions.length > 0 ? (
             suggestions.map((suggestion, index) => (

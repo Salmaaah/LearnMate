@@ -1,4 +1,7 @@
+import { Link } from 'react-router-dom';
+
 const SearchItem = ({ index, icon, label, link, userInput }) => {
+  console.log(link);
   const highlightMatch = (text, userInput) => {
     if (!userInput) return text;
 
@@ -14,7 +17,7 @@ const SearchItem = ({ index, icon, label, link, userInput }) => {
     <li key={index} className="searchItem">
       {/* <img src={suggestion.favicon} alt="" /> */}
       {icon}
-      <a href={link}>{highlightMatch(label, userInput)}</a>
+      <Link to={link}>{highlightMatch(label, userInput)}</Link>
     </li>
   );
 };
