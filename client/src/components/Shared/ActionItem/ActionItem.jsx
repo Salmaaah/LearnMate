@@ -219,22 +219,28 @@ const ActionItem = ({
    */
   const handleButtonClick = async (keyword, data) => {
     setIsOpen(true);
-    setSelectedChild(keyword);
+    setSelectedChild('create'); // Because in both 'generate' and 'edit' cases we need the parent element notes_create to be selected in handleChildren in order to access editorJs
 
-    // Initialize the editor
-    if (keyword === 'create') {
+    // Create/retrieve note and initialize the editor
+    if (keyword === 'create' || keyword === 'generate') {
       const note = await handleCreateNote(fileId);
       setCurrentNote(note);
-      initEditor(note.id, handleUpdateNote, '');
-      // show suggestions on top of editor
-      // show aibar
+
+      initEditor(note.id, handleUpdateNote, '', keyword === 'generate');
+
+      // We're using timeout because when initializing the editor we set autofocus to true in order to be able
+      // to detemine the position of AIsearch, but since the initiation is a little slow, when we try
+      // to execute the next line of code the focus never goes to the AIsearch input after opening as expected
+      setTimeout(() => {
+        keyword === 'generate' ? setShowAIsearch(true) : void 0;
+      }, 100);
     } else if (keyword === 'edit') {
       setCurrentNote({
         id: data.id,
         name: data.name,
         content: data.content,
       });
-      setSelectedChild('create'); // Because in handleChildren we select the editorJs element based on the name of its parent which is the 'create' element
+
       initEditor(undefined, handleUpdateNote, data);
     }
 
@@ -461,7 +467,7 @@ const ActionItem = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      // handleButtonClick('generate');
+                      handleButtonClick('generate');
                     }}
                   >
                     {<StarsIcon />}
