@@ -46,7 +46,7 @@ export const EditorProvider = ({ children }) => {
   // const [paddingBottom, setPaddingBottom] = useState(300);
   // const [numBlocks, setNumBlocks] = useState(1);
 
-  const initEditor = (noteId, updateNote, data) => {
+  const initEditor = (noteId, updateNote, data, autofocus = false) => {
     const debouncedUpdateNote = debounce(
       (id, type, value) => updateNote(id, type, value),
       200
@@ -240,6 +240,7 @@ export const EditorProvider = ({ children }) => {
       },
 
       data: data.content,
+      autofocus: autofocus,
 
       // (event) => {
       //   const redactor = event.ui.nodes.redactor;

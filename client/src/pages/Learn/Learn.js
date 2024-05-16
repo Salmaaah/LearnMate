@@ -105,7 +105,6 @@ const Learn = () => {
                 <AIsearch />
                 <div id="editorjs" tabIndex={0}></div>
               </div>
-              <div id="notes_generate">generate </div>
               {file.notes.length > 0 && (
                 <div id="notes_items">
                   {file.notes.map((note) => (
