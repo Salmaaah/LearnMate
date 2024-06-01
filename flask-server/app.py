@@ -757,25 +757,43 @@ def delete_note(note_id):
 
 
 @login_required
-@app.route("/askAI/<keyword>/<file_id>", methods=["POST"])
-def askAI(keyword, file_id):
-    # Retrieve file content from the database
-    file = File.query.filter_by(id=file_id).first()
-    if file is None:
-        return jsonify({'error': 'File not found'}), 404
+@app.route('/askAI/<keyword>', methods=["POST"])
+def askAI(keyword):
+    note_content = ""
+    file_content = ""    
+    data = request.json
+
+    if data:
+        id = data.get("fileId")
+        notes = data.get("notes")
+        print('id', id)
+        print('notes', notes)
+
+        if keyword != 'improve':
+            # Retrieve file content from the database
+            file = File.query.filter_by(id=id).first()
+            if file is None:
+                return jsonify({'error': 'File not found'}), 404
+            
+            file_content = file.content
+            if file_content == "Error reading file":
+                return jsonify({"error": "File content not available"}), 400
+        
+            file_content = "\nMaterial:\n" + file_content
+        
+        # Retrieve user notes from request
+        if notes:
+            note_content = "\nNotes:\n" + notes
     
-    text = file.content
-    if text == "Error reading file":
-        return jsonify({"error": "File content not available"}), 400
     
-    if keyword == "summarize":
-        prompt = "Using Markdown format, generate a <Subject> heading and structured summary of the provided text. Organize the key concepts into concise sections and use bite-sized bullet points to highlight important details within each section: "
-    elif keyword == "write":
-        prompt = ""
-    else:
+    if keyword == "summarize": # uses file content as input
+        prompt = "Using Markdown format, generate a \"<Subject> Overview\" heading 2 and structured summary of the provided text. Organize the key concepts into concise sections of heading 3 and use bite-sized bullet points to highlight important details within each section: "
+    elif keyword == "continue": # uses file  and note contents as input
+        prompt = "One of the following two texts is a study material and the other is some unfinished notes on that material. Your task is to accurately predict the rest of the notes. Do not add any information that does not exist in the original study material."
+    elif keyword == "improve": # uses only note content as input
+        prompt = "Improve writing."
+    else: # case when the keyword is the actual prompt
         prompt = keyword
-    
-    # TODO: Create prompts for other keywords
 
     # Make request to OpenAI API
     try:
@@ -784,10 +802,10 @@ def askAI(keyword, file_id):
             model="gpt-3.5-turbo",
             messages=[{
                 "role": "user", 
-                "content": prompt + text,
+                "content": prompt + file_content + note_content,
             }],
             # stream=True,
-            # max_tokens=150,
+            max_tokens=200,
         )
 
     # Handle OpenAI API errors
