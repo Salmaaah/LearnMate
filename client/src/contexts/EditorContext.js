@@ -43,8 +43,8 @@ export const EditorProvider = ({ children }) => {
     isEmpty: false,
   });
   const editorInstanceRef = useRef(null);
-  // const [paddingBottom, setPaddingBottom] = useState(300);
-  // const [numBlocks, setNumBlocks] = useState(1);
+  const [paddingBottom, setPaddingBottom] = useState(300);
+  const [numBlocks, setNumBlocks] = useState(1);
 
   const initEditor = (noteId, updateNote, data, autofocus = false) => {
     const debouncedUpdateNote = debounce(
@@ -212,6 +212,70 @@ export const EditorProvider = ({ children }) => {
       onReady: async () => {
         new DragDrop(editor);
         new Undo({ editor });
+
+        // Dispatch editorFocus event when autofocus is set to true to trigger the focus event listener in AIsearch
+        if (autofocus) {
+          const focusEvent = new CustomEvent('editorFocus', {
+            detail: { message: 'First block focused' },
+          });
+          document.dispatchEvent(focusEvent);
+        }
+
+        // Detect when a block is added or removed from the editor element and update the padding accordingly
+        // TODO: add support for when the block height changes
+        const editorElement = document.querySelector('.codex-editor__redactor');
+
+        const handleMutation = (mutationsList) => {
+          for (const mutation of mutationsList) {
+            if (mutation.type === 'childList') {
+              const currentNumBlocks =
+                editorElement.querySelectorAll('.ce-block').length;
+
+              // Use callback form of setNumBlocks to ensure we're working with the latest state
+              setNumBlocks((prevNumBlocks) => {
+                if (currentNumBlocks > prevNumBlocks) {
+                  // Handle the addition of new ce-blocks
+                  setPaddingBottom((prevPaddingBottom) => {
+                    const newPaddingBottom = Math.max(
+                      prevPaddingBottom - 38.3906,
+                      0
+                    );
+                    editorElement.style.paddingBottom = `${newPaddingBottom}px`;
+                    return newPaddingBottom;
+                  });
+                } else if (
+                  currentNumBlocks < prevNumBlocks &&
+                  currentNumBlocks <= 9
+                ) {
+                  // Handle the removal of ce-blocks
+                  setPaddingBottom((prevPaddingBottom) => {
+                    const newPaddingBottom = Math.max(
+                      prevPaddingBottom + 38.3906,
+                      0
+                    );
+                    editorElement.style.paddingBottom = `${newPaddingBottom}px`;
+                    return newPaddingBottom;
+                  });
+                }
+
+                // Update the numBlocks state
+                return currentNumBlocks;
+              });
+            }
+          }
+        };
+
+        if (editorElement) {
+          const observer = new MutationObserver(handleMutation);
+          observer.observe(editorElement, { childList: true, subtree: true });
+
+          // Initial count of ce-blocks
+          setNumBlocks(editorElement.querySelectorAll('.ce-block').length);
+
+          return () => {
+            observer.disconnect();
+          };
+        }
       },
 
       onChange: async (api, event) => {
@@ -220,7 +284,8 @@ export const EditorProvider = ({ children }) => {
           const index = api.blocks.getCurrentBlockIndex();
           const currentBlock = document.querySelectorAll('.ce-block')[index];
           // We've chosen index block retrieval over any event related retrieval (event.detail.target.holder/event.detail.target.id)
-          // is because of the weird way EditoJS adds new blocks from empty blocks
+          // because of the weird way EditoJS adds new blocks from empty blocks
+
           setBlockInfo((prevInfo) => ({
             ...prevInfo,
             block: currentBlock,
