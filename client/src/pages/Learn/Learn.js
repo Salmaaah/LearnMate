@@ -7,7 +7,6 @@ import Layout from '../../pages/Layout/Layout';
 import DocViewer from '../../components/Docviewer/Docviewer';
 import ActionItem from '../../components/Shared/ActionItem/ActionItem';
 import Note from '../../components/Shared/Note/Note';
-import AIsearch from '../../components/Shared/AIsearch/AIsearch';
 import { ReactComponent as NotesIllustration } from '../../assets/illustrations/notes.svg';
 import { ReactComponent as TodosIllustration } from '../../assets/illustrations/todos.svg';
 // import { ReactComponent as ChangeCaseIcon } from '../../assets/icons/changeCase.svg';
@@ -16,13 +15,13 @@ import { ReactComponent as TodosIllustration } from '../../assets/illustrations/
 const Learn = () => {
   const { setIsExpanded } = useSidebar();
   const { id } = useParams();
-  const { data, fetchData } = useDataContext();
+  const { data } = useDataContext();
   const file = data.files.find((file) => file.id === parseInt(id));
   const [isEnlarged, setIsEnlarged] = useState({
     notes: false,
     todos: false,
     flashCards: false,
-    quizz: false,
+    quizzes: false,
   });
 
   // Hide sidebar on mount
@@ -101,33 +100,21 @@ const Learn = () => {
               isEnlarged={isEnlarged}
               setIsEnlarged={setIsEnlarged}
             >
-              <div id="notes_create">
-                <AIsearch />
-                <div id="editorjs" tabIndex={0}></div>
-              </div>
-              {file.notes.length > 0 && (
-                <div id="notes_items">
-                  {file.notes.map((note) => (
-                    <Note key={note.id} note={note} />
-                  ))}
-                </div>
-              )}
+              {file.notes.length > 0 &&
+                file.notes.map((note) => <Note key={note.id} note={note} />)}
             </ActionItem>
             <ActionItem
               label="Todos"
               illustration={<TodosIllustration />}
               isVisible={isEnlarged.todos || !isAnyEnlarged()}
-            >
-              <div id="todos_create">create</div>
-              <div id="todos_generate">generate</div>
-            </ActionItem>
+            />
             <ActionItem
-              label="Flash Cards"
+              label="Flashcards"
               isVisible={isEnlarged.flashCards || !isAnyEnlarged()}
             />
             <ActionItem
-              label="Quizz"
-              isVisible={isEnlarged.quizz || !isAnyEnlarged()}
+              label="Quizzes"
+              isVisible={isEnlarged.quizzes || !isAnyEnlarged()}
             />
           </div>
         </div>
