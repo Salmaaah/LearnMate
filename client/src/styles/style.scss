@@ -2,6 +2,7 @@
 @forward 'util';
 
 @forward '../components/Shared/Button/button';
+@forward '../components/IconButton/iconButton';
 @forward '../components/Shared/Input/input';
 @forward '../components/Shared/Search/search';
 @forward '../components/Shared/SearchItem/searchItem';
@@ -9,6 +10,7 @@
 @forward '../components/Shared/NavItem/navItem';
 @forward '../components/Shared/ActionItem/actionItem';
 @forward '../components/Shared/Note/note';
+@forward '../components/Flashcard/flashcard';
 @forward '../components/Popup/popup';
 @forward '../components/Shared/AIsearch/aiSearch';
 @forward '../components/Shared/File/file';

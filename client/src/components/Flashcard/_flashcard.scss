@@ -1,0 +1,166 @@
+@use '../../styles/util/' as u;
+
+.flashcard {
+  margin-bottom: u.rem(10);
+  border: u.rem(0.5) solid var(--D50);
+  border-radius: u.rem(20);
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 200ms ease-in-out;
+
+  &__header {
+    width: 100%;
+    padding: u.rem(10) u.rem(20) u.rem(10) u.rem(20);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    > div:first-of-type {
+      font-size: u.rem(12);
+      font-weight: 900;
+      color: var(--D200);
+    }
+  }
+
+  &__buttons {
+    display: flex;
+  }
+
+  // divider
+  > div:nth-of-type(2) {
+    width: 100%;
+    height: u.rem(1);
+    background-color: var(--D50);
+  }
+
+  &__content {
+    width: 100%;
+    padding: u.rem(10) u.rem(20) u.rem(20) u.rem(20);
+    display: flex;
+    align-items: center;
+    gap: u.rem(20);
+  }
+
+  &__leftContent {
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    gap: u.rem(20);
+  }
+
+  &__entry {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+
+    > textarea {
+      font-family: 'Nunito';
+      font-size: u.rem(14);
+      color: var(--D300);
+      margin-bottom: u.rem(2);
+
+      // TODO: add this to the global styles
+      width: 100%;
+      overflow: hidden;
+      background: none;
+      outline: none;
+      border: none;
+      resize: none;
+    }
+
+    // underline
+    > div:nth-last-child(2) {
+      height: u.rem(2);
+      background-color: var(--D400);
+      margin-block: u.rem(0.5);
+    }
+    .highlight {
+      background-color: var(--P100) !important;
+      height: u.rem(3) !important;
+      margin-block: 0 !important;
+    }
+
+    // term or definition
+    > div:last-of-type {
+      cursor: default;
+      margin-top: u.rem(5);
+      font-size: u.rem(12);
+      font-weight: 600;
+    }
+  }
+
+  &__image {
+    position: relative;
+    padding: u.rem(10);
+
+    > img {
+      width: u.rem(49.125);
+    }
+
+    > button {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  }
+
+  &__imageUpload {
+    position: relative;
+    border: u.rem(1) dashed var(--D100);
+    border-radius: u.rem(10);
+    padding: u.rem(10) u.rem(18) u.rem(5) u.rem(18);
+    transition: all 200ms ease-in-out;
+
+    &:hover {
+      border-color: var(--P100);
+      background-color: hsla(263, 85%, 95%, 0.25);
+
+      div {
+        color: var(--P100);
+      }
+      path,
+      circle {
+        stroke: var(--P100);
+      }
+    }
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: u.rem(5);
+      width: 100%;
+
+      > svg {
+        height: u.rem(25);
+        width: min-content;
+
+        > path,
+        circle {
+          stroke: var(--D100);
+        }
+      }
+
+      > div {
+        font-size: u.rem(12);
+        color: var(--D100);
+      }
+    }
+
+    > input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    > input::file-selector-button {
+      cursor: pointer;
+    }
+  }
+}

@@ -1,0 +1,44 @@
+@use '../../styles/util/' as u;
+
+.iconButton {
+  border-radius: 50%;
+  border-style: none;
+  background-color: var(--bColor);
+  transition: all 200ms ease-in-out;
+  cursor: pointer;
+
+  &.shadow {
+    box-shadow: 0 u.rem(2) u.rem(3) 0 hsl(254, 23%, 79%),
+      0 0 u.rem(0.7) 0 var(--M100);
+  }
+
+  svg {
+    width: 100%;
+    height: 100%;
+
+    path {
+      transition: all 200ms ease-in-out;
+      stroke: var(--iColor);
+    }
+
+    path.stroke {
+      stroke: var(--iColor);
+    }
+
+    path.fill {
+      fill: var(--iColor);
+    }
+  }
+
+  &:hover {
+    background-color: var(--bHcolor);
+
+    path.stroke {
+      stroke: var(--iHcolor);
+    }
+
+    path.fill {
+      fill: var(--iHcolor);
+    }
+  }
+}

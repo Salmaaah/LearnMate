@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import useFlashcard from '../../hooks/useFlashcard';
 import { useSidebar } from '../../contexts/SidebarContext';
 import { useDataContext } from '../../contexts/DataContext';
 import { FileProvider } from '../../contexts/FileContext';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import Layout from '../../pages/Layout/Layout';
 import DocViewer from '../../components/Docviewer/Docviewer';
 import ActionItem from '../../components/Shared/ActionItem/ActionItem';
 import Note from '../../components/Shared/Note/Note';
+import Flashcard from '../../components/Flashcard/Flashcard';
 import { ReactComponent as NotesIllustration } from '../../assets/illustrations/notes.svg';
 import { ReactComponent as TodosIllustration } from '../../assets/illustrations/todos.svg';
 // import { ReactComponent as ChangeCaseIcon } from '../../assets/icons/changeCase.svg';
@@ -17,10 +20,12 @@ const Learn = () => {
   const { id } = useParams();
   const { data } = useDataContext();
   const file = data.files.find((file) => file.id === parseInt(id));
+  const flashcards = file.flashcards?.sort((a, b) => a.order - b.order);
+  const { handleUpdateFlashcard } = useFlashcard();
   const [isEnlarged, setIsEnlarged] = useState({
     notes: false,
     todos: false,
-    flashCards: false,
+    flashcards: false,
     quizzes: false,
   });
 
@@ -77,6 +82,29 @@ const Learn = () => {
   //   observer.observe(document, { childList: true, subtree: true });
   // }, []);
 
+  const reorder = (array, startIndex, endIndex) => {
+    const result = array;
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    return result;
+  };
+
+  const onDragEnd = (result) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const reorderedFlashcards = reorder(
+      flashcards,
+      result.source.index,
+      result.destination.index
+    );
+
+    reorderedFlashcards.map((flashcard, index) => {
+      handleUpdateFlashcard(flashcard.id, { order: index + 1 });
+    });
+  };
+
   return (
     <Layout>
       <FileProvider file={file}>
@@ -103,14 +131,42 @@ const Learn = () => {
               {file.notes.length > 0 &&
                 file.notes.map((note) => <Note key={note.id} note={note} />)}
             </ActionItem>
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable droppableId="droppable">
+                {(provided) => (
+                  <ActionItem
+                    provided={provided}
+                    label="Flashcards"
+                    illustration={<NotesIllustration />}
+                    toggleSize={() => toggleSize('flashcards')}
+                    isVisible={isEnlarged.flashcards || !isAnyEnlarged()}
+                    isEnlarged={isEnlarged}
+                    setIsEnlarged={setIsEnlarged}
+                  >
+                    {flashcards.length > 0 &&
+                      flashcards.map((flashcard, index) => (
+                        <Draggable
+                          key={flashcard.id.toString()}
+                          draggableId={flashcard.id.toString()}
+                          index={index}
+                        >
+                          {(provided) => (
+                            <Flashcard
+                              provided={provided}
+                              flashcard={flashcard}
+                            />
+                          )}
+                        </Draggable>
+                      ))}
+                  </ActionItem>
+                )}
+              </Droppable>
+            </DragDropContext>
+
             <ActionItem
               label="Todos"
               illustration={<TodosIllustration />}
               isVisible={isEnlarged.todos || !isAnyEnlarged()}
-            />
-            <ActionItem
-              label="Flashcards"
-              isVisible={isEnlarged.flashCards || !isAnyEnlarged()}
             />
             <ActionItem
               label="Quizzes"

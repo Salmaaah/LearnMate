@@ -18,7 +18,6 @@ class Tag(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('tags', lazy=True))
 
-
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=True, nullable=False)
@@ -107,3 +106,16 @@ class NoteTag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     note_id = db.Column(db.Integer, db.ForeignKey('note.id'), nullable=False)
     tag_id = db.Column(db.Integer, db.ForeignKey('tag.id'), nullable=False)
+
+class Flashcard(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    term = db.Column(db.String(255), nullable=False)
+    definition = db.Column(db.Text, nullable=False)
+    order = db.Column(db.Integer, nullable=False)
+    image_path = db.Column(db.String(255))
+    
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('flashcards', lazy=True))
+
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id'))
+    file = db.relationship('File', backref=db.backref('flashcards', lazy=True))
