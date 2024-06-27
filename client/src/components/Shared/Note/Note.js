@@ -72,7 +72,7 @@ const Note = ({
         <div id="editorjs" tabIndex={0}></div>
       </>
     ) : (
-      <div
+      <li
         className="note"
         onClick={() => handleButtonClick('edit', note)}
         onMouseOver={() => setIsHovering(true)}
@@ -108,7 +108,7 @@ const Note = ({
           action="Delete"
           handleAction={() => handleDeleteNote(note.id)}
         />
-      </div>
+      </li>
     ))
   );
 };

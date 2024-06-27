@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFileContext } from '../../../contexts/FileContext';
 import { useEditorContext } from '../../../contexts/EditorContext';
 import { useDataContext } from '../../../contexts/DataContext';
 import useNote from '../../../hooks/useNote';
+import useFlashcard from '../../../hooks/useFlashcard';
 import { ReactComponent as BackIcon } from '../../../assets/icons/arrow.svg';
 import { ReactComponent as NewIcon } from '../../../assets/icons/new.svg';
 // import { ReactComponent as OpenTabIcon } from '../../../assets/icons/newTab.svg';
@@ -15,6 +16,7 @@ import MenuItem from '../MenuItem/MenuItem';
 import Note from '../Note/Note';
 
 const ActionItem = ({
+  provided,
   label,
   illustration,
   toggleSize,
@@ -25,9 +27,9 @@ const ActionItem = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { data } = useDataContext();
-  const { id: fileId, notes } = useFileContext(); // flashcards, todos, quizzes
+  const { id: fileId, notes, flashcards } = useFileContext(); // todos, quizzes
 
-  const actionItems = { notes }; // flashcards, todos, quizzes
+  const actionItems = { notes, flashcards }; // todos, quizzes
   const subItems = actionItems[label.toLowerCase()];
   const [openSubItemId, setOpenSubItemId] = useState(null); // in case of subItems that are clickable such as notes and quizzes
 
@@ -40,6 +42,7 @@ const ActionItem = ({
   };
   const [currentNote, setCurrentNote] = useState(noNote);
   const { handleCreateNote, handleUpdateNote, handleDeleteNote } = useNote();
+  const { handleCreateFlashcard } = useFlashcard();
   const [showAIsearch, setShowAIsearch] = useState(false);
 
   // Update currentNote state when note is updated server-side
@@ -112,8 +115,12 @@ const ActionItem = ({
       } else if (action === 'view') {
         // TODO: Handle quiz viewing
       }
-    } else if (label === 'flashcards') {
-      // TODO: Handle flashcards creation or generation
+    } else if (label === 'Flashcards') {
+      if (action === 'create') {
+        const order = children ? children.length + 1 : 1;
+        handleCreateFlashcard(fileId, order);
+      }
+      // TODO: Handle flashcards generation
     } else if (label === 'todos') {
       // TODO: Handle todo item creation
     }
@@ -175,7 +182,9 @@ const ActionItem = ({
     <section
       className={`actionItem${children ? ' full' : ''}${
         isOpen ? ' open' : ' closed'
-      }${isVisible ? '' : ' hidden'}`}
+      }${isVisible ? '' : ' hidden'}${
+        isOpen && label === 'Flashcards' ? ' background' : ''
+      }`}
     >
       <div
         className="actionItem__header"
@@ -280,7 +289,13 @@ const ActionItem = ({
               />
             )}
             <Button
-              icon_l={isEnlarged.notes ? <ReduceIcon /> : <ExpandIcon />}
+              icon_l={
+                isEnlarged[label.toLowerCase()] ? (
+                  <ReduceIcon />
+                ) : (
+                  <ExpandIcon />
+                )
+              }
               variant="secondary"
               onClick={(e) => {
                 e.stopPropagation();
@@ -300,7 +315,14 @@ const ActionItem = ({
             handleChildren(children)
           ) : (
             <>
-              <div id="subItems">{handleChildren(children)}</div>
+              <ul
+                id="subItems"
+                {...provided?.droppableProps}
+                ref={provided?.innerRef}
+              >
+                {handleChildren(children)}
+                {provided?.placeholder}
+              </ul>
               <MenuItem
                 as="div"
                 icon={<NewIcon />}

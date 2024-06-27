@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import json
-from flask import Flask, session, request, jsonify, send_from_directory, Response, stream_with_context
+from flask import Flask, session, request, jsonify, send_file, Response, stream_with_context
 from flask_session import Session
 from flask_cors import CORS
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -10,7 +10,7 @@ import magic
 from pypdf import PdfReader
 from openai import OpenAI, APIError, APIConnectionError, RateLimitError
 from validator_collection import is_email
-from models import db, User, File, Subject, Tag, Project, Note
+from models import db, User, File, Subject, Tag, Project, Note, Flashcard
 from flask_migrate import Migrate
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_
@@ -253,6 +253,8 @@ def upload_files():
                 return jsonify({"error": "Problem generating secure file name"}), 400
             
             if existing_file:
+                # TODO: I should rename the file instead of triggering an error like how I've done with notes
+                # or I can trigger a pop up to ask whether to rename or replace existing file or to cancel upload
                 return jsonify({"error": "File already exists"}), 400
 
             # Validate file type
@@ -266,8 +268,12 @@ def upload_files():
             user_folder = os.path.join(app.config["UPLOADED_FILES_DEST"], f"user_{user_id}")
             os.makedirs(user_folder, exist_ok=True)
 
+            # Create subfolder for files if it doesn't exist
+            user_files_folder = os.path.join(user_folder, "files")
+            os.makedirs(user_files_folder, exist_ok=True)
+
             # Save file to user folder
-            file_path = os.path.join(user_folder, filename)
+            file_path = os.path.join(user_files_folder, filename)
             file.save(file_path)
 
             # Extract file content
@@ -359,6 +365,16 @@ def get_user_data():
                 } 
                 for note in file.notes
             ],
+            "flashcards": [
+                {
+                    "id": flashcard.id,
+                    "term": flashcard.term,
+                    "definition": flashcard.definition,
+                    "order": flashcard.order,
+                    "imagePath": flashcard.image_path,
+                } 
+                for flashcard in file.flashcards
+            ],
             "tags": [
                 {
                     "id": tag.id,
@@ -400,7 +416,19 @@ def get_user_data():
         }
         for note in notes
     ]
-    
+
+    flashcards = user.flashcards
+    flashcards_list = [
+        {
+            "id": flashcard.id,
+            "term": flashcard.term,
+            "definition": flashcard.definition,
+            "order": flashcard.order,
+            "imagePath": flashcard.image_path,
+        }
+        for flashcard in flashcards
+    ]
+
     tags = user.tags
     tags_list = [
         {
@@ -411,7 +439,7 @@ def get_user_data():
         for tag in tags
     ]
     
-    return jsonify({"files": file_list, "subjects": subjects_list, "projects": projects_list, "notes": notes_list, "tags": tags_list}), 200
+    return jsonify({"files": file_list, "subjects": subjects_list, "projects": projects_list, "notes": notes_list, "flashcards": flashcards_list, "tags": tags_list}), 200
 
 
 @login_required
@@ -420,8 +448,7 @@ def serve_file(file_id):
     file = db.session.get(File, file_id)
 
     if file:
-        directory = os.path.join(app.config["UPLOADED_FILES_DEST"], f'user_{session["user_id"]}')
-        return send_from_directory(directory, file.name)
+        return send_file(file.path)
     else:
         return jsonify({"error": "File not found"}), 404
 
@@ -446,7 +473,7 @@ def update_file(file_id):
 
         try:
             # update file in user folder
-            user_folder = os.path.join(app.config["UPLOADED_FILES_DEST"], f"user_{session['user_id']}")
+            user_folder = os.path.join(app.config["UPLOADED_FILES_DEST"], f"user_{session['user_id']}", "files")
             os.rename(os.path.join(user_folder, file.name), os.path.join(user_folder, file_name))
 
             # update file in database
@@ -478,7 +505,7 @@ def delete_file(file_id):
 
     if file:
         # delete file from user folder
-        user_folder = os.path.join(app.config["UPLOADED_FILES_DEST"], f"user_{session['user_id']}")
+        user_folder = os.path.join(app.config["UPLOADED_FILES_DEST"], f"user_{session['user_id']}", "files")
         os.remove(os.path.join(user_folder, file.name))
 
         # delete file from database
@@ -832,6 +859,165 @@ def askAI(keyword):
     
     # # Stream AI response chunks to client
     # return Response(stream_with_context(generate_chunks()), status=200, content_type='text/plain')
+
+
+@login_required
+@app.route('/createFlashcard/<file_id>/<order>', methods=["POST"])
+def create_flashcard(file_id, order):
+    try:
+        new_flashcard = Flashcard(
+            order=order,
+            term='',
+            definition='',
+            user_id=session["user_id"],
+            file_id=file_id,
+        )
+        db.session.add(new_flashcard)
+        db.session.commit()
+
+        flashcard_data = {
+            "id": new_flashcard.id,
+            "order": new_flashcard.order,
+        }
+
+        return jsonify({"message": "Flashcard created successfully", "flashcard": flashcard_data}), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@login_required
+@app.route("/updateFlashcard/<flashcard_id>", methods=["POST"])
+def update_flashcard(flashcard_id):
+    flashcard = Flashcard.query.filter_by(id=flashcard_id).first()
+    data = request.json
+
+    if flashcard:
+        term = data.get("term", None)
+        definition = data.get("definition", None)
+        order = data.get("order", None)
+        
+        try:
+            # update flashcard in database
+            if term:
+                flashcard.term = term.strip()
+            if definition:
+                flashcard.definition = definition.strip()
+            if order:
+                flashcard.order = order
+            db.session.commit()
+
+            return jsonify({"message": "Flashcard updated successfully"}), 200
+        
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
+
+    else:
+        return jsonify({"error": "Flashcard not found"}), 404
+
+
+@login_required
+@app.route('/uploadFlashcardImage/<flashcard_id>', methods=["POST"])
+def upload_flashcard_image(flashcard_id):
+    flashcard = Flashcard.query.filter_by(id=flashcard_id).first()
+    image = request.files.getlist("image")[0]
+
+    if flashcard:
+        # Create subfolder for files if it doesn't exist
+        flashcards_folder = os.path.join(app.config["UPLOADED_FILES_DEST"], f"user_{session['user_id']}", "flashcards")
+        os.makedirs(flashcards_folder, exist_ok=True)
+
+        # Get filename and extension
+        filename = secure_filename(image.filename)
+
+        if filename == "":
+            return jsonify({"error": "Problem generating secure file name"}), 400 
+    
+        _, ext = os.path.splitext(filename)
+
+        try:   
+            # Save image to flashcards folder using flashcard_id as its name
+            image_path = os.path.join(flashcards_folder, f"{flashcard_id}{ext}")
+            image.save(image_path)
+
+            # Save image path to the flashcard database
+            flashcard.image_path = image_path
+            db.session.commit()
+
+            return jsonify({"message": "Flashcard image uploaded successfully"}), 200
+    
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
+                
+    else:
+        return jsonify({"error": "No image provided"}), 400
+
+
+@login_required
+@app.route("/getFlashcardImage/<flashcard_id>")
+def serve_image(flashcard_id):
+    flashcard = db.session.get(Flashcard, flashcard_id)
+
+    if flashcard:
+        return send_file(flashcard.image_path)
+    else:
+        return jsonify({"error": "Image file not found"}), 404
+
+
+@login_required
+@app.route("/deleteFlashcardImage/<flashcard_id>", methods=["POST"])
+def delete_image(flashcard_id):
+    flashcard = Flashcard.query.filter_by(id=flashcard_id).first()
+
+    if flashcard:
+        try:
+            # delete flashcard image from folder
+            if flashcard.image_path:
+                os.remove(flashcard.image_path)
+
+            # reset image_path
+            flashcard.image_path = None
+            db.session.commit()
+
+            return jsonify({"message": "Flashcard deleted successfully"}), 200
+    
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
+
+    else:
+        return jsonify({"error": "Flashcard not found"}), 404
+
+
+@login_required
+@app.route("/deleteFlashcard/<flashcard_id>", methods=["POST"])
+def delete_flashcard(flashcard_id):
+    flashcard = Flashcard.query.filter_by(id=flashcard_id).first()
+
+    if flashcard:
+        # Save file_id to extract remaining_flashcards later
+        file_id = flashcard.file_id
+
+        # delete flashcard image from folder
+        if flashcard.image_path:
+            os.remove(flashcard.image_path)
+
+        # delete flashcard from database
+        db.session.delete(flashcard)
+        db.session.commit()
+
+        # Update order of remaining flashcards
+        remaining_flashcards = Flashcard.query.filter_by(file_id=file_id).order_by(Flashcard.order).all()
+        
+        for index, card in enumerate(remaining_flashcards):
+            card.order = index + 1
+            db.session.add(card)
+        db.session.commit()
+
+        return jsonify({"message": "Flashcard deleted successfully"}), 200
+
+    else:
+        return jsonify({"error": "Flashcard not found"}), 404
+
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -6,10 +6,30 @@ const FileContext = createContext();
 // Create a provider component
 export const FileProvider = ({ children, file }) => {
   //   return <FileContext.Provider value={file}>{children}</FileContext.Provider>;
-  const { id, name, type, created_at, subject, project, notes, tags } = file;
+  const {
+    id,
+    name,
+    type,
+    created_at,
+    subject,
+    project,
+    notes,
+    flashcards,
+    tags,
+  } = file;
   return (
     <FileContext.Provider
-      value={{ id, name, type, created_at, subject, project, notes, tags }}
+      value={{
+        id,
+        name,
+        type,
+        created_at,
+        subject,
+        project,
+        notes,
+        flashcards,
+        tags,
+      }}
     >
       {children}
     </FileContext.Provider>

@@ -10,6 +10,9 @@
   justify-content: center;
   transition: all 200ms ease-in-out;
 
+  &.background {
+    background-color: hsl(263, 15%, 98%);
+  }
   &.hidden {
     display: none;
   }

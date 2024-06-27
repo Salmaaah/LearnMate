@@ -1,7 +1,7 @@
 """Added content column to file model
 
 Revision ID: fea8d042389a
-Revises: 
+Revises: 51e2c31d0bee
 Create Date: 2024-04-20 15:08:31.259063
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'fea8d042389a'
-down_revision = None
+down_revision = '51e2c31d0bee'
 branch_labels = None
 depends_on = None
 
