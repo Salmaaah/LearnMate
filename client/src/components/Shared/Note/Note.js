@@ -66,6 +66,7 @@ const Note = ({
     (isOpen ? (
       <>
         <AIsearch
+          context="Notes"
           showAIsearch={showAIsearch}
           setShowAIsearch={setShowAIsearch}
         />

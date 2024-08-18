@@ -1,50 +1,75 @@
 import { useEffect, useState, useRef } from 'react';
+import { useDataContext } from '../../../contexts/DataContext';
 import { useFileContext } from '../../../contexts/FileContext';
 import { useEditorContext } from '../../../contexts/EditorContext';
 import useOutsideClick from '../../../hooks/useOutsideClick';
+import useFlashcard from '../../../hooks/useFlashcard';
+import useAI from '../../../hooks/useAI';
 import { ReactComponent as StarsIcon } from '../../../assets/icons/stars.svg';
 import { ReactComponent as GoIcon } from '../../../assets/icons/arrow.svg';
 import MenuItem from '../MenuItem/MenuItem';
 import { ReactComponent as WriteIcon } from '../../../assets/icons/write.svg';
 import { ReactComponent as SummarizeIcon } from '../../../assets/icons/summarize.svg';
-import axios from 'axios';
 import Markdown from 'markdown-to-jsx';
 import ReactDOMServer from 'react-dom/server';
 
-const AIsearch = ({ showAIsearch, setShowAIsearch }) => {
+const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
   const { id: fileId } = useFileContext();
+
+  // When Context = Notes //////////////////////////////////////////////////////
   const { editorInstanceRef, blockInfo, setBlockInfo } = useEditorContext();
   const editorInstance = editorInstanceRef.current;
   const [HTMLblocks, setHTMLblocks] = useState(null);
   const prevHTMLblocksRef = useRef(null);
-  const [width, setWidth] = useState(400); // TODO: add dynamic width adjustment like the commented code in PropertySelector
-  const [topPosition, setTopPosition] = useState(0);
+  //////////////////////////////////////////////////////////////////////////////
 
+  // When Context = Flashcards /////////////////////////////////////////////////
+  const { data } = useDataContext();
+  const [elementInFocus, setElementInFocus] = useState(null);
+  const AIinputRef = useRef(null);
+  const { handleUpdateFlashcard } = useFlashcard();
+  //////////////////////////////////////////////////////////////////////////////
+
+  const { askAI } = useAI();
+  const [width, setWidth] = useState(400); // TODO: add dynamic width adjustment like the commented code in PropertySelector
+  const [topPosition, setTopPosition] = useState(-11);
   const AIsearchRef = useRef(null);
   // const [AIresponse, setAIresponse] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const suggestions = [
     {
+      context: 'Notes',
       category: '',
       name: 'Continue writing',
       keyword: 'continue',
       icon: <WriteIcon />,
     },
     {
+      context: 'Notes',
       category: 'Generate from material',
       name: 'Summarize',
       keyword: 'summarize',
       icon: <SummarizeIcon />,
     },
     {
+      context: 'Notes',
       category: 'Edit or review',
       name: 'Improve writing',
       keyword: 'improve',
       icon: <></>,
     },
+    {
+      context: 'Flashcards',
+      category: 'Create with AI',
+      name: 'Create flashcard',
+      keyword: 'create',
+      icon: <></>,
+    },
   ];
-  const filteredSuggestions = suggestions.filter((suggestion) =>
-    suggestion.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSuggestions = suggestions.filter(
+    (suggestion) =>
+      suggestion.context === context &&
+      suggestion.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleInputChange = (e) => {
@@ -53,22 +78,25 @@ const AIsearch = ({ showAIsearch, setShowAIsearch }) => {
       : setSearchTerm(e.target.value); // set search term to user input
   };
 
+  // Effect to set HTMLblocks and AIsearch width
   useEffect(() => {
-    setHTMLblocks(document.querySelectorAll('.ce-block'));
+    if (context === 'Notes' && editorInstance) {
+      setHTMLblocks(document.querySelectorAll('.ce-block'));
 
-    // Set AIsearch width
-    const editorContainer = document.getElementById('editorjs');
-    setWidth(editorContainer.getBoundingClientRect().width);
+      const editorContainer = document.getElementById('editorjs');
+      setWidth(editorContainer.getBoundingClientRect().width);
+    }
   }, [editorInstance]);
 
+  // Effect to set AIsearch topPosition
   useEffect(() => {
-    if (blockInfo.block)
+    if (context === 'Notes' && blockInfo?.block)
       setTopPosition(blockInfo.block.getBoundingClientRect().top);
-  }, [blockInfo.block]);
+  }, [blockInfo?.block]);
 
   // Effect to listen for focus events on editor's blocks and save blockInfo
   useEffect(() => {
-    if (HTMLblocks) {
+    if (context === 'Notes' && HTMLblocks?.length > 0) {
       // Listen for autofocus event
       if (prevHTMLblocksRef.current === null) {
         const handleAutofocus = () => {
@@ -123,17 +151,25 @@ const AIsearch = ({ showAIsearch, setShowAIsearch }) => {
   // Effect to handle space key event for showing AIsearch and backspace key event for hiding AIsearch
   useEffect(() => {
     const handleKeyPress = async (event) => {
-      // TODO: This works but blockInfo.isEmpty is slow to update when user types fast on a new line and hits space
-      // I think this is caused by the slow onChange callback from editorjs
-      if (event.key === ' ' && blockInfo.isEmpty) {
+      // TODO: In case of notes, blockInfo.isEmpty is slow to update when user types fast on a new line and hits space
+      // I think this is caused by the slow onChange callback from editorjs\
+      if (
+        event.key === ' ' &&
+        ((context === 'Notes' && blockInfo.isEmpty) ||
+          (context === 'Flashcards' &&
+            event.target.id === parentId && // not needed in case of notes because only one is open at a time, unlike flashcards
+            (event.target.value === '' || event.isTrusted === false))) // when event is triggered by actually presssing the space button the textArea needs to be empty in order for the AIsearch to show up, but in case of clicking the stars button that dispatches a fake keydown event, we can force show AIsearch even with text area being full
+      ) {
         setShowAIsearch(true);
+        context === 'Flashcards' &&
+          setWidth(event.target.clientWidth) &&
+          setElementInFocus(event.target.id);
       } else if (
         AIsearchRef.current !== null &&
         AIsearchRef.current.contains(event.target) &&
         event.key === 'Backspace' &&
         event.target.value === ''
       ) {
-        console.log('triggered');
         setShowAIsearch(false);
       }
     };
@@ -145,7 +181,7 @@ const AIsearch = ({ showAIsearch, setShowAIsearch }) => {
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
     };
-  }, [blockInfo.isEmpty, AIsearchRef.current]);
+  }, [blockInfo?.isEmpty, AIsearchRef.current]);
 
   // Use custom hook to hide AIsearch on outside click
   // TODO: find a way to override the eventlistener created by editorJS on the padding area of the editor because it prevents UseOutsideClick to execute in that area
@@ -153,17 +189,19 @@ const AIsearch = ({ showAIsearch, setShowAIsearch }) => {
 
   // Effect to set focus back to last focused block when AIsearch is closed
   useEffect(() => {
-    editorInstance && blockInfo.block && !showAIsearch
-      ? blockInfo.editableBlock.focus()
-      : void 0;
+    if (context === 'Notes' && editorInstance && !showAIsearch) {
+      blockInfo?.editableBlock?.focus();
+    } else if (context === 'Flashcards' && !showAIsearch) {
+      document.getElementById(elementInFocus)?.focus();
+    }
   }, [showAIsearch]);
 
-  // Function to insert AI's markdown response into the editor
-  const insertResponse = async (markdownText) => {
-    if (editorInstance) {
+  // Function to insert AI's response note/flashcard
+  const insertResponse = async (text) => {
+    if (context === 'Notes' && editorInstance) {
       // Get the HTML string representation of the rendered Markdown text
       const htmlString = ReactDOMServer.renderToStaticMarkup(
-        <Markdown>{markdownText}</Markdown>
+        <Markdown>{text}</Markdown>
       )
         .replace('<strong>', '<b>')
         .replace('</strong>', '</b>')
@@ -228,111 +266,23 @@ const AIsearch = ({ showAIsearch, setShowAIsearch }) => {
           );
         });
       }, 100);
-    }
-  };
+    } else if (context === 'Flashcards') {
+      // Regex to capture the term and definition
+      const regex = /Term:\s*(.*?)\s*Definition:\s*(.*)/s;
 
-  // Function to prompt the AI
-  const askAI = async (keyword) => {
-    try {
-      if (keyword === 'summarize') {
-        const response = await axios.post(`/askAI/${keyword}`, {
-          fileId: fileId,
+      const match = text.match(regex);
+
+      if (match) {
+        const term = match[1].trim();
+        const definition = match[2].trim();
+
+        await handleUpdateFlashcard(parentId.replace('_term', ''), {
+          term: term,
+          definition: definition,
         });
-        console.log(response.data.message);
-        insertResponse(response.data.message);
-      } else if (keyword === 'continue' || keyword === 'improve') {
-        // In order to extract the note contents we are using the HTML from the DOM and turning it into markdown
-        // for the AI to process. We didn't retrieve the note contents from the database because it's saved
-        // in a editorJS json format which will be harder to parse than the HTML.
-
-        const HTMLblocks = document.querySelectorAll('.ce-block');
-
-        // Turn HTML to markdown
-        let content = '';
-        HTMLblocks.forEach((block) => {
-          let child = block.querySelector('.ce-block__content').children[0];
-          let tag = child.tagName;
-          let innerText = child.innerText;
-          let mdElement = '';
-
-          if (tag === 'H1') {
-            mdElement = '# ';
-          } else if (tag === 'H2') {
-            mdElement = '## ';
-          } else if (tag === 'H3') {
-            mdElement = '### ';
-          } else if (tag === 'H4') {
-            mdElement = '#### ';
-          } else if (tag === 'H5') {
-            mdElement = '##### ';
-          } else if (tag === 'H6') {
-            mdElement = '###### ';
-          } else if (tag === 'UL' || tag === 'OL') {
-            let children = child.children;
-            let len = children.length;
-            for (let i = 0; i < len; i++) {
-              mdElement = tag === 'UL' ? '- ' : `${i + 1}` + '. ';
-              content +=
-                mdElement +
-                children[i].innerText +
-                `${len - i === 1 ? '' : '\n'}`;
-            }
-            mdElement = '';
-            innerText = '';
-          } else {
-            mdElement = '';
-          }
-
-          content += mdElement + innerText + '\n';
-        });
-
-        // Send the markdown in the request body
-        const response = await axios.post(`/askAI/${keyword}`, {
-          fileId: fileId,
-          notes: content,
-        });
-        console.log(response.data.message);
-        insertResponse(response.data.message);
+      } else {
+        console.log('No match found.');
       }
-      // TODO: Determine why streaming is not working
-      // TODO: The route has changed, add json object in the request body
-      // console.log('Starting request...');
-      // const response = await fetch(`/askAI/${keyword}/${fileId}`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      // });
-      // console.log('Request completed. Response:', response);
-
-      // // Create a ReadableStream from the response body and read data from the stream
-      // const reader = response.body.getReader();
-
-      // // Function to read chunks from the stream
-      // const readStream = async () => {
-      //   console.log('Reading stream...');
-      //   while (true) {
-      //     const { done, value } = await reader.read();
-      //     if (done) {
-      //       setAIresponse('');
-      //       console.log('Stream ended');
-      //       break;
-      //     }
-      //     // Convert the chunk to a string and log it
-      //     console.log('Received chunk:', new TextDecoder().decode(value));
-
-      //     setAIresponse((prevState) => {
-      //       const chunk = new TextDecoder().decode(value);
-      //       insertResponse(prevState + chunk);
-      //       return prevState + chunk;
-      //     });
-      //   }
-      // };
-
-      // // Start reading from the stream
-      // readStream();
-    } catch (error) {
-      console.error('Error:', error);
     }
   };
 
@@ -341,12 +291,37 @@ const AIsearch = ({ showAIsearch, setShowAIsearch }) => {
   const handleSubmit = async (e) => {
     e.preventDefault(); // a temporary fix for form refreshing page on submit
     setShowAIsearch(false); // Close AIsearch
-    askAI(searchTerm);
+    const response = await askAI(context, searchTerm, fileId);
+    await insertResponse(response);
   };
 
-  const handleSuggestionClick = (suggestion) => {
-    setShowAIsearch(false);
-    askAI(suggestion.keyword);
+  const handleSuggestionClick = async (suggestion) => {
+    if (context === 'Notes') {
+      setShowAIsearch(false);
+      const response = await askAI(context, suggestion.keyword, fileId);
+      insertResponse(response);
+    } else if (context === 'Flashcards') {
+      const flashcard = data.flashcards.find(
+        (flashcard) => flashcard.id === parseInt(parentId.replace('_term', ''))
+      );
+
+      if (!flashcard.term === !flashcard.definition) {
+        // if both empty or both full
+        setTimeout(() => {
+          // Delay because useOutsideClick gets triggered
+          setSearchTerm(suggestion.name + ' for ');
+          setShowAIsearch(true);
+          AIinputRef.current.focus();
+        }, 1);
+      } else {
+        const response = await askAI(context, 'predict', flashcard.id);
+        const side = flashcard.term === '' ? 'term' : 'definition';
+        await handleUpdateFlashcard(flashcard.id, {
+          [side]: response,
+        });
+        setShowAIsearch(false);
+      }
+    }
   };
 
   // Effect to reset search term on close
@@ -365,6 +340,7 @@ const AIsearch = ({ showAIsearch, setShowAIsearch }) => {
         <div className="aiSearch__field">
           <StarsIcon />
           <input
+            ref={AIinputRef}
             type="text"
             id="aiSearchInput"
             placeholder="Ask AI to write anything..."

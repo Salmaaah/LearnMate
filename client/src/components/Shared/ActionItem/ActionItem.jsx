@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, forwardRef } from 'react';
 import { useFileContext } from '../../../contexts/FileContext';
 import { useEditorContext } from '../../../contexts/EditorContext';
 import { useDataContext } from '../../../contexts/DataContext';
 import useNote from '../../../hooks/useNote';
 import useFlashcard from '../../../hooks/useFlashcard';
+import useAI from '../../../hooks/useAI';
 import { ReactComponent as BackIcon } from '../../../assets/icons/arrow.svg';
 import { ReactComponent as NewIcon } from '../../../assets/icons/new.svg';
 // import { ReactComponent as OpenTabIcon } from '../../../assets/icons/newTab.svg';
@@ -14,6 +15,7 @@ import { ReactComponent as StarsIcon } from '../../../assets/icons/stars.svg';
 import Button from '../Button/Button';
 import MenuItem from '../MenuItem/MenuItem';
 import Note from '../Note/Note';
+import { Draggable } from '@hello-pangea/dnd';
 
 const ActionItem = ({
   provided,
@@ -26,6 +28,7 @@ const ActionItem = ({
   children,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef(null);
   const { data } = useDataContext();
   const { id: fileId, notes, flashcards } = useFileContext(); // todos, quizzes
 
@@ -33,7 +36,7 @@ const ActionItem = ({
   const subItems = actionItems[label.toLowerCase()];
   const [openSubItemId, setOpenSubItemId] = useState(null); // in case of subItems that are clickable such as notes and quizzes
 
-  // Note specific code
+  // Note specific configuration
   const { initEditor } = useEditorContext();
   const noNote = {
     id: null,
@@ -42,8 +45,12 @@ const ActionItem = ({
   };
   const [currentNote, setCurrentNote] = useState(noNote);
   const { handleCreateNote, handleUpdateNote, handleDeleteNote } = useNote();
-  const { handleCreateFlashcard } = useFlashcard();
   const [showAIsearch, setShowAIsearch] = useState(false);
+
+  // Flashcard specific configuration
+  const listEndRef = useRef(null);
+  const { handleCreateFlashcard, handleUpdateFlashcard } = useFlashcard();
+  const { askAI } = useAI();
 
   // Update currentNote state when note is updated server-side
   useEffect(() => {
@@ -64,6 +71,13 @@ const ActionItem = ({
     }
   }, [data]);
 
+  // Handles scrolling to an element
+  const handleScroll = (ref, alignement) => {
+    setTimeout(() => {
+      ref?.current?.scrollIntoView({ behavior: 'smooth', block: alignement });
+    }, 1);
+  };
+
   /**
    * Handles clicking on New button, AI button, or a clickable subItem
    * @param {string} action - 'create', 'generate', 'edit', or 'view'
@@ -72,6 +86,9 @@ const ActionItem = ({
   const handleButtonClick = async (action, item) => {
     // Open ActionItem if not already open
     setIsOpen(true);
+
+    // Scroll to align the actionItem to the top of the screen
+    handleScroll(ref, 'start');
 
     if (label === 'Notes') {
       if (action === 'create' || action === 'generate') {
@@ -93,7 +110,7 @@ const ActionItem = ({
         // Wait for the editor to finish initializing and have the autofocus set to determine the position of AIsearch
         // before showing it to make sure the focus goes to the AIsearch input after opening as expected
         setTimeout(() => {
-          action === 'generate' ? setShowAIsearch(true) : void 0;
+          if (action === 'generate') setShowAIsearch(true);
         }, 100);
       } else if (action === 'edit') {
         // Handle when an existing note is clicked
@@ -117,10 +134,55 @@ const ActionItem = ({
       }
     } else if (label === 'Flashcards') {
       if (action === 'create') {
+        // Handle new Flashcard creation
         const order = children ? children.length + 1 : 1;
-        handleCreateFlashcard(fileId, order);
+        await handleCreateFlashcard(fileId, order);
+
+        // Delay to account for the previous scrolling animation
+        setTimeout(() => {
+          // Scroll to show the newly created flashcard in view
+          handleScroll(listEndRef, 'nearest');
+
+          // Dispatch flashcardFocus event
+          const focusEvent = new CustomEvent('flashcardFocus', {
+            detail: { flashcard: order },
+          });
+          document.dispatchEvent(focusEvent);
+        }, 400);
+      } else if (action === 'generate') {
+        // Handle AI generation on current flashcard
+        // 1ms Delay because for some unknown reason without it this doesn't work
+        setTimeout(() => {
+          // Dispatch space key event to trigger AIsearch
+          // in this case 'item' is the parentId that AIsearch needs, either id + term or id + definition
+          const targetElement = document.getElementById(item);
+          const spaceEvent = new KeyboardEvent('keydown', {
+            key: ' ',
+            bubbles: true, // Ensure the event bubbles up through the DOM
+          });
+          targetElement.dispatchEvent(spaceEvent);
+        }, 1);
+      } else if (action === 'multigen') {
+        // Handle multiple flashcard generation from file content
+        const response = await askAI('Flashcards', action, fileId);
+        const flashcardRegex = /F:\s(.*?)\nB:\s(.*?)(?=\nF:|\n$)/gs;
+        let match;
+
+        // Match, create, and scroll to view flashcards one at a time
+        while ((match = flashcardRegex.exec(response)) !== null) {
+          const front = match[1].trim();
+          const back = match[2].trim();
+          const order = children ? children.length + 1 : 1;
+          const flashcardId = await handleCreateFlashcard(fileId, order);
+
+          await handleUpdateFlashcard(flashcardId, {
+            term: front,
+            definition: back,
+          });
+
+          handleScroll(listEndRef, 'nearest');
+        }
       }
-      // TODO: Handle flashcards generation
     } else if (label === 'todos') {
       // TODO: Handle todo item creation
     }
@@ -151,7 +213,7 @@ const ActionItem = ({
     );
   };
 
-  // Handles passing props to children of type Note for now
+  // Handles passing props to children
   const handleChildren = (children) => {
     return React.Children.map(children, (child) => {
       if (!child) return null;
@@ -164,6 +226,29 @@ const ActionItem = ({
           handleDeleteNote,
           showAIsearch,
           setShowAIsearch,
+        });
+      } else if (child.type === Draggable) {
+        // Extract the function passed to Draggable's children prop
+        const draggableChildFunction = child.props.children;
+
+        // Wrap the child function to add the state to the correct element
+        const wrappedFunction = (provided) => {
+          const draggableChild = draggableChildFunction(provided);
+
+          // Check if the inner child is Flashcard
+          if (draggableChild.type.name === 'Flashcard') {
+            return React.cloneElement(draggableChild, {
+              ...draggableChild.props,
+              handleButtonClick,
+            });
+          }
+
+          return draggableChild;
+        };
+
+        return React.cloneElement(child, {
+          ...child.props,
+          children: wrappedFunction,
         });
       } else {
         return child;
@@ -180,6 +265,7 @@ const ActionItem = ({
 
   return (
     <section
+      ref={ref}
       className={`actionItem${children ? ' full' : ''}${
         isOpen ? ' open' : ' closed'
       }${isVisible ? '' : ' hidden'}${
@@ -187,8 +273,12 @@ const ActionItem = ({
       }`}
     >
       <div
-        className="actionItem__header"
-        onClick={() => !openSubItemId && setIsOpen(!isOpen)}
+        className={`actionItem__header${openSubItemId ? '' : ' pointer'}`}
+        onClick={() => {
+          !openSubItemId && setIsOpen(!isOpen);
+          isOpen && isEnlarged[label.toLowerCase()] && toggleSize();
+          !isOpen && handleScroll(ref, 'start');
+        }}
       >
         <div id="leftSection">
           {/* TODO: This is focused solely on when a note is open, need to make it adaptable to when it's a quizz */}
@@ -238,7 +328,7 @@ const ActionItem = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleButtonClick('generate');
+                      handleButtonClick('multigen');
                     }}
                   >
                     {<StarsIcon />}
@@ -322,6 +412,7 @@ const ActionItem = ({
               >
                 {handleChildren(children)}
                 {provided?.placeholder}
+                <div ref={listEndRef} style={{ display: 'hidden' }} />
               </ul>
               <MenuItem
                 as="div"

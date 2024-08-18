@@ -49,9 +49,11 @@ const Layout = ({ pageName, children }) => {
         <div
           style={{
             marginTop: navbarHeight,
-            paddingInline: `${mainPaddingInline}`,
             minHeight: contentHeight,
             transition: 'margin-left 300ms ease-in-out',
+            ...(['Courses', 'Dashboard'].includes(pageName) && {
+              paddingInline: `${mainPaddingInline}`,
+            }),
           }}
         >
           {children}
