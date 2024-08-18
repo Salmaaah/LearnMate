@@ -8,19 +8,19 @@ const useFlashcard = () => {
   // Create flashcard server side
   const handleCreateFlashcard = async (fileId, order) => {
     console.log('Creating flashcard');
-    axios
-      .post(`/createFlashcard/${fileId}/${order}`)
-      .then((response) => {
-        fetchData();
-        console.log(response.data.message);
-      })
-      .catch((error) => {
-        if (error.response.status === 400) {
-          console.error(error.response.data.error);
-        } else {
-          console.error('Error creating flashcard:', error.message);
-        }
-      });
+    try {
+      const response = await axios.post(`/createFlashcard/${fileId}/${order}`);
+      fetchData();
+      console.log(response.data.message);
+      return response.data.flashcard.id;
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        console.error(error.response.data.error);
+      } else {
+        console.error('Error creating flashcard:', error.message);
+      }
+      return null;
+    }
   };
 
   // Update flashcard

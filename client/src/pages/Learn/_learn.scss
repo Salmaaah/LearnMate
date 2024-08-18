@@ -8,11 +8,12 @@
   display: grid;
   grid-template-columns: 4fr 3fr;
   grid-template-rows: 1fr;
-  gap: u.rem(20);
 
   &__docviewer {
     // width: 4fr;
     height: 100%;
+    padding-left: u.rem(30);
+    padding-right: u.rem(10);
     overflow: auto;
     display: flex;
     flex-direction: column;
@@ -280,6 +281,8 @@
   &__actions {
     height: 100%; // This works when the rest of the actions are hidden and we need one to fill the entire screen
     max-width: 100%;
+    padding-right: u.rem(30);
+    padding-left: u.rem(10);
     overflow-x: hidden;
     overflow-y: scroll;
     display: flex;

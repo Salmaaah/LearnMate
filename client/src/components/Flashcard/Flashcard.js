@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import useFlashcard from '../../hooks/useFlashcard';
+import AIsearch from '../Shared/AIsearch/AIsearch';
 import IconButton from '../IconButton/IconButton';
 import { ReactComponent as ImageIcon } from '../../assets/icons/image.svg';
 import { ReactComponent as CrossIcon } from '../../assets/icons/delete_2.svg';
@@ -8,7 +9,7 @@ import { ReactComponent as DragIcon } from '../../assets/icons/drag_2.svg';
 import { ReactComponent as StarsIcon } from '../../assets/icons/stars.svg';
 import { ReactComponent as SwitchIcon } from '../../assets/icons/switch.svg';
 
-const Flashcard = ({ flashcard, provided }) => {
+const Flashcard = ({ flashcard, provided, handleButtonClick }) => {
   const [term, setTerm] = useState(flashcard.term);
   const [definition, setDefinition] = useState(flashcard.definition);
   const termRef = useRef(null);
@@ -23,6 +24,8 @@ const Flashcard = ({ flashcard, provided }) => {
     handleUploadFlashcardImage,
     handleDeleteFlashcardImage,
   } = useFlashcard();
+  // TODO: This state is useless and will be removed once the necessary changes are made to let go of the related AIsearch props
+  const [showAIsearch, setShowAIsearch] = useState(false);
 
   const handleRows = (ref, text, setRows) => {
     const textarea = ref.current;
@@ -49,7 +52,7 @@ const Flashcard = ({ flashcard, provided }) => {
     document.body.removeChild(hiddenDiv);
 
     const newRows = Math.ceil(hiddenDivHeight / lineHeight);
-    setRows(newRows);
+    setRows(newRows > 4 ? 4 : newRows); // max rows are 4
   };
 
   useEffect(() => {
@@ -59,6 +62,27 @@ const Flashcard = ({ flashcard, provided }) => {
   useEffect(() => {
     handleRows(definitionRef, definition, setDefinitionRows);
   }, [definition]);
+
+  // Effect to set focus to term on a newly created flashcard with a delay to account for the scrolling animation
+  useEffect(() => {
+    const handlefocus = (event) => {
+      setTimeout(() => {
+        flashcard.order === event.detail.flashcard && termRef.current.focus();
+      }, 500);
+    };
+
+    document.addEventListener('flashcardFocus', handlefocus);
+
+    return () => {
+      document.removeEventListener('flashcardFocus', handlefocus);
+    };
+  }, []);
+
+  // Effect to ensure that the UI always reflecs the changes implemented in the backend
+  useEffect(() => {
+    setTerm(flashcard.term);
+    setDefinition(flashcard.definition);
+  }, [flashcard]);
 
   return (
     <li
@@ -76,7 +100,18 @@ const Flashcard = ({ flashcard, provided }) => {
             iColor="var(--M75)"
             bHcolor=""
           />
-          <IconButton icon={<StarsIcon />} size="13px" />
+          <IconButton
+            icon={<StarsIcon />}
+            size="13px"
+            onClick={() =>
+              handleButtonClick(
+                'generate',
+                term !== '' && definition === ''
+                  ? `${flashcard.id}_definition`
+                  : `${flashcard.id}_term`
+              )
+            }
+          />
           <IconButton
             icon={<SwitchIcon />}
             size="13px"
@@ -101,8 +136,16 @@ const Flashcard = ({ flashcard, provided }) => {
       <div className="flashcard__content">
         <div className="flashcard__leftContent">
           <div className="flashcard__entry">
+            <AIsearch
+              context="Flashcards"
+              parentId={`${flashcard.id}_term`}
+              showAIsearch={showAIsearch}
+              setShowAIsearch={setShowAIsearch}
+            />
+
             <textarea
               ref={termRef}
+              id={`${flashcard.id}_term`}
               value={term}
               placeholder="Enter your term"
               onChange={(e) => setTerm(e.target.value)}
@@ -117,8 +160,15 @@ const Flashcard = ({ flashcard, provided }) => {
             <div>TERM</div>
           </div>
           <div className="flashcard__entry">
+            <AIsearch
+              context="Flashcards"
+              parentId={`${flashcard.id}_definition`}
+              showAIsearch={showAIsearch}
+              setShowAIsearch={setShowAIsearch}
+            />
             <textarea
               ref={definitionRef}
+              id={`${flashcard.id}_definition`}
               value={definition}
               placeholder="Enter your definition"
               onChange={(e) => setDefinition(e.target.value)}

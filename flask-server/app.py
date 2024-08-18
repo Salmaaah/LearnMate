@@ -563,7 +563,7 @@ def add_property(property_type, property_id):
                 return jsonify({"error": str(e)}), 400
 
     # Add property to file
-    file_id = data.get("file_id")
+    file_id = data.get("fileId")
     file = File.query.filter_by(id=file_id).first()
     
     if property_type == 'Subject':
@@ -598,7 +598,7 @@ def remove_property(property_type, property_id):
     data = request.json
 
     if property:
-        file_id = data.get("file_id")
+        file_id = data.get("fileId")
         file = File.query.filter_by(id=file_id).first()
         
         if property_type == 'Subject':
@@ -784,20 +784,18 @@ def delete_note(note_id):
 
 
 @login_required
-@app.route('/askAI/<keyword>', methods=["POST"])
-def askAI(keyword):
-    note_content = ""
-    file_content = ""    
+@app.route('/askAI/<context>/<keyword>', methods=["POST"])
+def askAI(context, keyword):
     data = request.json
+    prompt = ""
 
-    if data:
-        id = data.get("fileId")
-        notes = data.get("notes")
-        print('id', id)
-        print('notes', notes)
+    if context == "Notes" :
+        note_content = ""
+        file_content = ""   
 
-        if keyword != 'improve':
+        if keyword in ['summarize', 'continue']:
             # Retrieve file content from the database
+            id = data.get("fileId")
             file = File.query.filter_by(id=id).first()
             if file is None:
                 return jsonify({'error': 'File not found'}), 404
@@ -808,19 +806,48 @@ def askAI(keyword):
         
             file_content = "\nMaterial:\n" + file_content
         
-        # Retrieve user notes from request
-        if notes:
+        if keyword in ['continue', 'improve']:
+            # Retrieve user notes from database
+            notes = data.get("notes")
             note_content = "\nNotes:\n" + notes
     
+        if keyword == "summarize": # uses file content as input
+            prompt = "Using Markdown format, generate a \"<Subject> Overview\" heading 2 and structured summary of the provided text. Organize the key concepts into concise sections of heading 3 and use bite-sized bullet points to highlight important details within each section: "  + file_content
+        elif keyword == "continue": # uses file  and note contents as input
+            prompt = "One of the following two texts is a study material and the other is some unfinished notes on that material. Your task is to accurately predict the rest of the notes. Do not add any information that does not exist in the original study material." + file_content + note_content
+        elif keyword == "improve": # uses only note content as input
+            prompt = "Improve writing." + note_content
+        elif keyword == "custom": # case when the user input is the prompt
+            prompt = data.get("prompt")
     
-    if keyword == "summarize": # uses file content as input
-        prompt = "Using Markdown format, generate a \"<Subject> Overview\" heading 2 and structured summary of the provided text. Organize the key concepts into concise sections of heading 3 and use bite-sized bullet points to highlight important details within each section: "
-    elif keyword == "continue": # uses file  and note contents as input
-        prompt = "One of the following two texts is a study material and the other is some unfinished notes on that material. Your task is to accurately predict the rest of the notes. Do not add any information that does not exist in the original study material."
-    elif keyword == "improve": # uses only note content as input
-        prompt = "Improve writing."
-    else: # case when the keyword is the actual prompt
-        prompt = keyword
+    elif context == "Flashcards":
+        if keyword == "multigen":
+            id = data.get("fileId")
+            file = File.query.filter_by(id=id).first()
+            
+            if file is None:
+                return jsonify({'error': 'File not found'}), 404
+            
+            file_content = file.content
+            
+            if file_content == "Error reading file":
+                return jsonify({"error": "File content not available"}), 400
+        
+            prompt = "Generate mixed types of flashcards (e.g., definitions, applications, True False, Multi Choice, Fill in the Blank, etc.) from the following text using this format: \nF: <Front>\nB: <Back>\nUse only information provided by the text. text: " + file_content
+
+        elif keyword == "predict":
+            id = data.get("flashcardId")
+            flashcard = Flashcard.query.filter_by(id=id).first()
+            
+            if flashcard is None:
+                return jsonify({'error': 'Flashcard not found'}), 404
+            
+            side = flashcard.term + flashcard.definition
+            prompt = "Predict the other answer to this flashcard, give the answer only: " + side
+        
+        else:
+            custom_prompt = data.get("prompt")
+            prompt = "Create one flashcard to the following prompt. Organize your response using term and definition distinctions. prompt: " + custom_prompt
 
     # Make request to OpenAI API
     try:
@@ -829,7 +856,7 @@ def askAI(keyword):
             model="gpt-3.5-turbo",
             messages=[{
                 "role": "user", 
-                "content": prompt + file_content + note_content,
+                "content": prompt,
             }],
             # stream=True,
             max_tokens=200,
@@ -893,18 +920,17 @@ def update_flashcard(flashcard_id):
     data = request.json
 
     if flashcard:
-        term = data.get("term", None)
-        definition = data.get("definition", None)
-        order = data.get("order", None)
-        
         try:
             # update flashcard in database
-            if term:
-                flashcard.term = term.strip()
-            if definition:
-                flashcard.definition = definition.strip()
-            if order:
-                flashcard.order = order
+            if "term" in data:
+                flashcard.term = data["term"].strip()
+            
+            if "definition" in data:
+                flashcard.definition = data["definition"].strip()
+
+            if "order" in data:
+                flashcard.order = data["order"]
+            
             db.session.commit()
 
             return jsonify({"message": "Flashcard updated successfully"}), 200
