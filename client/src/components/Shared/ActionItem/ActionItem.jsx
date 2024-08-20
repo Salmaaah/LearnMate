@@ -4,6 +4,7 @@ import { useEditorContext } from '../../../contexts/EditorContext';
 import { useDataContext } from '../../../contexts/DataContext';
 import useNote from '../../../hooks/useNote';
 import useFlashcard from '../../../hooks/useFlashcard';
+import useTodo from '../../../hooks/useTodo';
 import useAI from '../../../hooks/useAI';
 import { ReactComponent as BackIcon } from '../../../assets/icons/arrow.svg';
 import { ReactComponent as NewIcon } from '../../../assets/icons/new.svg';
@@ -30,9 +31,8 @@ const ActionItem = ({
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef(null);
   const { data } = useDataContext();
-  const { id: fileId, notes, flashcards } = useFileContext(); // todos, quizzes
-
-  const actionItems = { notes, flashcards }; // todos, quizzes
+  const { id: fileId, notes, flashcards, todos } = useFileContext(); // quizzes
+  const actionItems = { notes, flashcards, todos }; // quizzes
   const subItems = actionItems[label.toLowerCase()];
   const [openSubItemId, setOpenSubItemId] = useState(null); // in case of subItems that are clickable such as notes and quizzes
 
@@ -51,6 +51,9 @@ const ActionItem = ({
   const listEndRef = useRef(null);
   const { handleCreateFlashcard, handleUpdateFlashcard } = useFlashcard();
   const { askAI } = useAI();
+
+  // Todo specific configuration
+  const { handleCreateTodo } = useTodo();
 
   // Update currentNote state when note is updated server-side
   useEffect(() => {
@@ -183,8 +186,23 @@ const ActionItem = ({
           handleScroll(listEndRef, 'nearest');
         }
       }
-    } else if (label === 'todos') {
-      // TODO: Handle todo item creation
+    } else if (label === 'Todos') {
+      // Handle new Todo creation
+      const order = children ? children.length + 1 : 1;
+      await handleCreateTodo(fileId, order);
+
+      // Delay to account for the previous scrolling animation
+      setTimeout(() => {
+        // Scroll to show the newly created todo in view
+        handleScroll(listEndRef, 'nearest');
+
+        // Dispatch todoFocus event
+        const focusEvent = new CustomEvent('todoFocus', {
+          detail: { todo: order },
+        });
+        document.dispatchEvent(focusEvent);
+        console.log('dispatched event', focusEvent);
+      }, 400);
     }
   };
 
@@ -353,14 +371,24 @@ const ActionItem = ({
           )}
           {!children && !isOpen && (
             <div id="CTA">
-              <Button
-                icon_l={<StarsIcon />}
-                label="Generate with AI"
-                onClick={() => handleButtonClick('generate')}
-              />
-              <button onClick={() => handleButtonClick('create')}>
-                Create your own
-              </button>
+              {label !== 'Todos' ? (
+                <>
+                  <Button
+                    icon_l={<StarsIcon />}
+                    label="Generate with AI"
+                    onClick={() => handleButtonClick('generate')}
+                  />
+                  <button onClick={() => handleButtonClick('create')}>
+                    Create your own
+                  </button>
+                </>
+              ) : (
+                <Button
+                  variant="secondary"
+                  label="Click to start"
+                  onClick={() => handleButtonClick('create')}
+                />
+              )}
             </div>
           )}
         </div>
