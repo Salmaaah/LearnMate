@@ -1,0 +1,68 @@
+@use '../../styles/util/' as u;
+
+.todo {
+  padding: u.rem(8) u.rem(25) u.rem(10) u.rem(30);
+  display: flex;
+  justify-content: space-between;
+  gap: u.rem(10);
+  align-items: center;
+  border-bottom: u.rem(1) solid var(--D50);
+
+  &__content {
+    width: 100%;
+    display: flex;
+    gap: u.rem(10);
+  }
+
+  &__checkbox {
+    transition: all 100ms ease-in-out;
+    margin-top: u.rem(
+      5.25
+    ); // to align the centers of checkbox and the top row of text-area
+    width: u.rem(17);
+    height: u.rem(17);
+    border-radius: 50%;
+    border: u.rem(1) solid var(--D100);
+
+    &:hover.full {
+      border: u.rem(2) solid var(--P100);
+      box-shadow: 0 0 u.rem(2) u.rem(1.5) hsla(265, 87%, 69%, 0.571);
+      cursor: pointer;
+    }
+
+    &.checked {
+      box-shadow: 0 0 0 u.rem(1.5) var(--P200);
+      border: u.rem(1.5) solid white;
+      background-color: var(--P200);
+    }
+
+    &.checked:hover {
+      background-color: var(--P75);
+    }
+  }
+
+  &__text {
+    width: calc(100% - u.rem(27));
+    font-family: 'Nunito';
+    font-size: u.rem(16);
+    color: var(--D300);
+    margin-bottom: u.rem(2);
+    overflow: auto;
+    overflow-y: scroll;
+
+    // TODO: add this to the global styles
+    background: none;
+    outline: none;
+    border: none;
+    resize: none;
+
+    &.done {
+      text-decoration: line-through;
+      color: var(--D100);
+    }
+  }
+  &__controls {
+    display: flex;
+    align-items: center;
+  }
+}

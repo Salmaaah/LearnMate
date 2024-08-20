@@ -119,3 +119,15 @@ class Flashcard(db.Model):
 
     file_id = db.Column(db.Integer, db.ForeignKey('file.id'))
     file = db.relationship('File', backref=db.backref('flashcards', lazy=True))
+
+class Todo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(255), nullable=False)
+    done = db.Column(db.Boolean, default=False, nullable=False)
+    order = db.Column(db.Integer, nullable=False)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('todos', lazy=True))
+
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id'))
+    file = db.relationship('File', backref=db.backref('todos', lazy=True))

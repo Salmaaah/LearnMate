@@ -18,6 +18,7 @@ export const DataProvider = ({ children }) => {
     projects: [],
     notes: [],
     flashcards: [],
+    todos: [],
     tags: [],
   });
   const [dataIsLoading, setDataIsLoading] = useState(true);

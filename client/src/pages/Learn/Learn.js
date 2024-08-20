@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import useFlashcard from '../../hooks/useFlashcard';
+import useTodo from '../../hooks/useTodo';
 import { useSidebar } from '../../contexts/SidebarContext';
 import { useDataContext } from '../../contexts/DataContext';
 import { FileProvider } from '../../contexts/FileContext';
@@ -10,6 +11,7 @@ import DocViewer from '../../components/Docviewer/Docviewer';
 import ActionItem from '../../components/Shared/ActionItem/ActionItem';
 import Note from '../../components/Shared/Note/Note';
 import Flashcard from '../../components/Flashcard/Flashcard';
+import Todo from '../../components/Todo/Todo';
 import { ReactComponent as NotesIllustration } from '../../assets/illustrations/notes.svg';
 import { ReactComponent as TodosIllustration } from '../../assets/illustrations/todos.svg';
 // import { ReactComponent as ChangeCaseIcon } from '../../assets/icons/changeCase.svg';
@@ -21,7 +23,16 @@ const Learn = () => {
   const { data } = useDataContext();
   const file = data.files.find((file) => file.id === parseInt(id));
   const flashcards = file.flashcards?.sort((a, b) => a.order - b.order);
+  const todos = file.todos?.sort((a, b) => {
+    // First, compare by `done` property
+    if (a.done !== b.done) {
+      return a.done - b.done;
+    }
+    // If `done` properties are the same, compare by `order`
+    return a.order - b.order;
+  });
   const { handleUpdateFlashcard } = useFlashcard();
+  const { handleUpdateTodo } = useTodo();
   const [isEnlarged, setIsEnlarged] = useState({
     notes: false,
     todos: false,
@@ -89,19 +100,19 @@ const Learn = () => {
     return result;
   };
 
-  const onDragEnd = (result) => {
+  const onDragEnd = (items, handleUpdateItem) => (result) => {
     if (!result.destination) {
       return;
     }
 
-    const reorderedFlashcards = reorder(
-      flashcards,
+    const reorderedItems = reorder(
+      items,
       result.source.index,
       result.destination.index
     );
 
-    reorderedFlashcards.map((flashcard, index) => {
-      handleUpdateFlashcard(flashcard.id, { order: index + 1 });
+    reorderedItems.map((item, index) => {
+      handleUpdateItem(item.id, { order: index + 1 });
     });
   };
 
@@ -131,7 +142,9 @@ const Learn = () => {
               {file.notes.length > 0 &&
                 file.notes.map((note) => <Note key={note.id} note={note} />)}
             </ActionItem>
-            <DragDropContext onDragEnd={onDragEnd}>
+            <DragDropContext
+              onDragEnd={onDragEnd(flashcards, handleUpdateFlashcard)}
+            >
               <Droppable droppableId="droppable">
                 {(provided) => (
                   <ActionItem
@@ -162,12 +175,34 @@ const Learn = () => {
                 )}
               </Droppable>
             </DragDropContext>
-
-            <ActionItem
-              label="Todos"
-              illustration={<TodosIllustration />}
-              isVisible={isEnlarged.todos || !isAnyEnlarged()}
-            />
+            <DragDropContext onDragEnd={onDragEnd(todos, handleUpdateTodo)}>
+              <Droppable droppableId="droppable">
+                {(provided) => (
+                  <ActionItem
+                    provided={provided}
+                    label="Todos"
+                    illustration={<TodosIllustration />}
+                    toggleSize={() => toggleSize('todos')}
+                    isVisible={isEnlarged.todos || !isAnyEnlarged()}
+                    isEnlarged={isEnlarged}
+                    setIsEnlarged={setIsEnlarged}
+                  >
+                    {todos.length > 0 &&
+                      todos.map((todo, index) => (
+                        <Draggable
+                          key={todo.id.toString()}
+                          draggableId={todo.id.toString()}
+                          index={index}
+                        >
+                          {(provided) => (
+                            <Todo provided={provided} todo={todo} />
+                          )}
+                        </Draggable>
+                      ))}
+                  </ActionItem>
+                )}
+              </Droppable>
+            </DragDropContext>
             <ActionItem
               label="Quizzes"
               isVisible={isEnlarged.quizzes || !isAnyEnlarged()}

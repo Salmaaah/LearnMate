@@ -15,6 +15,7 @@ export const FileProvider = ({ children, file }) => {
     project,
     notes,
     flashcards,
+    todos,
     tags,
   } = file;
   return (
@@ -28,6 +29,7 @@ export const FileProvider = ({ children, file }) => {
         project,
         notes,
         flashcards,
+        todos,
         tags,
       }}
     >

@@ -10,7 +10,7 @@ import magic
 from pypdf import PdfReader
 from openai import OpenAI, APIError, APIConnectionError, RateLimitError
 from validator_collection import is_email
-from models import db, User, File, Subject, Tag, Project, Note, Flashcard
+from models import db, User, File, Subject, Tag, Project, Note, Flashcard, Todo
 from flask_migrate import Migrate
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_
@@ -375,6 +375,15 @@ def get_user_data():
                 } 
                 for flashcard in file.flashcards
             ],
+            "todos": [
+                {
+                    "id": todo.id,
+                    "content": todo.content,
+                    "done": todo.done,
+                    "order": todo.order,
+                } 
+                for todo in file.todos
+            ],            
             "tags": [
                 {
                     "id": tag.id,
@@ -429,6 +438,17 @@ def get_user_data():
         for flashcard in flashcards
     ]
 
+    todos = user.todos
+    todos_list = [
+        {
+            "id": todo.id,
+            "content": todo.content,
+            "done": todo.done,
+            "order": todo.order,
+        }
+        for todo in todos
+    ]
+
     tags = user.tags
     tags_list = [
         {
@@ -439,7 +459,7 @@ def get_user_data():
         for tag in tags
     ]
     
-    return jsonify({"files": file_list, "subjects": subjects_list, "projects": projects_list, "notes": notes_list, "flashcards": flashcards_list, "tags": tags_list}), 200
+    return jsonify({"files": file_list, "subjects": subjects_list, "projects": projects_list, "notes": notes_list, "flashcards": flashcards_list, "todos": todos_list, "tags": tags_list}), 200
 
 
 @login_required
@@ -1043,6 +1063,84 @@ def delete_flashcard(flashcard_id):
 
     else:
         return jsonify({"error": "Flashcard not found"}), 404
+
+
+@login_required
+@app.route('/createTodo/<file_id>/<order>', methods=["POST"])
+def create_todo(file_id, order):
+    try:
+        new_todo = Todo(
+            order=order,
+            content='',
+            user_id=session["user_id"],
+            file_id=file_id,
+        )
+        db.session.add(new_todo)
+        db.session.commit()
+
+        todo_data = {
+            "id": new_todo.id,
+            "order": new_todo.order,
+        }
+
+        return jsonify({"message": "Todo created successfully", "todo": todo_data}), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@login_required
+@app.route("/updateTodo/<todo_id>", methods=["POST"])
+def update_todo(todo_id):
+    todo = Todo.query.filter_by(id=todo_id).first()
+    data = request.json
+
+    if todo:
+        try:
+            # update todo in database
+            if "content" in data:
+                todo.content = data["content"].strip()
+            if "done" in data:
+                todo.done = data["done"]
+            if "order" in data:
+                todo.order = data["order"]
+            
+            db.session.commit()
+
+            return jsonify({"message": "Todo updated successfully"}), 200
+        
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
+
+    else:
+        return jsonify({"error": "Todo not found"}), 404
+
+
+@login_required
+@app.route("/deleteTodo/<todo_id>", methods=["POST"])
+def delete_todo(todo_id):
+    todo = Todo.query.filter_by(id=todo_id).first()
+
+    if todo:
+        # Save file_id to extract remaining_todos later
+        file_id = todo.file_id
+
+        # delete todo from database
+        db.session.delete(todo)
+        db.session.commit()
+
+        # Update order of remaining todos
+        remaining_todos = Todo.query.filter_by(file_id=file_id).order_by(Todo.order).all()
+        
+        for index, item in enumerate(remaining_todos):
+            item.order = index + 1
+            db.session.add(item)
+        db.session.commit()
+
+        return jsonify({"message": "Todo deleted successfully"}), 200
+
+    else:
+        return jsonify({"error": "Todo not found"}), 404
 
 
 if __name__ == "__main__":
