@@ -1,20 +1,28 @@
 @use '../../../styles/util/' as u;
 
-.actionItem {
+.action-item {
+  container: action-item / inline-size;
   margin: u.rem(5) u.rem(8) u.rem(5) u.rem(8);
-  height: 97%;
   background-color: var(--background-color);
   border-radius: u.rem(20);
   display: flex;
   flex-direction: column;
   justify-content: center;
   transition: all 200ms ease-in-out;
+  flex-grow: 1;
 
-  &.background {
-    background-color: hsl(263, 15%, 98%);
-  }
   &.hidden {
     display: none;
+  }
+
+  &.closed {
+    // min-height: u.rem(150);
+    flex-grow: 1;
+
+    > div:first-of-type {
+      height: 100%;
+      padding-block: u.rem(25);
+    }
   }
 
   &.full {
@@ -29,57 +37,56 @@
       #title {
         color: var(--P300) !important;
       }
-      //   svg > path {
-      //     stroke: var(--P300);
-      //   }
     }
 
     &.open {
-      // height: 100%;
       justify-content: flex-start;
+      max-height: calc(100% - 10px);
 
       > div:first-of-type {
         // &__header
         border-bottom: u.rem(1) solid var(--M75);
+        padding-block: u.rem(15);
       }
     }
   }
 
   &__header {
-    padding: u.rem(15) u.rem(35);
+    padding-inline: u.rem(35);
     display: flex;
     justify-content: space-between;
     gap: u.rem(10);
     align-items: center;
 
+    &:focus-visible {
+      border-radius: u.rem(20);
+    }
+
     &.pointer {
       cursor: pointer;
     }
 
-    #leftSection {
+    #left-section {
+      container: left-section / inline-size;
       width: calc(100% - u.rem(45));
       display: flex;
       flex-direction: column;
       gap: u.rem(5);
 
       #title,
-      #title2 > input {
+      #title-2 > input {
         font-weight: 800;
         font-size: u.rem(22);
         color: var(--D300);
       }
 
-      #title2 {
+      #title-2 {
         display: flex;
         gap: u.rem(10);
 
         > input {
-          // TODO: add this to the global styles
           width: 100%;
           overflow: hidden;
-          background: none;
-          outline: none;
-          border: none;
         }
       }
 
@@ -123,7 +130,6 @@
 
           &:hover {
             background-color: var(--M100);
-            // box-shadow: ;
 
             svg > path {
               stroke: var(--P300);
@@ -143,7 +149,7 @@
         display: flex;
         align-items: center;
         gap: u.rem(10);
-        margin-block: u.rem(15);
+        margin-block: u.rem(10);
 
         button:first-of-type {
           padding: u.rem(7) u.rem(20);
@@ -157,6 +163,11 @@
           font-size: u.rem(15);
           font-weight: 700;
           color: var(--P300);
+          transition: color 200ms ease-in-out;
+
+          &:hover {
+            color: var(--P200);
+          }
         }
       }
     }
@@ -165,44 +176,18 @@
     > svg {
       height: u.rem(120);
       width: auto;
-      //   width: auto;
-      //   margin-left: u.rem(10);
-
-      //   > path {
-      //     stroke-width: u.rem(10);
-      //   }
+      flex-shrink: 0;
     }
 
-    // OLD
-    // // Right side buttons of the header when open
-    // #rightSection {
-    //   display: flex;
-    //   gap: u.rem(10);
-
-    //   > button {
-    //     border-radius: 50%;
-    //     padding: u.rem(10);
-    //     border: none;
-    //     box-shadow: 0 u.rem(2) u.rem(3) 0 hsl(254, 23%, 79%),
-    //       0 0 u.rem(0.7) 0 var(--M100);
-
-    //     > svg {
-    //       height: u.rem(15);
-    //       width: auto;
-    //     }
-    //   }
-    // }
-
-    // NEW
     // Right side div of buttons of the header when open
-    > #rightSection {
+    > #right-section {
       display: flex;
       gap: u.rem(10);
     }
     // Right side buttons of the header when open
     // and left side back button of the header when open
-    #rightSection > button,
-    #title2 > button {
+    #right-section > button,
+    #title-2 > button {
       border-radius: 50%;
       padding: u.rem(10);
       border: none;
@@ -227,20 +212,34 @@
     &.openSubItem {
       padding-inline: u.rem(80) u.rem(35);
       flex: 1;
-      overflow: auto;
       overflow-y: scroll;
       overflow-x: hidden;
     }
 
-    #subItems {
+    #sub-items {
       flex: 1;
-      overflow: auto;
       overflow-y: scroll;
       overflow-x: hidden;
     }
 
-    .menuItem__title > svg > path {
-      stroke-width: 13px;
+    .menu-item__title > svg > path {
+      stroke-width: u.rem(13);
     }
+  }
+}
+
+@container action-item (max-width: 376px) {
+  .action-item__header > svg {
+    display: none;
+  }
+  .action-item__header #left-section {
+    width: 100%;
+  }
+}
+
+@container left-section (max-width: 320px) {
+  #CTA {
+    flex-direction: column;
+    align-items: start !important;
   }
 }

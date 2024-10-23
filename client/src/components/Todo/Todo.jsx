@@ -1,68 +1,71 @@
+import PropTypes from 'prop-types';
 import IconButton from '../IconButton/IconButton';
+import Popup from '../Popup/Popup';
 import { ReactComponent as DeleteIcon } from '../../assets/icons/delete_3.svg';
 import { ReactComponent as DragIcon } from '../../assets/icons/drag_2.svg';
 import { useState, useRef, useEffect } from 'react';
 import useTodo from '../../hooks/useTodo';
+import useHandleRows from '../../hooks/useHandleRows';
 
+/**
+ * Displays a single todo item with functionality to edit content,
+ * mark as done, rearrange order, and delete. The component also handles dynamic
+ * row adjustment based on content size.
+ *
+ * @component
+ * @param {object} props - Component properties.
+ * @param {{id: number, content: string, done: boolean, order: number}} props.todo - The todo data object.
+ * @param {object} props.provided - React Beautiful DnD's provided object for drag-and-drop functionality.
+ * @returns {JSX.Element} - Rendered todo component.
+ */
 const Todo = ({ provided, todo }) => {
   const [content, setContent] = useState(todo.content);
+  const [ariaContent, setAriaContent] = useState(
+    todo.content.substring(0, 20) + (todo.content.length > 20 ? '...' : '')
+  );
   const [done, setDone] = useState(todo.done);
+  const [showPopup, setShowPopup] = useState(false);
   const ref = useRef(null);
   const [rows, setRows] = useState(1);
   const { handleUpdateTodo, handleDeleteTodo } = useTodo();
+  const handleRows = useHandleRows(ref, content, 2, setRows);
 
-  // TODO: This needs to be refractored into a hook to be used here and by flashcard (difference in rows 2 vs 4)
-  const handleRows = (ref, text, setRows) => {
-    const textarea = ref.current;
-
-    // Create a hidden div to measure wrapped lines
-    const hiddenDiv = document.createElement('div');
-    hiddenDiv.style.visibility = 'hidden';
-    hiddenDiv.style.position = 'absolute';
-    hiddenDiv.style.whiteSpace = 'pre-wrap'; // Preserve whitespace like textarea
-    hiddenDiv.style.wordBreak = 'break-word'; // Mimic textarea word wrapping behavior
-    hiddenDiv.style.width = `${textarea.clientWidth}px`; // Match the width of the textarea
-    hiddenDiv.style.fontSize = window.getComputedStyle(textarea).fontSize;
-    hiddenDiv.style.fontFamily = window.getComputedStyle(textarea).fontFamily;
-
-    // Set the text content to a single line to measure line height
-    hiddenDiv.textContent = 'test'; // Single line text
-    document.body.appendChild(hiddenDiv);
-    const lineHeight = hiddenDiv.clientHeight;
-
-    // Set the text content to match the textarea for height calculation
-    hiddenDiv.textContent = text + '\n';
-    const hiddenDivHeight = hiddenDiv.clientHeight;
-
-    document.body.removeChild(hiddenDiv);
-
-    const newRows = Math.ceil(hiddenDivHeight / lineHeight);
-    setRows(newRows > 2 ? 2 : newRows); // max rows are 4
+  // Handles checkbox toggle and update todo status
+  const handleCheckboxClick = () => {
+    if (content) {
+      handleUpdateTodo(todo.id, { done: !done });
+      setDone((prev) => !prev);
+    }
   };
 
   useEffect(() => {
-    handleRows(ref, content, setRows);
-  }, [content]);
-
-  // Effect to reset done state when todo is empty
-  useEffect(() => {
-    !content && setDone(false);
-  }, [content]);
+    handleRows();
+    if (!content) setDone(false); // reset done state when todo is empty
+  }, [content, handleRows]);
 
   // Effect to set focus on a newly created todo with a delay to account for the scrolling animation
   useEffect(() => {
-    const handlefocus = (event) => {
+    const handleFocus = (event) => {
       setTimeout(() => {
-        todo.order === event.detail.todo && ref.current.focus();
+        if (todo.order === event.detail.todo) ref.current?.focus();
       }, 200);
     };
 
-    document.addEventListener('todoFocus', handlefocus);
+    document.addEventListener('todoFocus', handleFocus);
 
     return () => {
-      document.removeEventListener('todoFocus', handlefocus);
+      document.removeEventListener('todoFocus', handleFocus);
     };
-  }, []);
+  }, [todo.order]);
+
+  // Effect to ensure that the UI always reflects the changes implemented in the backend
+  useEffect(() => {
+    setContent(todo.content);
+    setAriaContent(
+      todo.content.substring(0, 40) + (todo.content.length > 40 ? '...' : '')
+    );
+    setDone(todo.done);
+  }, [todo]);
 
   return (
     <li className="todo" ref={provided?.innerRef} {...provided?.draggableProps}>
@@ -71,15 +74,18 @@ const Todo = ({ provided, todo }) => {
           className={`todo__checkbox${content ? ' full' : ''}${
             done ? ' checked' : ''
           }`}
-          onClick={() => {
-            if (content) {
-              handleUpdateTodo(todo.id, { done: !done });
-              setDone(!done);
-            }
+          onClick={handleCheckboxClick}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleCheckboxClick();
           }}
+          role="checkbox"
+          aria-checked={done}
+          aria-labelledby={`todo-${todo.id}`}
         />
         <textarea
           className={`todo__text${done ? ' done' : ''}`}
+          id={`todo-${todo.id}`}
           ref={ref}
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -89,6 +95,7 @@ const Todo = ({ provided, todo }) => {
               ? handleDeleteTodo(todo.id)
               : handleUpdateTodo(todo.id, { content: content });
           }}
+          aria-label="Todo item content"
         />
       </div>
       <div className="todo__controls">
@@ -98,16 +105,52 @@ const Todo = ({ provided, todo }) => {
           size="13px"
           iColor="var(--M75)"
           bHcolor=""
+          ariaProps={{
+            'aria-label': `Drag todo #${todo.order}`,
+          }}
         />
         <IconButton
           icon={<DeleteIcon />}
           size="13px"
           iColor="var(--P200)"
-          onClick={() => handleDeleteTodo(todo.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowPopup(true);
+          }}
+          ariaProps={{
+            'aria-label': `Delete todo #${todo.order}`,
+            'aria-haspopup': 'dialog',
+            'aria-controls': `delete-todo-popup-${todo.id}`,
+            'aria-expanded': showPopup,
+          }}
+        />
+        <Popup
+          id={`delete-todo-popup-${todo.id}`}
+          title="Delete task?"
+          content={
+            <>
+              The <strong>{ariaContent}</strong> task will be permanently
+              deleted.
+            </>
+          }
+          isOpen={showPopup}
+          setIsOpen={setShowPopup}
+          action="Delete"
+          handleAction={() => handleDeleteTodo(todo.id)}
         />
       </div>
     </li>
   );
+};
+
+Todo.propTypes = {
+  provided: PropTypes.object,
+  todo: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    content: PropTypes.string.isRequired,
+    done: PropTypes.bool.isRequired,
+    order: PropTypes.number.isRequired,
+  }).isRequired,
 };
 
 export default Todo;

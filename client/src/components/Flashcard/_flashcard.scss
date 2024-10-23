@@ -57,19 +57,13 @@
     flex-direction: column;
 
     > textarea {
+      width: 100%;
+      margin-bottom: u.rem(2);
       font-family: 'Nunito';
       font-size: u.rem(14);
       color: var(--D300);
-      margin-bottom: u.rem(2);
       overflow: auto;
       overflow-y: scroll;
-
-      // TODO: add this to the global styles
-      width: 100%;
-      background: none;
-      outline: none;
-      border: none;
-      resize: none;
     }
 
     // underline
@@ -115,7 +109,8 @@
     padding: u.rem(10) u.rem(18) u.rem(5) u.rem(18);
     transition: all 200ms ease-in-out;
 
-    &:hover {
+    &:hover,
+    &.hover {
       border-color: var(--P100);
       background-color: hsla(263, 85%, 95%, 0.25);
 
@@ -125,6 +120,21 @@
       path,
       circle {
         stroke: var(--P100);
+      }
+    }
+
+    &.error {
+      border-color: var(--S_RED);
+
+      > div {
+        > svg > path,
+        > svg > circle {
+          stroke: var(--S_RED);
+        }
+
+        > div {
+          color: var(--S_RED);
+        }
       }
     }
 

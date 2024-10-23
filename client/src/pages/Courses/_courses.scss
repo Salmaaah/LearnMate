@@ -1,29 +1,40 @@
 @use '../../styles/util/' as u;
 
 .toolbar {
-  // border-block: u.rem(1) solid var(--M75);
+  margin-top: u.rem(5);
   border: u.rem(1) solid var(--M75);
   border-radius: u.rem(20);
   background-color: var(--background-color);
   padding: u.rem(5);
+  padding-left: u.rem(10);
   display: flex;
   justify-content: space-between;
   align-items: center;
 
   &__controls {
     display: flex;
+    align-items: center;
     gap: u.rem(15);
+
+    @include u.breakpoint-down(medium) {
+      gap: u.rem(5);
+    }
   }
 
   &__displays {
     display: flex;
     align-items: center;
     gap: u.rem(15);
+
+    @include u.breakpoint-down(medium) {
+      gap: u.rem(5);
+    }
   }
 }
 
 .dropzone {
   position: relative;
+  margin-top: u.rem(10);
   background-color: var(--background-color);
   height: 80vh;
   border-radius: u.rem(20);
@@ -41,7 +52,9 @@
     width: u.rem(50);
     height: u.rem(50);
     margin-bottom: u.rem(20);
+
     > path {
+      transition: stroke 200ms ease-in-out;
       stroke: var(--P100);
     }
   }
@@ -50,6 +63,7 @@
     text-align: center;
     font-size: u.rem(16);
     font-weight: 600;
+    transition: color 200ms ease-in-out;
   }
 
   &::before {
@@ -65,7 +79,8 @@
     transition: background-color 200ms ease-in-out;
   }
 
-  &:hover {
+  &:hover,
+  &:focus-visible {
     &::before {
       background-color: hsla(263, 85%, 95%, 0.25);
     }
@@ -88,18 +103,19 @@
 }
 
 .filesContainer {
-  margin-top: u.rem(30);
-  margin-left: u.rem(20);
+  margin-block: u.rem(20);
 
   &__files {
-    //   background-color: var(--background-color);
-    //   height: 80vh;
-    //   border-radius: u.rem(20);
+    margin-bottom: u.rem(384);
     width: 100%;
     padding: u.rem(10);
     display: inline-grid;
-    grid-template-columns: repeat(auto-fill, u.rem(120));
+    grid-template-columns: repeat(auto-fill, minmax(u.rem(120), 1fr));
     grid-template-rows: repeat(auto-fill, u.rem(128));
-    gap: u.rem(20);
+    gap: u.rem(20) u.rem(5);
+
+    @include u.breakpoint-down(medium) {
+      gap: u.rem(10) 0;
+    }
   }
 }

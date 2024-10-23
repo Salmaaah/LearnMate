@@ -1,17 +1,35 @@
 @use '../../../styles/util/' as u;
 
-.propertySelection {
-  max-width: 100%;
+.property-selection-base {
+  width: 100%;
   cursor: pointer;
   border-radius: u.rem(10);
   padding: u.rem(5) u.rem(10);
   display: flex;
-  justify-content: space-between;
-  gap: u.rem(10);
   align-items: center;
+  gap: u.rem(10);
   transition: background-color 0.2s ease-in-out;
 
-  &__leftSection {
+  &:hover,
+  &:focus-visible {
+    background-color: var(--M50);
+    outline-offset: u.rem(-2);
+  }
+
+  .property__name {
+    cursor: pointer;
+  }
+}
+
+.property-selection,
+.property-creation {
+  @extend .property-selection-base;
+}
+
+.property-selection {
+  justify-content: space-between;
+
+  &__dragAndDisplay {
     max-width: calc(100% - u.rem(30));
     // gap (10) + menu icon container div width (20)
     display: flex;
@@ -27,51 +45,37 @@
     // drag icon
     > svg {
       flex-shrink: 0;
-      // if height ever changes the modification of the property class inside &__leftSection will need to be changed as well
+      // if height ever changes the modification of the property class inside &__dragAndDisplay will need to be changed as well
       height: u.rem(12);
       width: auto;
+      outline-offset: u.rem(3);
     }
   }
 
-  &__rightSection {
+  &__actionButton {
     flex-shrink: 0;
-    position: relative;
+    // if h and w ever change the max-width of &__dragAndDisplay will need to be changed as well
+    height: u.rem(20);
+    width: u.rem(20);
+    border-radius: u.rem(6);
+    display: flex;
+    justify-content: center;
+    transition: background-color 0.1s ease-in-out;
 
-    // Menu icon container div
-    > div {
-      // if h and w ever change the max-width of &__leftSection will need to be changed as well
-      height: u.rem(20);
-      width: u.rem(20);
-      border-radius: u.rem(6);
-      display: flex;
-      justify-content: center;
-      transition: background-color 0.1s ease-in-out;
-
-      > svg {
-        width: u.rem(12);
-        height: auto;
-      }
-
-      &:hover {
-        background-color: var(--M75);
-      }
+    svg {
+      width: u.rem(12);
+      height: auto;
     }
-  }
 
-  &:hover {
-    background-color: var(--M50);
+    &:hover {
+      background-color: var(--M75);
+    }
   }
 }
 
-.propertyCreation {
-  width: 100%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: u.rem(10);
-
+.property-creation {
   > div {
-    // if these 2 ever change the modification of the property class inside propertyCreation will need to be changed as well
+    // if these 2 ever change the modification of the property class inside property-creation will need to be changed as well
     font-size: u.rem(13);
     font-weight: 700;
     color: var(--D200);

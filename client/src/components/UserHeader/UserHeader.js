@@ -1,23 +1,41 @@
+import PropTypes from 'prop-types';
 import { ReactComponent as NotificationIcon } from '../../assets/icons/notification.svg';
 import Search from '../Shared/Search/Search';
 import NavItem from '../Shared/NavItem/NavItem';
 
-const UserHeader = ({ pageName, style }) => {
+/**
+ * Displays the header section for a user page.
+ *
+ * @component
+ * @param {object} props - Component properties.
+ * @param {string} props.pageName: The name of the current page.
+ * @param {string} props.style: Custom styles applied to the header component.
+ * @returns {JSX.Element} - Rendered UserHeader component.
+ *
+ * @example
+ * // Render a user header with lightgray background for the dashboard page
+ * <UserHeader pageName="Dashboard" style={{ backgroundColor: 'lightgray' }} />
+ */
+const UserHeader = ({ pageName, style = {} }) => {
   return (
-    <header className="userHeader" style={style}>
-      <h3>{pageName}</h3>
-      <div className="userHeader__centerSpace">
-        <div>
-          <Search />
-        </div>
+    <header className="user-header" style={style} role="banner">
+      <div className="user-header__page-name">{pageName}</div>
+      <div className="user-header__center-space">
+        <Search />
       </div>
-      <ul className="userHeader__nav">
-        <NavItem icon={<NotificationIcon />} position="br-tr">
-          test notification
-        </NavItem>
-      </ul>
+      <NavItem
+        as="div"
+        icon={<NotificationIcon />}
+        position="br-tr"
+        ariaLabel="Notifications"
+      />
     </header>
   );
+};
+
+UserHeader.propTypes = {
+  pageName: PropTypes.string,
+  style: PropTypes.object,
 };
 
 export default UserHeader;

@@ -1,11 +1,9 @@
 @use '../../../styles/util/' as u;
 
-.propertyMenu {
+.property-menu {
   cursor: auto;
   position: absolute;
-  z-index: 2;
-  top: 100%;
-  left: 0;
+  z-index: 3;
   width: u.rem(200);
   border: u.rem(0.5) solid var(--M75);
   border-radius: u.rem(10);
@@ -22,9 +20,17 @@
     border: u.rem(1.5) solid var(--D50);
   }
 
-  .menuItem {
+  .menu-item {
     border-radius: u.rem(10);
     border: u.rem(1.5) solid var(--D50);
+
+    &__title {
+      justify-content: center;
+
+      span {
+        width: fit-content;
+      }
+    }
   }
 
   .chrome-picker {

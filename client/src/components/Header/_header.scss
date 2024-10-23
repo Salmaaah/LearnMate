@@ -6,27 +6,62 @@
   align-items: center;
 
   .navbar {
+    padding-block: u.rem(24);
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    padding: u.rem(24);
     gap: u.rem(25);
-    width: min(70%, 1000px);
 
-    @include u.breakpoint(medium) {
-      justify-content: space-between;
+    // Small screens
+    @include u.breakpoint-down(medium) {
+      width: 100%;
+      padding-inline: u.rem(20);
     }
+
+    // Medium screens
+    @include u.breakpoint-down(large) {
+      @include u.breakpoint-up(medium) {
+        &.with-items {
+          justify-content: center;
+        }
+        &.no-items {
+          width: clamp(725px, 70%, 1000px);
+          padding-inline: u.rem(20);
+        }
+      }
+    }
+
+    // Large and x-large screens
+    @include u.breakpoint-up(large) {
+      width: clamp(725px, 70%, 1000px);
+    }
+
+    &__logo {
+      display: flex;
+      align-items: center;
+      gap: u.rem(8);
+
+      > svg {
+        height: u.rem(35);
+        width: auto;
+        path {
+          stroke: var(--P300);
+        }
+      }
+
+      > div {
+        font-family: 'Vintage';
+        font-size: u.rem(35);
+        font-weight: normal;
+        color: var(--P300);
+      }
+    }
+
+    // Navigation items
     > ul {
       display: flex;
       margin-left: auto;
       gap: u.rem(10);
-    }
-    &__logo {
-      // This is temporary because the logo is gonna be an image in the future
-      font-family: 'Vintage';
-      font-size: u.rem(35);
-      font-weight: normal;
-      color: var(--P300);
     }
   }
 }

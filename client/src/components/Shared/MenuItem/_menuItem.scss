@@ -1,197 +1,45 @@
 @use '../../../styles/util' as u;
-@use '../../../styles/globals' as g;
 
-.hidden {
-  display: none;
-  animation: fade-out 300ms;
-}
-
-.visible {
-  display: flex; // this is a temporary fix for the span issue (span's display doesn't gets overwritten by hidden class so it stays visible, that's why I commented out the span's display and palced it here instead)
-  animation: fade-in 300ms;
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fade-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-// &::before {
-//   content: '';
-//   position: absolute;
-//   top: 15%;
-//   left: u.rem(1);
-//   height: 70%;
-//   width: u.rem(3);
-//   background-color: var(--P300);
-// }
-
-// TODO: Change MenuItem padding logic to make sure the sides of link are clickable
-
-.menuItem {
+.menu-item {
   position: relative;
-  height: fit-content;
   border-radius: u.rem(10);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  cursor: pointer;
-  transition: color, background-color 100ms ease-in-out;
 
-  &.large {
-    padding: u.rem(10) u.rem(15);
-  }
-
-  &.medium {
-    padding: u.rem(7) u.rem(12);
-
-    // &__title
-    > a {
-      gap: u.rem(15);
-
-      // Icon
-      svg {
-        width: u.rem(16);
-      }
-
-      span {
-        // Label
-        div {
-          font-size: u.rem(15);
-        }
-        // More icon
-        svg {
-          height: u.rem(9);
-        }
-      }
-    }
-  }
-
-  &.small {
-    padding: u.rem(5) u.rem(10);
-
-    // &__title
-    > a {
-      gap: u.rem(10);
-
-      // Icon
-      svg {
-        width: u.rem(14);
-      }
-
-      span {
-        // Label
-        div {
-          font-size: u.rem(14);
-        }
-        // More icon
-        svg {
-          height: u.rem(8.5);
-        }
-      }
-    }
-  }
-
-  &:hover,
+  // Submenu type 1 effect on menu-item
   &.sub1 {
     background-color: var(--M50);
 
-    // Using specific selectors so that submenu items do not get highlighted
-
-    > a > svg > path,
-    > a > span > svg > path {
-      stroke: var(--P300);
-    }
-
-    > a > span > div {
-      color: var(--P300);
+    // MoreIcon animation
+    span > svg {
+      transform: rotate(90deg);
+      transition: transform 500ms ease-out;
     }
   }
 
-  // Submenu type 1 styles
-  &.sub1 {
-    display: block;
-    > a {
-      padding-bottom: u.rem(10);
-
-      span > svg {
-        transform: rotate(90deg);
-        transition: transform 500ms ease-out;
-      }
-    }
-
-    ul {
-      display: flex;
-      flex-direction: column;
-      padding-left: u.rem(7);
-
-      div {
-        font-size: u.rem(14.5);
-      }
-
-      a > svg {
-        width: u.rem(16.5);
-        height: auto;
-      }
-    }
+  // Submenu type 2 effect on menu-item
+  &.sub2 {
+    background-color: var(--M50);
   }
 
-  // Submenu type 2 styles, this type seperates the styling of the submenu from the menu title, hence the need for the > ul selector
-  &.sub2 > ul {
-    display: block;
-    position: absolute;
-    width: u.rem(173);
-    background-color: var(--D500);
-    border: u.rem(1.5) solid var(--M50);
-    border-radius: u.rem(10);
-    padding: u.rem(16);
-    overflow: hidden;
-
-    svg {
-      width: u.rem(16.5);
-      height: auto;
-
-      > path {
-        stroke: var(--D50);
-      }
-    }
-    span > div {
-      color: var(--D50);
-      font-size: u.rem(14.5);
-    }
-  }
-
-  // Submenu type 2 position 1
-  &.tr-tl > ul {
-    top: 0;
-    left: 0;
-    margin-left: u.rem(65);
-  }
-
-  // Link elements (Icon, label, and more icon) styles
   &__title {
-    display: flex;
-    gap: u.rem(20);
     position: relative;
+    border-radius: u.rem(10);
+    display: flex;
+    align-items: center;
+    gap: u.rem(20);
+    transition: color, background-color 100ms ease-in-out;
+    cursor: pointer;
+    background: none; // when title is a button
+    border: none; // when title is a button
 
     // Icon styles
     svg {
       width: u.rem(18);
       height: auto;
       flex-shrink: 0;
+
       > path {
         stroke: var(--M400);
       }
@@ -200,7 +48,7 @@
     // Label and more icon container
     span {
       width: 100%;
-      // display: flex;
+      display: flex;
       justify-content: space-between;
       align-items: center;
 
@@ -221,32 +69,148 @@
       }
     }
 
-    // Icon, label, and more icon highlighted when to === current location
-    &.highlight {
-      // this will affect both the left icon and more icon
+    &.large {
+      padding: u.rem(10) u.rem(15);
+    }
+
+    &.medium {
+      padding: u.rem(7) u.rem(12);
+      gap: u.rem(15);
+
+      // Icon
+      svg {
+        width: u.rem(16);
+      }
+
+      span {
+        // Label
+        div {
+          font-size: u.rem(15);
+        }
+        // More icon
+        svg {
+          height: u.rem(9);
+        }
+      }
+    }
+
+    &.small {
+      padding: u.rem(5) u.rem(10);
+      gap: u.rem(10);
+
+      // Icon
+      svg {
+        width: u.rem(14);
+      }
+
+      span {
+        // Label
+        div {
+          font-size: u.rem(14);
+        }
+        // More icon
+        svg {
+          height: u.rem(8.5);
+        }
+      }
+    }
+
+    &.disabled {
+      cursor: not-allowed;
+      // Icon
+      svg > path {
+        stroke: var(--M100);
+      }
+
+      // Label
+      span > div {
+        color: var(--M100);
+      }
+    }
+
+    &.highlighted {
+      // Left icon and more icon
       svg > path {
         stroke: var(--P300);
       }
 
-      // this will affect the left icon only
+      // Left icon only
       > svg > path {
         stroke-width: 13;
       }
 
-      // this will affect the label
+      // Label
       div {
         color: var(--P300);
         font-weight: 600;
       }
     }
+
+    &:not(.disabled):hover,
+    &:not(.disabled):focus-visible {
+      background-color: var(--M50);
+
+      // Left icon and more icon
+      svg > path {
+        stroke: var(--P300);
+      }
+
+      // Label
+      div {
+        color: var(--P300);
+      }
+    }
   }
 
   &__submenu {
-    display: none;
-    z-index: 100;
+    display: flex;
+    flex-direction: column;
+
+    // Icons
+    svg {
+      width: u.rem(16.5);
+      height: auto;
+    }
+
+    // Labels
+    div {
+      font-size: u.rem(14.5);
+    }
+
+    // Submenu type 1
+    &.sub1 {
+      padding: 0 u.rem(10) u.rem(10) u.rem(20);
+    }
+
+    // Submenu type 2
+    &.sub2 {
+      position: absolute;
+      width: u.rem(173);
+      border: u.rem(1.5) solid var(--M50);
+      border-radius: u.rem(10);
+      background-color: var(--D500);
+      padding: u.rem(16);
+      overflow: hidden;
+
+      // Icons
+      svg > path {
+        stroke: var(--D50);
+      }
+
+      // Labels
+      div {
+        color: var(--D50);
+      }
+    }
+
+    // Submenu type 2 position 1: top right - top left alignment
+    &.tr-tl {
+      z-index: 100;
+      top: 0;
+      left: calc(100% + u.rem(16));
+    }
   }
 
-  // Tooltip with label when hovering over iconOnly menuitems
   &__tooltip {
     z-index: 100;
     position: absolute;
@@ -259,6 +223,7 @@
     color: var(--D50);
     font-weight: 600;
 
+    // Tooltip pointer
     &::before {
       content: '';
       position: absolute;

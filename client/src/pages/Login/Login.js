@@ -5,18 +5,29 @@ import Button from '../../components/Shared/Button/Button';
 import Header from '../../components/Header/Header';
 import { ReactComponent as AppleIcon } from '../../assets/brandLogos/apple.svg';
 import { ReactComponent as GoogleIcon } from '../../assets/brandLogos/google.svg';
-// import Form from '../../components/Shared/Form/Form';
 import axios from 'axios';
 import { Link, Navigate } from 'react-router-dom';
 
+/**
+ * Handles user login, including form validation and submission.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered login page component.
+ */
 const Login = () => {
   const { isLoading } = useUserAccess('/login');
-
   const initialValues = {
     identifier: '',
     password: '',
   };
 
+  /**
+   * Validation functions for each form field.
+   *
+   * @type {object}
+   * @property {function(string): string} identifier - Validates the identifier (email/username).
+   * @property {function(string): string} password - Validates the password.
+   */
   const validationFunctions = {
     identifier: (value) => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -27,6 +38,15 @@ const Login = () => {
     password: (value) => (value.length < 8 ? 'Incorrect password.' : ''),
   };
 
+  /**
+   * Submits the form data to the server for user login.
+   *
+   * @async
+   * @param {object} formData - The data entered in the form.
+   * @param {string} formData.identifier - The user's identifier (email or username).
+   * @param {string} formData.password - The user's password.
+   * @returns {Promise<void>}
+   */
   const submitCallback = async (formData) => {
     try {
       const response = await axios.post('/login', formData);
@@ -36,6 +56,7 @@ const Login = () => {
     }
   };
 
+  // Destructure form state and handlers from the useForm hook
   const {
     formData,
     errors,
@@ -47,11 +68,14 @@ const Login = () => {
   } = useForm(initialValues, validationFunctions, submitCallback);
 
   return (
-    <div>
-      {isFormSubmitted && <Navigate to="/dashboard" replace={true} />}
+    <>
+      {isFormSubmitted && <Navigate to="/courses" replace={true} />}
+      {/* When dashboard is complete, Navigate to="/dashboard" */}
       <Header to="/signup" cta="Sign up" />
       {isLoading ? (
-        <div>Loading...</div>
+        <div role="status" aria-live="polite">
+          Loading...
+        </div>
       ) : (
         <main className="formContainer">
           <form className="form" onSubmit={handleSubmit}>
@@ -78,6 +102,7 @@ const Login = () => {
             </div>
             <Button
               label={isSubmitting ? '...' : 'Log in'}
+              ariaLabel={isSubmitting ? 'Logging in progress...' : undefined}
               type="submit"
               disabled={isSubmitting}
             />
@@ -110,7 +135,7 @@ const Login = () => {
           </form>
         </main>
       )}
-    </div>
+    </>
   );
 };
 

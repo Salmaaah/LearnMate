@@ -15,7 +15,7 @@
   padding-inline: u.rem(30);
   gap: u.rem(15);
 
-  @include u.breakpoint(medium) {
+  @include u.breakpoint-up(medium) {
     width: u.rem(400);
   }
 
@@ -75,7 +75,7 @@
     font-weight: 700;
     font-size: u.rem(15);
 
-    @include u.breakpoint(medium) {
+    @include u.breakpoint-up(medium) {
       display: none;
     }
 

@@ -1,126 +1,119 @@
 import axios from 'axios';
 
+/**
+ * Custom hook for interacting with an AI API.
+ *
+ * @returns {{ askAI: Function }} - An object containing the askAI function.
+ */
 const useAI = () => {
+  /**
+   * Sends a request to the AI API based on the provided keyword and context.
+   *
+   * @async
+   * @param {('Notes' | 'Flashcards')} context - The context for the AI request.
+   * @param {string} keyword - The keyword indicating the type of request.
+   * @param {number} id - The ID relevant to the context and keyword.
+   * @returns {Promise<string>} - The response message from the AI API.
+   */
   const askAI = async (context, keyword, id) => {
     try {
-      if (keyword === 'summarize') {
-        const response = await axios.post(`/askAI/${context}/${keyword}`, {
-          fileId: id,
-        });
-        console.log(response.data.message);
-        return response.data.message;
-      } else if (keyword === 'continue' || keyword === 'improve') {
-        // In order to extract the note contents we are using the HTML from the DOM and turning it into markdown
-        // for the AI to process. We didn't retrieve the note contents from the database because it's saved
-        // in a editorJS json format which will be harder to parse than the HTML.
+      const requestBody = { fileId: id };
 
-        const HTMLblocks = document.querySelectorAll('.ce-block');
+      // Handle different keywords and prepare the request accordingly
+      switch (keyword) {
+        case 'summarize':
+        case 'multigen':
+          return await sendRequest(context, keyword, requestBody);
 
-        // Turn HTML to markdown
-        let content = '';
-        HTMLblocks.forEach((block) => {
-          let child = block.querySelector('.ce-block__content').children[0];
-          let tag = child.tagName;
-          let innerText = child.innerText;
-          let mdElement = '';
+        case 'continue':
+        case 'improve':
+          const content = extractMarkdownContent();
+          return await sendRequest(context, keyword, {
+            ...requestBody,
+            notes: content,
+          });
 
-          if (tag === 'H1') {
-            mdElement = '# ';
-          } else if (tag === 'H2') {
-            mdElement = '## ';
-          } else if (tag === 'H3') {
-            mdElement = '### ';
-          } else if (tag === 'H4') {
-            mdElement = '#### ';
-          } else if (tag === 'H5') {
-            mdElement = '##### ';
-          } else if (tag === 'H6') {
-            mdElement = '###### ';
-          } else if (tag === 'UL' || tag === 'OL') {
-            let children = child.children;
-            let len = children.length;
-            for (let i = 0; i < len; i++) {
-              mdElement = tag === 'UL' ? '- ' : `${i + 1}` + '. ';
-              content +=
-                mdElement +
-                children[i].innerText +
-                `${len - i === 1 ? '' : '\n'}`;
-            }
-            mdElement = '';
-            innerText = '';
-          } else {
-            mdElement = '';
-          }
+        case 'predict':
+          return await sendRequest(context, keyword, { flashcardId: id });
 
-          content += mdElement + innerText + '\n';
-        });
-
-        // Send the markdown in the request body
-        const response = await axios.post(`/askAI/${context}/${keyword}`, {
-          fileId: id,
-          notes: content,
-        });
-        console.log(response.data.message);
-        return response.data.message;
-      } else if (keyword === 'multigen') {
-        const response = await axios.post(`/askAI/${context}/${keyword}`, {
-          fileId: id,
-        });
-        console.log(response.data.message);
-        return response.data.message;
-      } else if (keyword === 'predict') {
-        const response = await axios.post(`/askAI/${context}/${keyword}`, {
-          flashcardId: id,
-        });
-        console.log(response.data.message);
-        return response.data.message;
-      } else {
-        const response = await axios.post(`/askAI/${context}/custom`, {
-          prompt: keyword,
-        });
-        console.log(response.data.message);
-        return response.data.message;
+        default: // custom keyword handling
+          return await sendRequest(context, 'custom', { prompt: keyword });
       }
-      // TODO: Determine why streaming is not working
-      // TODO: The route has changed, add json object in the request body
-      // console.log('Starting request...');
-      // const response = await fetch(`/askAI/${context}/${keyword}/${id}`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      // });
-      // console.log('Request completed. Response:', response);
-
-      // // Create a ReadableStream from the response body and read data from the stream
-      // const reader = response.body.getReader();
-
-      // // Function to read chunks from the stream
-      // const readStream = async () => {
-      //   console.log('Reading stream...');
-      //   while (true) {
-      //     const { done, value } = await reader.read();
-      //     if (done) {
-      //       setAIresponse('');
-      //       console.log('Stream ended');
-      //       break;
-      //     }
-      //     // Convert the chunk to a string and log it
-      //     console.log('Received chunk:', new TextDecoder().decode(value));
-
-      //     setAIresponse((prevState) => {
-      //       const chunk = new TextDecoder().decode(value);
-      //       insertResponse(prevState + chunk);
-      //       return prevState + chunk;
-      //     });
-      //   }
-      // };
-
-      // // Start reading from the stream
-      // readStream();
     } catch (error) {
       console.error('Error:', error);
     }
+  };
+
+  /**
+   * Sends a POST request to the AI API.
+   *
+   * @param {string} context - The context for the AI request.
+   * @param {string} keyword - The keyword indicating the type of request.
+   * @param {object} body - The request body to send.
+   * @returns {Promise<string>} - The response message from the AI API.
+   */
+  const sendRequest = async (context, keyword, body) => {
+    const response = await axios.post(`/askAI/${context}/${keyword}`, body);
+    console.log(response.data.message);
+    return response.data.message;
+  };
+
+  /**
+   * Extracts and converts HTML content from the editor into Markdown format.
+   * Note: The content is extracted from the DOM instead of the database because
+   *       the notes are stored in an editorJS JSON format, which is more complex to parse
+   *       than directly converting the HTML structure to Markdown.
+   *
+   * @returns {string} - The converted Markdown content.
+   */
+  const extractMarkdownContent = () => {
+    const HTMLblocks = document.querySelectorAll('.ce-block');
+    let content = '';
+
+    HTMLblocks.forEach((block) => {
+      const child = block.querySelector('.ce-block__content').children[0];
+      const tag = child.tagName;
+      const innerText = child.innerText;
+
+      // Markdown formatting based on tag type
+      let mdElement = '';
+
+      switch (tag) {
+        case 'H1':
+          mdElement = '# ';
+          break;
+        case 'H2':
+          mdElement = '## ';
+          break;
+        case 'H3':
+          mdElement = '### ';
+          break;
+        case 'H4':
+          mdElement = '#### ';
+          break;
+        case 'H5':
+          mdElement = '##### ';
+          break;
+        case 'H6':
+          mdElement = '###### ';
+          break;
+        case 'UL':
+        case 'OL':
+          mdElement = tag === 'UL' ? '- ' : '';
+          Array.from(child.children).forEach((item, index) => {
+            content += `${mdElement}${mdElement ? '' : `${index + 1}. `}${
+              item.innerText
+            }\n`;
+          });
+          return; // Skip adding innerText directly for lists
+        default:
+          mdElement = '';
+      }
+
+      content += mdElement + innerText + '\n';
+    });
+
+    return content;
   };
 
   return {

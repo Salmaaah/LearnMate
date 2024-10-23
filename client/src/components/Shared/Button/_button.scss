@@ -12,12 +12,12 @@
 
   font-family: 'Nunito';
   font-weight: 700;
+  text-wrap: nowrap;
 
   transition: all 150ms ease-in-out;
   cursor: pointer;
 
-  &__primary {
-    @extend .button;
+  &.primary {
     background: var(--P300);
     color: white;
     border-bottom: u.rem(4) solid var(--P400);
@@ -29,13 +29,14 @@
       fill: var(--background-color);
     }
 
-    &:hover {
+    &:hover,
+    &:focus-visible {
       background: var(--P200);
+      outline-offset: u.rem(2);
     }
 
-    &:active {
-      //Using important so that we can override the paddings from the helper classes when the button is active
-      padding-block: u.rem(8) !important;
+    &:active:not(:disabled) {
+      padding-block: u.rem(8);
       border-bottom: u.rem(2) solid var(--P400);
       box-shadow: 0 u.rem(2) u.rem(4) 0 hsla(0, 0%, 0%, 0.25);
     }
@@ -45,12 +46,11 @@
       color: var(--M50);
       border-bottom: u.rem(4) solid var(--M300);
       box-shadow: 0 u.rem(5) u.rem(8) 0 hsla(0, 0%, 0%, 0.1);
-      cursor: default;
+      cursor: not-allowed;
     }
   }
 
-  &__secondary {
-    @extend .button;
+  &.secondary {
     background: white;
     color: var(--P100);
     box-shadow: 0 u.rem(4) u.rem(4) 0 hsl(254, 23%, 79%),
@@ -62,11 +62,13 @@
       fill: var(--P100);
     }
 
-    &:hover {
+    &:hover,
+    &:focus-visible {
       background: var(--P50);
+      outline-offset: u.rem(4);
     }
 
-    &:active {
+    &:active:not(:disabled) {
       box-shadow: 0 u.rem(2) u.rem(3) 0 hsl(254, 23%, 79%),
         0 0 u.rem(0.7) 0 var(--M100);
     }
@@ -74,8 +76,38 @@
     &:disabled {
       background: var(--M50);
       color: var(--M75);
-      /* Small Button/Sharp Muted Shadow */
       box-shadow: 0 u.rem(4) 0 0 var(--M100);
+      cursor: not-allowed;
+    }
+  }
+
+  &.large {
+    padding: u.rem(7) u.rem(50);
+    font-size: u.rem(15);
+
+    > svg {
+      width: u.rem(11.5);
+      height: u.rem(11.5);
+    }
+  }
+
+  &.medium {
+    padding: u.rem(6) u.rem(40);
+    font-size: u.rem(13);
+
+    > svg {
+      width: u.rem(10);
+      height: u.rem(10);
+    }
+  }
+
+  &.small {
+    padding: u.rem(5) u.rem(30);
+    font-size: u.rem(11);
+
+    > svg {
+      width: u.rem(9);
+      height: u.rem(9);
     }
   }
 
@@ -129,36 +161,6 @@
       100% {
         background-color: var(--M50);
       }
-    }
-  }
-
-  &.large {
-    padding: u.rem(7) u.rem(50);
-    font-size: u.rem(15);
-
-    > svg {
-      width: u.rem(11.5);
-      height: u.rem(11.5);
-    }
-  }
-
-  &.medium {
-    padding: u.rem(6) u.rem(40);
-    font-size: u.rem(13);
-
-    > svg {
-      width: u.rem(10);
-      height: u.rem(10);
-    }
-  }
-
-  &.small {
-    padding: u.rem(5) u.rem(30);
-    font-size: u.rem(11);
-
-    > svg {
-      width: u.rem(9);
-      height: u.rem(9);
     }
   }
 }

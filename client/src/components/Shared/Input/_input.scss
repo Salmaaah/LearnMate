@@ -1,11 +1,17 @@
 @use '../../../styles/util/' as u;
 @use '../../../styles/globals/' as g;
 
+// WebKit-specific autofill styling
 input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-box-shadow: 0 0 0 u.rem(30) white inset !important;
 }
 
-.inputContainer {
+// Non-WebKit browsers (Firefox in particular)
+input:-moz-autofill {
+  box-shadow: 0 0 0 u.rem(30) white inset !important;
+}
+
+.input-container {
   align-self: stretch;
   display: flex;
   flex-direction: column;
@@ -14,12 +20,10 @@ input:-webkit-autofill {
   .input {
     border-radius: u.rem(12);
     border: u.rem(2) solid var(--M75);
-
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: u.rem(10);
-
     color: var(--D200);
 
     &.large {
@@ -46,7 +50,7 @@ input:-webkit-autofill {
         // &__field
         font-size: u.rem(13);
       }
-      > img {
+      > svg {
         // &__icon
         height: u.rem(13);
       }
@@ -58,7 +62,7 @@ input:-webkit-autofill {
       background-color: var(--M50);
 
       input:-webkit-autofill {
-        -webkit-box-shadow: 0 0 0 30px var(--M50) inset !important;
+        -webkit-box-shadow: 0 0 0 u.rem(30) var(--M50) inset !important;
       }
     }
 
@@ -69,12 +73,11 @@ input:-webkit-autofill {
     }
 
     &.error {
-      // helper class
       border-color: var(--S_RED);
       background: rgb(255, 244, 244);
 
       input:-webkit-autofill {
-        -webkit-box-shadow: 0 0 0 30px rgb(255, 244, 244) inset !important;
+        -webkit-box-shadow: 0 0 0 u.rem(30) rgb(255, 244, 244) inset !important;
       }
     }
 
@@ -97,32 +100,39 @@ input:-webkit-autofill {
     &__icon {
       height: u.rem(15);
       cursor: pointer;
+      outline-offset: 2px;
 
       &.muted {
-        filter: g.$M100;
+        path {
+          fill: var(--M100);
+        }
       }
 
       &.purple {
-        filter: g.$P300;
+        path {
+          fill: var(--P300);
+        }
       }
     }
   }
+}
+.input-error {
+  display: flex;
+  gap: u.rem(7);
 
-  .inputError {
-    display: flex;
-    gap: u.rem(7);
+  &__message {
+    color: var(--S_RED);
+    font-size: u.rem(13);
+    font-weight: 700;
+    text-align: start;
+  }
 
-    &__message {
-      color: var(--S_RED);
-      font-size: u.rem(13);
-      font-weight: 700;
-      text-align: start;
-    }
+  &__icon {
+    height: u.rem(13);
+    padding-top: u.rem(4);
 
-    &__icon {
-      height: u.rem(13);
-      padding-top: u.rem(4);
-      filter: g.$S_RED;
+    path {
+      fill: var(--S_RED);
     }
   }
 }
