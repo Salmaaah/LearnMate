@@ -2,19 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// // Request interceptor to log headers
-// axios.interceptors.request.use(
-//   function (config) {
-//     // Log the request headers
-//     console.log('Request Headers:', config.headers);
-//     return config;
-//   },
-//   function (error) {
-//     // Do something with request error
-//     return Promise.reject(error);
-//   }
-// );
-
+/**
+ * Custom hook to manage user access by fetching data from a specified API endpoint.
+ *
+ * @param {string} apiEndpoint - The API endpoint to fetch user data from.
+ * @returns {{ isLoading: boolean }} - An object containing the loading state.
+ */
 const useUserAccess = (apiEndpoint) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -25,35 +18,31 @@ const useUserAccess = (apiEndpoint) => {
         const response = await axios.get(apiEndpoint);
         console.log(response.data.message);
       } catch (error) {
-        if (
-          // Trying to access user pages without authentication
-          error.response &&
-          error.response.status === 401 &&
-          error.response.data.error === 'Authentication required.'
-        ) {
-          console.error(error.response.data.message);
-          navigate('/login');
-        } else if (
-          // Trying to access user pages with invalid credentials
-          error.response &&
-          error.response.status === 400 &&
-          error.response.data.error === 'User does not exist.'
-        ) {
-          console.error(error.response.data.message);
-          navigate('/welcome');
-        } else if (
-          // Trying to access login or signup pages after authentication
-          error.response &&
-          error.response.status === 403 &&
-          error.response.data.error === 'User already logged in.'
-        ) {
-          console.error(error.response.data.message);
-          navigate('/dashboard');
+        if (error.response) {
+          const { status, data } = error.response;
+
+          if (status === 401 && data.error === 'Authentication required.') {
+            // Unauthenticated user attempting to access protected pages
+            console.error(data.message);
+            navigate('/login');
+          } else if (status === 400 && data.error === 'User does not exist.') {
+            // Invalid credentials during login
+            console.error(data.message);
+            navigate('/welcome');
+          } else if (
+            status === 403 &&
+            data.error === 'User already logged in.'
+          ) {
+            // Authenticated user trying to access login or signup pages
+            console.error(data.message);
+            navigate('/courses'); // Update to '/dashboard' when ready
+          } else {
+            console.error('Unhandled error:', data.message || error.message);
+          }
         } else {
           console.error('Error fetching data:', error.message);
         }
       } finally {
-        // Set loading state to false when data fetching is complete
         setIsLoading(false);
       }
     };

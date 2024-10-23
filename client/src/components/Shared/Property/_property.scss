@@ -11,18 +11,21 @@
   gap: u.rem(10);
   font-size: u.rem(13);
   font-weight: 600;
-  text-wrap: nowrap;
 
   &__name {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: default;
 
-    &.link {
+    &.link:hover {
       text-decoration: underline;
-      text-decoration-color: var(--D100);
       cursor: pointer;
     }
+  }
+
+  &:focus > &__name.link {
+    text-decoration: underline;
   }
 
   > svg {
@@ -30,5 +33,16 @@
     height: u.rem(8);
     width: auto;
     cursor: pointer;
+    transition: transform, stroke 0.2s ease;
+
+    &:hover,
+    &:focus {
+      transform: scale(1.1);
+      outline-offset: u.rem(3);
+
+      > path {
+        stroke: var(--S_RED);
+      }
+    }
   }
 }

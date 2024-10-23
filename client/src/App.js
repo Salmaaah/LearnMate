@@ -5,7 +5,6 @@ import { EditorProvider } from './contexts/EditorContext';
 import Welcome from './pages/Welcome/Welcome';
 import Signup from './pages/Signup/Signup';
 import Login from './pages/Login/Login';
-import Dashboard from './pages/Dashboard/Dashboard';
 import Courses from './pages/Courses/Courses';
 import Learn from './pages/Learn/Learn';
 
@@ -19,7 +18,6 @@ function App() {
               <Route path="/" element={<Welcome />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/learn/:id" element={<Learn />} />
             </Routes>

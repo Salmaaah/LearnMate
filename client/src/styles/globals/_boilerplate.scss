@@ -11,8 +11,12 @@ html {
   box-sizing: inherit; // everything inherits the border-box from html
 }
 
+*:focus-visible {
+  outline-color: var(--P200);
+}
+
 body {
-  background-color: var(--background_color);
+  background-color: white;
   font-family: 'Nunito';
   color: var(--D500);
   // resets: they overwrite default styles that browsers set on websites when they load them
@@ -20,18 +24,77 @@ body {
   padding: 0;
 }
 
+button {
+  font-family: 'Nunito';
+  color: var(--D500);
+}
+
 input {
   font-family: 'Nunito';
+  background: none;
+  outline: none;
+  border: none;
+}
+
+textarea {
+  background: none;
+  outline: none;
+  border: none;
+  resize: none;
 }
 
 // Visibility
+.hidden {
+  display: none !important;
+  animation: fade-out 300ms;
+}
+
+.visible {
+  animation: fade-in 300ms;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 .hide-for-mobile {
-  @include u.breakpoint-max(medium) {
-    display: none;
+  @include u.breakpoint-down(medium) {
+    display: none !important;
+  }
+}
+.hide-for-tablet-down {
+  @include u.breakpoint-down(large) {
+    display: none !important;
+  }
+}
+.hide-for-tablet-only {
+  @include u.breakpoint-down(large) {
+    @include u.breakpoint-up(medium) {
+      display: none !important;
+    }
+  }
+}
+.hide-for-tablet-up {
+  @include u.breakpoint-up(medium) {
+    display: none !important;
   }
 }
 .hide-for-desktop {
-  @include u.breakpoint(large) {
-    display: none;
+  @include u.breakpoint-up(large) {
+    display: none !important;
   }
 }

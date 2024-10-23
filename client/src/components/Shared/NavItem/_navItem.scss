@@ -1,52 +1,66 @@
 @use '../../../styles/util/' as u;
 
-.navItem {
+.nav-item {
   position: relative;
 
-  > a {
+  &__header {
+    width: 100%;
+    border-style: none;
+    background: none;
+    padding: 0;
     display: flex;
     align-items: center;
-    gap: u.rem(10);
-    font-weight: 600;
-    color: var(--M400);
-  }
+    gap: u.rem(20);
 
-  &__button {
-    width: u.rem(32);
-    height: u.rem(32);
-    background-color: var(--background-color);
-    border-radius: 50%;
-    flex-shrink: 0;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: filter 200ms ease-in-out;
+    &:hover {
+      cursor: pointer;
+    }
 
-    > svg {
-      // In case of an icon
-      height: u.rem(18);
-      > path {
-        stroke: var(--P200);
+    // Icon container
+    > div:first-of-type {
+      width: u.rem(42);
+      height: u.rem(42);
+      background-color: var(--background-color);
+      border-radius: 50%;
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: filter 200ms ease-in-out;
+
+      > svg {
+        // In case of an icon
+        height: u.rem(15);
+        > path {
+          stroke: var(--P200);
+        }
+      }
+
+      > img {
+        // In case of a profile pic
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      &:hover {
+        filter: brightness(95%);
       }
     }
 
-    > img {
-      // In case of a profile pic
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    &:hover {
-      filter: brightness(95%);
+    // Label container
+    > div:last-of-type {
+      font-size: u.rem(16);
+      font-weight: 600;
+      color: var(--M400);
     }
   }
 
   &__dropdown {
     position: absolute;
-    width: u.rem(173);
-    background-color: var(--D500);
+    width: u.rem(195);
+    background-color: white;
     border: u.rem(1.5) solid var(--M75);
     border-radius: u.rem(10);
     padding: u.rem(16);
@@ -54,16 +68,18 @@
     z-index: 100;
 
     &.br-tr {
-      top: u.rem(37);
+      bottom: 0;
       right: 0;
+      transform: translateY(calc(100% + 5px));
     }
     &.br-bl {
       bottom: 0;
       left: u.rem(65);
     }
     &.tl-bl {
-      bottom: u.rem(40);
+      top: 0;
       left: 0;
+      transform: translateY(calc(-100% - 5px));
     }
   }
 }

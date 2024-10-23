@@ -1,6 +1,6 @@
 @use '../../styles/util/' as u;
 
-.iconButton {
+.icon-button {
   border-radius: 50%;
   border-style: none;
   background-color: var(--bColor);
@@ -30,7 +30,8 @@
     }
   }
 
-  &:hover {
+  &:hover,
+  &:focus-visible {
     background-color: var(--bHcolor);
 
     path.stroke {

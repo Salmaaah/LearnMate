@@ -1,34 +1,30 @@
 @use '../../styles/util/' as u;
 
-.userHeader {
+.user-header {
   position: fixed;
-  z-index: 1;
+  z-index: 4;
   background-color: var(--off-white);
   display: flex;
   justify-content: space-between;
+  gap: u.rem(10);
   align-items: center;
   padding-block: u.rem(14);
 
-  > h3 {
+  &__page-name {
     color: var(--P300);
+    font-weight: 900;
+    font-size: u.rem(19);
   }
 
-  &__centerSpace {
+  &__center-space {
     position: relative;
-    display: flex;
-    justify-content: center;
+    display: grid;
     flex: 1;
     height: u.rem(38);
 
-    > div {
+    > form {
       position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
+      transform: translateY(-3%);
     }
-  }
-
-  &__nav {
-    display: flex;
-    gap: u.rem(15);
   }
 }

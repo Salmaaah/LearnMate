@@ -1,46 +1,131 @@
 @use '../../styles/util/' as u;
 
-.editMenu {
-  z-index: 1;
+.edit-menu {
   position: absolute;
-  top: u.rem(-38.75);
-  left: 107%;
-
+  z-index: 3;
+  margin-bottom: u.rem(10);
   width: u.rem(280);
   box-shadow: 0 u.rem(8) u.rem(10) 0 hsla(0, 0%, 0%, 0.15);
-
   background-color: var(--background-color);
   border-radius: u.rem(10);
-
   display: flex;
   flex-direction: column;
-
   transition: all 0.2s ease-in-out;
 
   &::before {
     content: '';
     position: absolute;
-    top: u.rem(92.5);
-    right: 100%;
     margin-top: u.rem(-7); /* Half of the arrow height */
     border-width: u.rem(7);
     border-style: solid;
     border-color: transparent var(--background-color) transparent transparent;
   }
 
+  &.no-position {
+    opacity: 0;
+  }
+
+  &.right {
+    top: u.rem(-24.75);
+    left: 107%;
+
+    &::before {
+      top: u.rem(92.5);
+      right: 100%;
+    }
+  }
+
+  &.left {
+    top: u.rem(-24.75);
+    right: 107%;
+
+    &::before {
+      top: u.rem(92.5);
+      left: 100%;
+      rotate: 180deg;
+    }
+  }
+
+  &.bottom-left {
+    top: 107%;
+    left: 0;
+
+    &::before {
+      top: -7px;
+      left: 5%;
+      rotate: 90deg;
+    }
+  }
+
+  &.bottom-right {
+    top: 107%;
+    right: 0;
+
+    &::before {
+      top: -7px;
+      right: 5%;
+      rotate: 90deg;
+    }
+  }
+
+  &.bottom-middle {
+    top: 107%;
+    left: 0;
+    transform: translateX(-25%);
+
+    &::before {
+      top: -7px;
+      left: calc(50% - 7px);
+      rotate: 90deg;
+    }
+  }
+
+  &.top-left {
+    bottom: calc(100% + 7px);
+    left: 0;
+
+    &::before {
+      bottom: -14px;
+      left: 5%;
+      rotate: -90deg;
+    }
+  }
+
+  &.top-right {
+    bottom: calc(100% + 7px);
+    right: 0;
+
+    &::before {
+      bottom: -14px;
+      right: 5%;
+      rotate: -90deg;
+    }
+  }
+
+  &.top-middle {
+    bottom: calc(100% + 7px);
+    left: 0;
+    transform: translateX(-25%);
+
+    &::before {
+      bottom: -14px;
+      left: calc(50% - 7px);
+      rotate: -90deg;
+    }
+  }
+
   &__name {
-    padding-inline: u.rem(15);
-    padding-block: u.rem(10);
+    padding: u.rem(10) u.rem(15);
     border-bottom: u.rem(1) solid var(--D50);
 
     > input {
       font-size: u.rem(16);
       font-weight: 700;
 
-      // TODO: add this to the global styles
-      background: none;
-      outline: none;
-      border: none;
+      &::placeholder {
+        font-weight: 400;
+        color: var(--D100);
+      }
     }
   }
 
@@ -50,12 +135,20 @@
     background-color: var(--D50);
   }
 
-  .menuItem {
+  .menu-item {
     border-radius: 0 0 u.rem(10) u.rem(10);
 
-    > a {
-      margin-block: u.rem(5);
-      margin-inline: auto;
+    &__title {
+      border-radius: 0 0 u.rem(10) u.rem(10);
+      padding: u.rem(10) u.rem(15);
+      justify-content: center;
+
+      span {
+        width: fit-content;
+      }
     }
+    // > a {
+    //   margin: u.rem(5) auto;
+    // }
   }
 }

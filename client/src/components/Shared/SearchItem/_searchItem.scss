@@ -1,46 +1,63 @@
 @use '../../../styles/util/' as u;
 
-.searchItem {
-  position: relative;
+.search-item-base {
   display: flex;
   align-items: center;
   padding-inline: u.rem(11.25);
   padding-block: u.rem(5);
   gap: u.rem(10);
-  transition: all 200ms ease-in-out;
+}
 
-  > svg {
-    height: u.rem(13);
-    width: auto;
-    > path {
-      stroke: var(--D200);
-      //   stroke-width: u.rem(13);
+.search-item {
+  // searchItem = link
+  a {
+    @extend .search-item-base;
+    position: relative;
+    transition: all 200ms ease-in-out;
+
+    strong {
+      font-weight: 800;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background-color: var(--M50);
+      outline: none;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: u.rem(3);
+        background-color: var(--P300);
+      }
     }
   }
 
-  > a {
+  // searchItem = no result
+  div {
+    @extend .search-item-base;
+    cursor: default;
+  }
+
+  // Icon
+  svg {
+    height: u.rem(13);
+    width: auto;
+
+    > path {
+      stroke: var(--D200);
+    }
+  }
+
+  // label
+  span {
     width: 100%;
     font-family: 'Nunito';
     font-size: u.rem(14);
     font-weight: 500;
     color: var(--D500);
-
-    strong {
-      font-weight: 800;
-    }
-  }
-
-  &:hover {
-    background-color: var(--M50);
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: u.rem(3);
-      background-color: var(--P300);
-    }
   }
 }

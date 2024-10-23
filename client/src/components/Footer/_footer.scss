@@ -1,5 +1,4 @@
 @use '../../styles/util/' as u;
-@use '../../styles/globals/' as g;
 
 .footer {
   background-color: var(--P300);
@@ -14,27 +13,36 @@
     justify-content: center;
     gap: u.rem(10);
 
+    @include u.breakpoint-down(medium) {
+      flex-direction: column;
+      margin-inline: auto;
+
+      section {
+        text-align: center;
+      }
+    }
+
     section {
       width: u.rem(135);
-    }
 
-    h3 {
-      font-size: u.rem(15);
-      font-weight: 700;
-      color: var(--M100);
-      padding-bottom: u.rem(12);
-    }
-
-    ul {
-      font-size: u.rem(13);
-
-      li {
-        padding-bottom: u.rem(10);
+      div {
+        font-size: u.rem(15);
+        font-weight: 700;
+        color: var(--M100);
+        padding-bottom: u.rem(12);
       }
 
-      a {
-        font-weight: 600;
-        color: var(--P75);
+      ul {
+        font-size: u.rem(13);
+
+        li {
+          padding-bottom: u.rem(10);
+        }
+
+        a {
+          font-weight: 600;
+          color: var(--P75);
+        }
       }
     }
   }
@@ -50,7 +58,6 @@
   }
 
   &__logo {
-    // This is temporary because the logo is gonna be an image in the future
     font-family: 'Vintage';
     font-size: u.rem(35);
     color: var(--P75);
@@ -62,9 +69,15 @@
     align-items: center;
     gap: u.rem(10);
 
-    img {
-      filter: g.$M100;
+    a {
+      display: flex;
+    }
+    svg {
       height: u.rem(16);
+
+      > path {
+        fill: var(--M100);
+      }
     }
   }
 }

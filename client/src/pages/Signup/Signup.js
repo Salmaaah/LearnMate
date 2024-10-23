@@ -5,10 +5,15 @@ import Button from '../../components/Shared/Button/Button';
 import Header from '../../components/Header/Header';
 import { ReactComponent as AppleIcon } from '../../assets/brandLogos/apple.svg';
 import { ReactComponent as GoogleIcon } from '../../assets/brandLogos/google.svg';
-// import Form from '../../components/Shared/Form/Form';
 import axios from 'axios';
 import { Link, Navigate } from 'react-router-dom';
 
+/**
+ * Handles user signup, including form validation and submission.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered signup page component.
+ */
 const Signup = () => {
   const { isLoading } = useUserAccess('/signup');
 
@@ -19,6 +24,15 @@ const Signup = () => {
     confirmPassword: '',
   };
 
+  /**
+   * Validation functions for each form field.
+   *
+   * @type {object}
+   * @property {function(string): string} username - Validates the username.
+   * @property {function(string): string} email - Validates the email.
+   * @property {function(string): string} password - Validates the password.
+   * @property {function(string): string} confirmPassword - Validates the retyped password.
+   */
   const validationFunctions = {
     username: (value) =>
       value.length < 5 ? 'Username must be at least 5 characters long.' : '',
@@ -32,15 +46,27 @@ const Signup = () => {
       value !== formData.password ? 'Passwords do not match.' : '',
   };
 
+  /**
+   * Submits the form data to the server for user signup.
+   *
+   * @async
+   * @param {object} formData - The data entered in the form.
+   * @param {string} formData.username - The user's username.
+   * @param {string} formData.email - The user's email.
+   * @param {string} formData.password - The user's password.
+   * @param {string} formData.confirmPassword - The user's retyped password (for server-side valdiation).
+   * @returns {Promise<void>}
+   */
   const submitCallback = async (formData) => {
     try {
       const response = await axios.post('/signup', formData);
       console.log('User signed up successfully:', response.data);
     } catch (error) {
-      throw error; // Propagate the error to be handled in the catch block of the form's handleSubmit
+      throw error; // Propagate the error to be handled in the form's handleSubmit
     }
   };
 
+  // Destructure form state and handlers from the useForm hook
   const {
     formData,
     errors,
@@ -52,11 +78,14 @@ const Signup = () => {
   } = useForm(initialValues, validationFunctions, submitCallback);
 
   return (
-    <div>
-      {isFormSubmitted && <Navigate to="/dashboard" replace={true} />}
+    <>
+      {isFormSubmitted && <Navigate to="/courses" replace={true} />}
+      {/* When dashboard is complete, Navigate to="/dashboard" */}
       <Header to="/login" cta="Log in" />
       {isLoading ? (
-        <div>Loading...</div>
+        <div role="status" aria-live="polite">
+          Loading...
+        </div>
       ) : (
         <main className="formContainer">
           <form className="form" onSubmit={handleSubmit}>
@@ -101,6 +130,7 @@ const Signup = () => {
             </div>
             <Button
               label={isSubmitting ? '...' : 'Continue with email'}
+              ariaLabel={isSubmitting ? 'Signing up in progress...' : undefined}
               type="submit"
               disabled={isSubmitting}
             />
@@ -133,7 +163,7 @@ const Signup = () => {
           </form>
         </main>
       )}
-    </div>
+    </>
   );
 };
 

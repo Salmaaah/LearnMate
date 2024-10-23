@@ -1,0 +1,5 @@
+// This file tells Babel how to convert modern JavaScript (with import and export syntax) into a version Jest can understand.
+
+{
+  "presets": ["@babel/preset-env", "@babel/preset-react"]
+}

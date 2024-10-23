@@ -1,4 +1,5 @@
 import os
+import re
 from dotenv import load_dotenv
 import json
 from flask import Flask, session, request, jsonify, send_file, Response, stream_with_context
@@ -46,7 +47,7 @@ client = OpenAI(
   api_key=os.getenv("OPENAI_API_KEY"),
 )
 
-
+@logout_required
 @app.route("/")
 def index():
     """Show landing page"""
@@ -138,7 +139,7 @@ def login():
 
         is_username = "@" not in identifier
         is_email = "@" in identifier
-
+ 
         filter_criteria = or_(
             User.username == identifier if is_username else False,
             User.email == identifier if is_email else False,
@@ -474,16 +475,13 @@ def serve_file(file_id):
 
 
 @login_required
-@app.route("/update/<file_id>", methods=["POST"])
-def update_file(file_id):
+@app.route("/updateName/<file_id>", methods=["POST"])
+def update_fileName(file_id):
     file = File.query.filter_by(id=file_id).first()
     data = request.json
 
     if file:
         file_name = data.get("name").strip()
-        # file_subject = data.get("subject")
-        # file_project = data.get("project")
-        # file_tags = data.get("tags")
         
         # Server-side validation
         if not file_name:
@@ -492,17 +490,18 @@ def update_file(file_id):
             return jsonify({"error": "File name cannot start with a period."}), 400
 
         try:
-            # update file in user folder
+            # Define paths
             user_folder = os.path.join(app.config["UPLOADED_FILES_DEST"], f"user_{session['user_id']}", "files")
-            os.rename(os.path.join(user_folder, file.name), os.path.join(user_folder, file_name))
+            old_path = os.path.join(user_folder, file.name)
+            new_path = os.path.join(user_folder, file_name)
 
             # update file in database
             file.name = file_name
-            # file.subject_id = file_subject
-            # file.project_id = file_project
-            # file.tags = file_tags
+            file.path = new_path
             db.session.commit()
 
+            # update file in user folder after successful database update
+            os.rename(old_path, new_path)
 
             return jsonify({"message": "File updated successfully"}), 200
         
@@ -659,7 +658,7 @@ def update_property(property_type, property_id):
             
             # Server-side validation
             if not property_name:
-                return jsonify({"error": f"{property_type} name must be at least 1 character long."}), 400
+                return jsonify({"error": "Name can't be empty."}), 400
 
             # Update property name in database
             property.name = property_name
@@ -677,7 +676,7 @@ def update_property(property_type, property_id):
         except IntegrityError as e:
             db.session.rollback()
             if f"UNIQUE constraint failed: {property_type.lower()}.name" in str(e.orig):
-                return jsonify({"error": {"name": f"{property_type} name already exists."}}), 400
+                return jsonify({"error": f"{property_type} name already exists."}), 400
 
             else:
                 return jsonify({"error": str(e)}), 400
@@ -720,10 +719,10 @@ def create_note(file_id, note_name=None):
         if len(untitled_notes) == 0 or all([note.name != "Untitled note" for note in untitled_notes]):
                 note_num = ""
         else:
-            # leave only the untitled notes with numbers
-            untitled_notes = [note.name for note in untitled_notes if note.name !="Untitled note" and "Untitled note" in note.name]
+            # leave only the untitled notes that strictly follow the format "Untitled note [number]"
+            untitled_notes = [note.name for note in untitled_notes if re.fullmatch(r'Untitled note \d+', note.name)]
             # extract and sort the existing numbers used in the untitled notes
-            nums = sorted([int(note.replace('Untitled note ', '')) for note in untitled_notes])
+            nums = sorted([int(note.split(' ')[-1]) for note in untitled_notes])
 
             expected_num = 2
             for num in nums:
@@ -1025,7 +1024,7 @@ def delete_image(flashcard_id):
             flashcard.image_path = None
             db.session.commit()
 
-            return jsonify({"message": "Flashcard deleted successfully"}), 200
+            return jsonify({"message": "Flashcard image deleted successfully"}), 200
     
         except Exception as e:
             return jsonify({"error": str(e)}), 400

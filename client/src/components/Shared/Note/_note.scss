@@ -7,11 +7,26 @@
   justify-content: space-between;
   gap: u.rem(10);
   align-items: center;
-  transition: all 200ms ease-in-out;
+  transition: all 200ms ease-in;
 
-  &:hover {
+  // Control visibility of the delete button depending on focus
+  .icon-button {
+    opacity: 0; // hide
+
+    &:focus {
+      opacity: 1; // reveal when navigating with keyboard
+    }
+  }
+
+  &:hover,
+  &:focus-visible {
     background-color: var(--M50);
     cursor: pointer;
+    outline-offset: u.rem(-2);
+
+    .icon-button {
+      opacity: 1; // reveal on hover or when navigating with keyboard
+    }
   }
 
   &__info {
@@ -19,6 +34,7 @@
     flex-direction: column;
     max-width: calc(100% - 41.5px); // gap (10) + button full width (31.5)
   }
+
   &__name {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -34,31 +50,17 @@
     gap: u.rem(10);
     font-size: u.rem(14);
 
-    > div:first-of-type {
+    // Date
+    time {
       white-space: noWrap;
     }
-    > div:last-of-type {
+
+    // Content preview
+    div {
       color: var(--D100);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-  }
-
-  > button {
-    border-radius: 50%;
-    padding: u.rem(10) !important;
-    box-shadow: none;
-    background: none;
-
-    > svg {
-      // if height ever changes the max-width of the note__info class will need to be changed as well
-      height: u.rem(15) !important;
-      width: auto;
-
-      > path {
-        fill: none;
-      }
     }
   }
 }

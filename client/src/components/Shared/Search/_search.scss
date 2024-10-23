@@ -2,7 +2,6 @@
 
 .search {
   overflow: hidden;
-  width: u.rem(400);
   height: fit-content;
   border-radius: u.rem(20);
   background-color: var(--background-color);
@@ -11,6 +10,16 @@
   flex-direction: column;
   transition: all 200ms ease-in-out;
 
+  &.expanded {
+    width: min(100%, u.rem(400));
+    justify-self: center;
+  }
+
+  &.collapsed {
+    width: fit-content;
+    justify-self: right;
+  }
+
   &:hover {
     border-color: var(--M75);
   }
@@ -18,20 +27,28 @@
   &:focus-within {
     border-color: var(--P75);
     background-color: var(--background-color);
+
+    button {
+      cursor: pointer;
+
+      &:hover {
+        background-color: var(--M75);
+      }
+    }
   }
 
-  &.typing {
+  &.searching {
     border: none;
     box-shadow: 0 u.rem(8) u.rem(10) 0 hsla(0, 0%, 0%, 0.15);
   }
 
   &__field {
+    border-radius: u.rem(20); // for keyboard navigation
     display: flex;
     align-items: center;
     padding: u.rem(7);
 
     button {
-      cursor: pointer;
       flex-shrink: 0;
       width: u.rem(25);
       height: u.rem(25);
@@ -53,10 +70,6 @@
           stroke-width: u.rem(13);
         }
       }
-
-      &:hover {
-        background-color: var(--M75);
-      }
     }
 
     input {
@@ -74,11 +87,17 @@
         color: var(--D200);
       }
     }
+
+    input:not(:focus) {
+      cursor: default;
+    }
   }
 
   &__suggestions {
     display: flex;
     flex-direction: column;
     padding-bottom: u.rem(15);
+    max-height: u.rem(200);
+    overflow-y: scroll;
   }
 }

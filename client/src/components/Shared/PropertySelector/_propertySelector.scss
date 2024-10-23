@@ -1,18 +1,12 @@
 @use '../../../styles/util/' as u;
 
-.propertySelector {
+.property-selector {
   width: 100%;
-  // max-height: u.rem(225); // In combination with overflow: scroll in __dropdown to create a scrollable fixed height menu but this creates an issue with propertyMenu because it gets clipped as well, and we can't put it outside of dropdown because it takes attributes from propertySelection, we also need its position to absolute with relativity to the menu inside propertySelection!!
-  // TODO: Find alternate solution that works ^^^^^^^
   display: flex;
   flex-direction: column;
-
   transition: all 0.2s ease-in-out;
 
   &__header {
-    // Created a variable to be able to access this value from JavaScript
-    --max-height-propertySelector__header: u.rem(70);
-    max-height: var(--max-height-propertySelector__header);
     padding: u.rem(5) u.rem(15);
     display: flex;
     justify-content: space-between;
@@ -32,7 +26,7 @@
       flex-grow: 1;
       flex-wrap: wrap;
 
-      > input {
+      input {
         width: u.rem(90);
         padding: u.rem(3) u.rem(10);
         text-align: right;
@@ -47,7 +41,6 @@
 
   &__dropdown {
     max-width: 100%;
-    // overflow: scroll;
     padding-inline: u.rem(15);
     display: flex;
     flex-direction: column;
@@ -60,7 +53,8 @@
     }
 
     > ul {
-      // overflow: scroll;
+      max-height: u.rem(115);
+      overflow-y: scroll;
       display: flex;
       flex-direction: column;
       gap: u.rem(5);
@@ -75,7 +69,8 @@
       cursor: pointer;
     }
 
-    &:hover {
+    &:hover,
+    &:focus-visible {
       z-index: 1;
       background-color: var(--M50);
       box-shadow: 0 0 u.rem(5) u.rem(2) hsla(0, 0%, 0%, 0.15);
@@ -83,11 +78,10 @@
   }
 
   &.open {
-    // background-color: var(--M50);
     box-shadow: 0 0 u.rem(5) u.rem(2) hsla(0, 0%, 0%, 0.15);
 
-    > div:nth-of-type(1) {
-      // &__header
+    // &__header
+    > div:first-of-type {
       background-color: var(--M50);
       padding-block: u.rem(5);
       border-bottom: u.rem(1) solid var(--M75);
@@ -102,13 +96,18 @@
       > ul {
         justify-content: start;
 
-        input {
-          cursor: text;
-          text-align: left;
+        li:last-of-type {
           flex-grow: 1;
+          display: flex;
 
-          &::placeholder {
-            opacity: 0;
+          input {
+            cursor: text;
+            text-align: left;
+            flex-grow: 1;
+
+            &::placeholder {
+              opacity: 0;
+            }
           }
         }
       }

@@ -1,4 +1,11 @@
-import { useEffect, useState, useRef } from 'react';
+import PropTypes from 'prop-types';
+import {
+  useEffect,
+  useState,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+} from 'react';
 import { useDataContext } from '../../../contexts/DataContext';
 import { useFileContext } from '../../../contexts/FileContext';
 import { useEditorContext } from '../../../contexts/EditorContext';
@@ -10,31 +17,33 @@ import { ReactComponent as GoIcon } from '../../../assets/icons/arrow.svg';
 import MenuItem from '../MenuItem/MenuItem';
 import { ReactComponent as WriteIcon } from '../../../assets/icons/write.svg';
 import { ReactComponent as SummarizeIcon } from '../../../assets/icons/summarize.svg';
+import { ReactComponent as ImproveIcon } from '../../../assets/icons/magicWand.svg';
 import Markdown from 'markdown-to-jsx';
 import ReactDOMServer from 'react-dom/server';
 
-const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
+/**
+ * Provides an AI-powered search interface for both Notes and Flashcards contexts.
+ * It dynamically adjusts based on context and handles AI suggestions and responses.
+ *
+ * @component
+ * @param {('Notes' | 'Flashcards')} context - Defines the current context, either 'Notes' or 'Flashcards'.
+ * @param {string} [parentId] - The ID of the parent Flashcard element to associate with AI operations (only used in Flashcards context).
+ * @param {React.Ref} ref - The ref to the component used to expose the setShowAIsearch function to parent components.
+ * @returns {JSX.Element} The rendered AIsearch component.
+ *
+ * @example
+ * <AIsearch
+ *   context="Flashcards"
+ *   parentId="flashcard_123"
+ * />
+ */
+const AIsearch = forwardRef(({ context, parentId }, ref) => {
+  const AIsearchRef = useRef(null); // another ref to the main component to separate internal operations from the setShowAIsearch exposure to parent components
   const { id: fileId } = useFileContext();
-
-  // When Context = Notes //////////////////////////////////////////////////////
-  const { editorInstanceRef, blockInfo, setBlockInfo } = useEditorContext();
-  const editorInstance = editorInstanceRef.current;
-  const [HTMLblocks, setHTMLblocks] = useState(null);
-  const prevHTMLblocksRef = useRef(null);
-  //////////////////////////////////////////////////////////////////////////////
-
-  // When Context = Flashcards /////////////////////////////////////////////////
-  const { data } = useDataContext();
-  const [elementInFocus, setElementInFocus] = useState(null);
-  const AIinputRef = useRef(null);
-  const { handleUpdateFlashcard } = useFlashcard();
-  //////////////////////////////////////////////////////////////////////////////
-
   const { askAI } = useAI();
-  const [width, setWidth] = useState(400); // TODO: add dynamic width adjustment like the commented code in PropertySelector
+  const [showAIsearch, setShowAIsearch] = useState(false);
+  const [width, setWidth] = useState(400);
   const [topPosition, setTopPosition] = useState(-11);
-  const AIsearchRef = useRef(null);
-  // const [AIresponse, setAIresponse] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const suggestions = [
     {
@@ -56,7 +65,7 @@ const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
       category: 'Edit or review',
       name: 'Improve writing',
       keyword: 'improve',
-      icon: <></>,
+      icon: <ImproveIcon />,
     },
     {
       context: 'Flashcards',
@@ -72,29 +81,24 @@ const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
       suggestion.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleInputChange = (e) => {
-    searchTerm === '' && e.target.value === ' '
-      ? setSearchTerm('') // Prevent space from being typed at the start
-      : setSearchTerm(e.target.value); // set search term to user input
-  };
+  // Notes Context
+  const { editorInstanceRef, blockInfo, setBlockInfo } = useEditorContext();
+  const editorInstance = editorInstanceRef.current;
+  const [HTMLblocks, setHTMLblocks] = useState(null);
+  const prevHTMLblocksRef = useRef(null);
 
-  // Effect to set HTMLblocks and AIsearch width
-  useEffect(() => {
-    if (context === 'Notes' && editorInstance) {
-      setHTMLblocks(document.querySelectorAll('.ce-block'));
+  // Flashcards Context
+  const { data } = useDataContext();
+  const [elementInFocus, setElementInFocus] = useState(null);
+  const AIinputRef = useRef(null);
+  const { handleUpdateFlashcard } = useFlashcard();
 
-      const editorContainer = document.getElementById('editorjs');
-      setWidth(editorContainer.getBoundingClientRect().width);
-    }
-  }, [editorInstance]);
+  // Use useImperativeHandle to expose the setShowAIsearch function to parent components.
+  useImperativeHandle(ref, () => ({
+    setShowAIsearch,
+  }));
 
-  // Effect to set AIsearch topPosition
-  useEffect(() => {
-    if (context === 'Notes' && blockInfo?.block)
-      setTopPosition(blockInfo.block.getBoundingClientRect().top);
-  }, [blockInfo?.block]);
-
-  // Effect to listen for focus events on editor's blocks and save blockInfo
+  // Effect to listen for focus events on editor's blocks and save blockInfo when context is 'Notes'
   useEffect(() => {
     if (context === 'Notes' && HTMLblocks?.length > 0) {
       // Listen for autofocus event
@@ -148,11 +152,11 @@ const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
     }
   }, [HTMLblocks]);
 
-  // Effect to handle space key event for showing AIsearch and backspace key event for hiding AIsearch
+  // Effect to handle space and backspace key events for showing/hiding AIsearch
   useEffect(() => {
-    const handleKeyPress = async (event) => {
+    const handleKeyPress = (event) => {
       // TODO: In case of notes, blockInfo.isEmpty is slow to update when user types fast on a new line and hits space
-      // I think this is caused by the slow onChange callback from editorjs\
+      // I think this is caused by the slow onChange callback from editorjs
       if (
         event.key === ' ' &&
         ((context === 'Notes' && blockInfo.isEmpty) ||
@@ -161,9 +165,10 @@ const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
             (event.target.value === '' || event.isTrusted === false))) // when event is triggered by actually presssing the space button the textArea needs to be empty in order for the AIsearch to show up, but in case of clicking the stars button that dispatches a fake keydown event, we can force show AIsearch even with text area being full
       ) {
         setShowAIsearch(true);
-        context === 'Flashcards' &&
-          setWidth(event.target.clientWidth) &&
+        if (context === 'Flashcards') {
+          setWidth(event.target.clientWidth);
           setElementInFocus(event.target.id);
+        }
       } else if (
         AIsearchRef.current !== null &&
         AIsearchRef.current.contains(event.target) &&
@@ -183,23 +188,73 @@ const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
     };
   }, [blockInfo?.isEmpty, AIsearchRef.current]);
 
-  // Use custom hook to hide AIsearch on outside click
+  // Effect to update AIsearch topPosition based on focused block when context is 'Notes'
+  useEffect(() => {
+    if (context === 'Notes' && blockInfo?.block)
+      setTopPosition(blockInfo.block.getBoundingClientRect().top);
+  }, [blockInfo?.block]);
+
+  // Effect to set HTMLblocks and adjust AIsearch width when context is 'Notes'
+  useEffect(() => {
+    const updateWidth = () => {
+      const editorContainer = document.getElementById('editorjs');
+      if (editorContainer) {
+        setWidth(editorContainer.getBoundingClientRect().width);
+      }
+    };
+
+    if (context === 'Notes' && editorInstance) {
+      setHTMLblocks(document.querySelectorAll('.ce-block'));
+      updateWidth(); // Set initial width
+
+      // Add event listener for window resize
+      window.addEventListener('resize', updateWidth);
+
+      // Clean up the event listener on component unmount
+      return () => window.removeEventListener('resize', updateWidth);
+    }
+  }, [editorInstance]);
+
+  /**
+   * Handles input change for AI search.
+   *
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The event triggered by making changes to the AI search input.
+   */
+  const handleInputChange = (e) => {
+    searchTerm === '' && e.target.value === ' '
+      ? setSearchTerm('') // Prevent space from being typed at the start
+      : setSearchTerm(e.target.value); // set search term to user input
+  };
+
+  // Custom hook to hide AIsearch on outside click
   // TODO: find a way to override the eventlistener created by editorJS on the padding area of the editor because it prevents UseOutsideClick to execute in that area
   useOutsideClick(AIsearchRef, () => setShowAIsearch(false));
 
-  // Effect to set focus back to last focused block when AIsearch is closed
+  /**
+   * Effect that resets the search term when AI search is closed.
+   * If the context is "Notes," it also returns focus to the last focused block.
+   */
   useEffect(() => {
-    if (context === 'Notes' && editorInstance && !showAIsearch) {
-      blockInfo?.editableBlock?.focus();
-    } else if (context === 'Flashcards' && !showAIsearch) {
-      document.getElementById(elementInFocus)?.focus();
+    if (!showAIsearch) {
+      setSearchTerm('');
+      if (context === 'Notes' && editorInstance) {
+        blockInfo?.editableBlock?.focus();
+      } else if (context === 'Flashcards') {
+        document.getElementById(elementInFocus)?.focus();
+      }
     }
   }, [showAIsearch]);
 
-  // Function to insert AI's response note/flashcard
+  /**
+   * Inserts AI response into notes or flashcards.
+   *
+   * @async
+   * @param {string} text - The AI-generated response to be inserted (Markdown format for notes, plain text for flashcards).
+   * @returns {Promise<void>}
+   */
   const insertResponse = async (text) => {
     if (context === 'Notes' && editorInstance) {
-      // Get the HTML string representation of the rendered Markdown text
+      // Convert the AI response from Markdown to an HTML string.
       const htmlString = ReactDOMServer.renderToStaticMarkup(
         <Markdown>{text}</Markdown>
       )
@@ -208,28 +263,26 @@ const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
         .replace('<em>', '<i>')
         .replace('</em>', '</i>');
 
-      // The following code is a workaround for two problems
-      // problem 1: renderFromHTML clears the editor before inserting the rendered blocks
-      // problem 2: even when saving the existing blocks using editorInstance.save() in hopes of inserting them back
-      // after the AI response is rendered, we loose the position the user expects the response to be in due to editorJs'
-      // elimination of the empty blocks on editorInstance.save().
+      // The following code is a workaround for two issues:
+      // 1. renderFromHTML clears the editor before inserting the rendered blocks.
+      // 2. Saving existing blocks with editorInstance.save() before AI response insertion results
+      //    in a loss of the intended block position due to Editor.js eliminating empty blocks.
 
-      // Save existing blocks because renderFromHTML replaces everything
+      // Save the current blocks before rendering the new content, as renderFromHTML will replace all blocks.
       const savedBlocks = (await editorInstance.save()).blocks;
 
-      // Use blocks list from HTML, it includes empty blocks to get the index of the block currently in focus
+      // Retrieve the index of the current block in focus from the list of HTML blocks (preserves empty blocks).
       const currentIndex = Array.from(HTMLblocks).indexOf(blockInfo.block);
 
-      // Get the id of the last full block before the current block
+      // Identify the last non-empty block before the current block to maintain content order.
       let lastFullBlockId = null;
       for (let i = 0; i < currentIndex; i++) {
         const block = HTMLblocks[i];
-        block.innerText !== ''
-          ? (lastFullBlockId = block.getAttribute('data-id'))
-          : void 0;
+        if (block.innerText !== '')
+          lastFullBlockId = block.getAttribute('data-id');
       }
 
-      // Use that id to get its index in the blocks array retrived from editorJs
+      // Use that id to get its index in the blocks array retrieved from editorJs
       let lastFullBlockIndex = null;
       if (lastFullBlockId !== null) {
         lastFullBlockIndex = savedBlocks.findIndex(
@@ -237,32 +290,32 @@ const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
         );
       }
 
-      // Render HTML content into EditorJS blocks
-      // TODO: solve the "Can't find a Block to remove" error caused by renderFromHTML
+      // Render the new HTML content as Editor.js blocks.
+      // TODO: Resolve the "Can't find a Block to remove" error caused by renderFromHTML.
       await editorInstance.blocks.renderFromHTML(htmlString);
 
-      // Delay the insertion of the previous blocks until promise is fulfilled
-      // TODO: Possible problem is that this imposed timeout is not enough for bigger renders, find surer to
-      // wait until the HTML rendering is fully done.
+      // Delay re-insertion of the saved blocks until rendering of the AI response is complete.
+      // TODO: The 100ms timeout might not be sufficient for larger renders. Implement a more reliable
+      // approach to ensure the HTML rendering is fully finished before re-inserting the blocks.
       setTimeout(async () => {
-        // Get the length of the rendered AI response blocks
-        const AIresponselength = (await editorInstance.save()).blocks.length;
+        // Retrieve the number of blocks rendered from the AI response.
+        const AIresponseLength = (await editorInstance.save()).blocks.length;
 
-        // Insert previous blocks back while maintaining the order that the user expects
+        // Reinsert saved blocks around the AI response, maintaining the user's expected order.
         savedBlocks.forEach((block, index) => {
           let updatedIndex = index;
 
+          // Adjust the insertion index for blocks that are supposed to come after the AI-triggering block.
           if (lastFullBlockIndex === null || index > lastFullBlockIndex) {
-            updatedIndex = index + AIresponselength;
+            updatedIndex = index + AIresponseLength;
           }
 
           editorInstance.blocks.insert(
             block.type,
             block.data,
             block.config,
-            updatedIndex // This is the goal of the workaround, knowing at exactly what index which block is going
-            // to be inserted back into the editor after the AI response is rendered, while taking into consideration
-            // the obsctacle imposed by editorJs's empty block elimination system
+            updatedIndex // The goal here is to insert each saved block at the correct position,
+            // accounting for the AI response while considering Editor.js's behavior of removing empty blocks.
           );
         });
       }, 100);
@@ -273,12 +326,11 @@ const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
       const match = text.match(regex);
 
       if (match) {
-        const term = match[1].trim();
-        const definition = match[2].trim();
+        const [_, term, definition] = match;
 
-        await handleUpdateFlashcard(parentId.replace('_term', ''), {
-          term: term,
-          definition: definition,
+        await handleUpdateFlashcard(parentId.replace('-term', ''), {
+          term: term.trim(),
+          definition: definition.trim(),
         });
       } else {
         console.log('No match found.');
@@ -286,15 +338,30 @@ const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
     }
   };
 
-  // Function to handle form submission
+  /**
+   * Handles form submission for the AI search.
+   *
+   * @async
+   * @param {React.FormEvent<HTMLFormElement>} e - The form submit event.
+   * @returns {Promise<void>}
+   */
   // TODO: Solve issue with response not being inserted into blocks like how it works with handleSuggestionClick
   const handleSubmit = async (e) => {
-    e.preventDefault(); // a temporary fix for form refreshing page on submit
-    setShowAIsearch(false); // Close AIsearch
+    e.preventDefault();
     const response = await askAI(context, searchTerm, fileId);
+    setShowAIsearch(false);
     await insertResponse(response);
   };
 
+  /**
+   * Handles the click event on an AI suggestion.
+   *
+   * @async
+   * @param {object} suggestion - The selected suggestion object.
+   * @param {string} suggestion.context - The context of the suggestion (either 'Notes' or 'Flashcards').
+   * @param {string} suggestion.keyword - The keyword to query the AI with.
+   * @returns {Promise<void>}
+   */
   const handleSuggestionClick = async (suggestion) => {
     if (context === 'Notes') {
       setShowAIsearch(false);
@@ -302,7 +369,7 @@ const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
       insertResponse(response);
     } else if (context === 'Flashcards') {
       const flashcard = data.flashcards.find(
-        (flashcard) => flashcard.id === parseInt(parentId.replace('_term', ''))
+        (flashcard) => flashcard.id === parseInt(parentId.replace('-term', ''))
       );
 
       if (!flashcard.term === !flashcard.definition) {
@@ -324,41 +391,39 @@ const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
     }
   };
 
-  // Effect to reset search term on close
-  useEffect(() => {
-    !showAIsearch ? setSearchTerm('') : void 0;
-  }, [showAIsearch]);
-
   return (
     showAIsearch && (
       <form
         ref={AIsearchRef}
-        className="aiSearch"
+        className="ai-search"
         style={{ top: `${topPosition}px`, width: `${width}px` }}
         onSubmit={(e) => handleSubmit(e)}
       >
-        <div className="aiSearch__field">
+        <div className="ai-search__field">
           <StarsIcon />
           <input
             ref={AIinputRef}
             type="text"
-            id="aiSearchInput"
+            // id="aiSearchInput"
             placeholder="Ask AI to write anything..."
             onChange={(e) => handleInputChange(e)}
             value={searchTerm}
             autoFocus
+            autoComplete="off"
+            aria-label="Ask AI"
+            aria-controls="ai-search-suggestions"
           />
-          <button type="submit">
+          <button type="submit" aria-label="Generate AI answer">
             <GoIcon />
           </button>
         </div>
         {filteredSuggestions.length > 0 && (
-          <ul className="aiSearch__suggestions">
+          <ul className="ai-search__suggestions" id="ai-search-suggestions">
             {filteredSuggestions.map((suggestion, index) => (
               <MenuItem
                 key={index}
                 size="small"
-                onClick={() => handleSuggestionClick(suggestion)}
+                onInteraction={() => handleSuggestionClick(suggestion)}
                 label={suggestion.name}
                 icon={suggestion.icon}
               />
@@ -368,6 +433,11 @@ const AIsearch = ({ context, parentId, showAIsearch, setShowAIsearch }) => {
       </form>
     )
   );
+});
+
+AIsearch.propTypes = {
+  context: PropTypes.oneOf(['Notes', 'Flashcards']).isRequired,
+  parentId: PropTypes.string,
 };
 
 export default AIsearch;
