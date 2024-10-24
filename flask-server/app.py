@@ -333,6 +333,8 @@ def extract_text_from_pdf(pdf_file):
 @app.route("/data", methods=["GET"])
 def get_user_data():
     user = User.query.filter_by(id=session["user_id"]).first()
+    
+    username = user.username
 
     files = user.files
     file_list = [
@@ -460,7 +462,7 @@ def get_user_data():
         for tag in tags
     ]
     
-    return jsonify({"files": file_list, "subjects": subjects_list, "projects": projects_list, "notes": notes_list, "flashcards": flashcards_list, "todos": todos_list, "tags": tags_list}), 200
+    return jsonify({"username": username, "files": file_list, "subjects": subjects_list, "projects": projects_list, "notes": notes_list, "flashcards": flashcards_list, "todos": todos_list, "tags": tags_list}), 200
 
 
 @login_required

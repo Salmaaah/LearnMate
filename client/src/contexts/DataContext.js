@@ -19,6 +19,7 @@ export const useDataContext = () => {
 
 export const DataProvider = ({ children }) => {
   const [data, setData] = useState({
+    username: '',
     files: [],
     subjects: [],
     projects: [],

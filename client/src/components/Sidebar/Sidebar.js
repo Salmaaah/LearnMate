@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useSidebar } from '../../contexts/SidebarContext';
+import { useDataContext } from '../../contexts/DataContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import MenuItem from '../Shared/MenuItem/MenuItem';
@@ -23,6 +24,7 @@ import { ReactComponent as LogoutIcon } from '../../assets/icons/logout.svg';
  */
 const Sidebar = () => {
   const { isExpanded, toggleSidebar } = useSidebar();
+  const { data } = useDataContext();
   const [isHovered, setIsHovered] = useState(false);
   const [isLogoutSuccess, setLogoutSuccess] = useState(false);
   const navigate = useNavigate();
@@ -143,7 +145,7 @@ const Sidebar = () => {
         <NavItem
           as="div"
           icon={<img src={profilePicture} alt="Profile avatar" />}
-          label="Username"
+          label={data.username}
           iconOnly={!isExpanded}
           ariaLabel="User controls"
           position={isExpanded ? 'tl-bl' : 'br-bl'}
