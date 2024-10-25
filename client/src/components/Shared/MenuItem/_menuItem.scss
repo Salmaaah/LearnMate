@@ -177,12 +177,12 @@
       font-size: u.rem(14.5);
     }
 
-    // Submenu type 1
+    // Submenu type 1: label is visible
     &.sub1 {
       padding: 0 u.rem(10) u.rem(10) u.rem(20);
     }
 
-    // Submenu type 2
+    // Submenu type 2: icon only
     &.sub2 {
       position: absolute;
       width: u.rem(173);
@@ -208,6 +208,13 @@
       z-index: 100;
       top: 0;
       left: calc(100% + u.rem(16));
+    }
+
+    // Submenu type 2 position 2: bottom left - top left alignment
+    &.bl-tl {
+      z-index: 100;
+      top: calc(100% + u.rem(16));
+      left: 0;
     }
   }
 

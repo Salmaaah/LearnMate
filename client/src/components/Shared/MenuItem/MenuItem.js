@@ -21,6 +21,7 @@ import { toHyphenatedLowercase } from '../../../utils/stringUtils';
  * @param {string} [props.to] - URL in case menu item's purpose is navigation.
  * @param {Function} [props.onInteraction] - Function in case menu item's purpose is to handle a specific action.
  * @param {boolean} [props.disabled=false] - Whether the menu item is disabled.
+ * @param {('tr-tl' | 'bl-tl')} [props.position='tr-tl'] - Position class for dropdown when iconOnly is true.
  * @returns {JSX.Element} The rendered component.
  */
 const MenuItem = ({
@@ -35,6 +36,7 @@ const MenuItem = ({
   to,
   onInteraction,
   disabled = false,
+  position = 'tr-tl',
 }) => {
   const { pathname } = useLocation();
   const ref = useRef(null);
@@ -55,7 +57,7 @@ const MenuItem = ({
    */
   const handleSubItems = (children) => {
     if (children)
-      return React.Children.map(children.props.children, (child) =>
+      return React.Children.map(children, (child) =>
         React.cloneElement(child, { ...child.props, isSubItem: true })
       );
   };
@@ -94,7 +96,8 @@ const MenuItem = ({
   // Handle which submenu class is applied
   useEffect(() => {
     if (hasSubMenu) {
-      if (iconOnly && (isHovered || isOpen)) setSubmenuClass('sub2 tr-tl');
+      if (iconOnly && (isHovered || isOpen))
+        setSubmenuClass(`sub2 ${position}`);
       else if (!iconOnly && isOpen) setSubmenuClass('sub1');
       else setSubmenuClass('');
     }
@@ -193,6 +196,7 @@ MenuItem.propTypes = {
   to: PropTypes.string,
   onInteraction: PropTypes.func,
   disabled: PropTypes.bool,
+  position: PropTypes.oneOf(['tr-tl', 'bl-tl']),
 };
 
 export default MenuItem;
