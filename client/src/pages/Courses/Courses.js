@@ -82,37 +82,40 @@ const Courses = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   /**
-   * Handles file grouping by a given key.
+   * Handles file grouping by a given key. 'No group' files will appear last in the array.
    *
    * @param {Array<object>} files - Array of files to group.
-   * @param {string} key - Key to group files by.
-   * @returns {Object.<string, Array<object>>} Grouped files object.
+   * @param {( 'none' | 'subject' | 'project' | 'tags')} key - Key to group files by.
+   * @returns {Array<[string, Array<object>]>} Array of key-value pairs of grouped files.
    */
   const groupFilesBy = (files, key) => {
-    return files.reduce((groups, file) => {
-      const keys = key.split('.');
-      let value = file;
+    if (key === 'none') {
+      return [['none', files]];
+    }
 
-      keys.forEach((k) => {
-        if (Array.isArray(value)) {
-          value = value.map((v) => v[k]).join(', ');
-        } else if (value[k] && Array.isArray(value[k])) {
-          value[k].forEach((tag) => {
-            const tagValue = tag.name;
-            groups[String(tagValue)] = groups[String(tagValue)] || [];
-            groups[String(tagValue)].push(file);
-          });
-          value = null;
-        } else {
-          value = value[k];
-        }
-      });
-
-      groups[String(value)] = groups[String(value)] || [];
-      groups[String(value)].push(file);
-
+    // Group files by key
+    const groupedFiles = files.reduce((groups, file) => {
+      if (file[key].length === 0) {
+        (groups[`no ${key}`] = groups[`no ${key}`] || []).push(file);
+      } else {
+        file[key].forEach((group) => {
+          (groups[group.name] = groups[group.name] || []).push(file);
+        });
+      }
       return groups;
     }, {});
+
+    // Convert the grouped files object into an array of key-value pairs
+    // and sort them so that files with no group appear last.
+    const sortedGroupedFiles = Object.entries(groupedFiles).sort(
+      ([groupA], [groupB]) => {
+        if (groupA === `no ${key}`) return 1;
+        if (groupB === `no ${key}`) return -1;
+        return 0;
+      }
+    );
+
+    return sortedGroupedFiles;
   };
 
   // Group files by the 'groupby' key specified by the user and memoize the result for optimization.
@@ -121,29 +124,21 @@ const Courses = () => {
     [data.files, groupBy]
   );
 
-  // Convert the grouped files object into an array of key-value pairs and sorts the data so that items with no group appear last
-  const sortedGroupedFiles = Object.entries(groupedFiles).sort(
-    ([groupA], [groupB]) => {
-      if (groupA === 'null') return 1;
-      if (groupB === 'null') return -1;
-      return 0;
-    }
-  );
-
   return (
     <Layout pageName="Courses">
       <div className="toolbar">
         <ul className="toolbar__controls">
           <MenuItem
-            disabled={true}
             size="medium"
             icon={<GroupIcon />}
             label="Group"
             iconOnly={iconOnly}
+            position="bl-tl"
           >
             {properties.map((property) => (
               <MenuItem
                 key={property}
+                isSubItem={true}
                 size="small"
                 label={(
                   property.charAt(0).toUpperCase() + property.slice(1)
@@ -226,22 +221,20 @@ const Courses = () => {
           )}
         </div>
       ) : (
-        sortedGroupedFiles.map(([group, files]) => (
-          <div key={group} className="filesContainer">
-            {group !== 'undefined' && (
-              <h3>
-                {group === 'null' ? `No ${groupBy.toLowerCase()}` : `${group}`}
-              </h3>
-            )}
-            <div className="filesContainer__files" role="grid">
-              {files.map((file, index) => (
-                <FileProvider file={file} key={index}>
-                  <File />
-                </FileProvider>
-              ))}
-            </div>
-          </div>
-        ))
+        <div className="filesContainer">
+          {groupedFiles.map(([group, files]) => (
+            <>
+              {groupBy !== 'none' && <h3>{group}</h3>}
+              <div key={group} className="filesContainer__files" role="grid">
+                {files.map((file, index) => (
+                  <FileProvider file={file} key={index}>
+                    <File />
+                  </FileProvider>
+                ))}
+              </div>
+            </>
+          ))}
+        </div>
       )}
     </Layout>
   );

@@ -103,10 +103,14 @@
 }
 
 .filesContainer {
-  margin-block: u.rem(20);
+  margin-top: u.rem(20);
+  margin-bottom: u.rem(384);
+
+  > h3 {
+    padding: u.rem(10);
+  }
 
   &__files {
-    margin-bottom: u.rem(384);
     width: 100%;
     padding: u.rem(10);
     display: inline-grid;
