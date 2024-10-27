@@ -9,7 +9,8 @@ $font-xs: u.rem(13);
 
 h1,
 h2,
-h3 {
+h3,
+h4 {
   font-weight: 900;
   line-height: 1.1; // line height of each line of text will be 110% taller than the font size itself
   margin: 0; // to overwrite browser default

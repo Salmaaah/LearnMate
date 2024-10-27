@@ -175,6 +175,20 @@ def login():
     return jsonify({"message": "Login page loaded successfully"}), 200
 
 
+@app.route("/terms")
+@logout_required
+def login():
+    """Terms and Conditions"""
+    return jsonify({"message": "Terms & Conditions page loaded successfully"}), 200
+
+
+@app.route("/privacy")
+@logout_required
+def login():
+    """Privacy Policy"""
+    return jsonify({"message": "Privacy Policy page loaded successfully"}), 200
+
+
 @app.route("/logout", methods=["POST"])
 def logout():
     """Log user out"""

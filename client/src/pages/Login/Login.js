@@ -116,18 +116,20 @@ const Login = () => {
               type="submit"
               variant="secondary"
               icon_l={<GoogleIcon />}
+              disabled
             />
             <Button
               label="Continue with apple"
               type="submit"
               variant="secondary"
               icon_l={<AppleIcon />}
+              disabled
             />
             <p className="form__disclaimer">
               By signing in to LearnMate, you acknowledge that you have read and
               understood, and agree to our{' '}
-              <Link to="/">Terms & Conditions</Link> and{' '}
-              <Link to="/">Privacy Policy</Link>.
+              <Link to="/terms">Terms & Conditions</Link> and{' '}
+              <Link to="/privacy">Privacy Policy</Link>.
             </p>
             <div className="form__cta">
               Don't have an account? <Link to="/signup">SIGN UP</Link>
