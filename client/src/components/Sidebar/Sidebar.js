@@ -32,49 +32,73 @@ const Sidebar = () => {
     {
       to: '/dashboard',
       icon: <HomeIcon />,
-      label: 'Dashboard (soon)',
+      label: 'Dashboard',
       disabled: true,
     },
     {
       to: '/courses',
       icon: <FilesIcon />,
       label: 'Courses',
-      disabled: false,
     },
     {
-      to: '/notebook',
+      to: '/calendar',
+      icon: <FilesIcon />,
+      label: 'Calendar',
+      disabled: true,
+    },
+    {
       icon: <NotesIcon />,
-      label: 'Notebook (soon)',
-      disabled: true,
-    },
-    {
-      to: '/flashcards',
-      icon: <FlashcardsIcon />,
-      label: 'Flashcards (soon)',
-      disabled: true,
-    },
-    {
-      to: '/todo',
-      icon: <TodoIcon />,
-      label: 'To do (soon)',
-      disabled: true,
-    },
-    {
-      icon: <MindmapIcon />,
-      label: 'Mind maps',
-      disabled: false,
+      label: 'Study Tools',
       subMenu: [
         {
-          to: '/sub1',
-          label: 'sub 1',
+          to: '/notebook',
+          icon: <NotesIcon />,
+          label: 'Notebook',
           disabled: true,
         },
         {
-          to: '/sub2',
-          label: 'sub 2',
+          to: '/flashcards',
+          icon: <FlashcardsIcon />,
+          label: 'Flashcards',
+          disabled: true,
+        },
+        {
+          to: '/todo',
+          icon: <TodoIcon />,
+          label: 'To do',
           disabled: true,
         },
       ],
+    },
+    {
+      icon: <MindmapIcon />,
+      label: 'AI Learning',
+      subMenu: [
+        {
+          to: '/quizzes',
+          icon: <MindmapIcon />,
+          label: 'Chat to Learn',
+          disabled: true,
+        },
+        {
+          to: '/mindmaps',
+          icon: <MindmapIcon />,
+          label: 'Mind maps',
+          disabled: true,
+        },
+        {
+          to: '/quizzes',
+          icon: <MindmapIcon />,
+          label: 'Quizzes',
+          disabled: true,
+        },
+      ],
+    },
+    {
+      to: '/path',
+      icon: <FilesIcon />,
+      label: 'Learning Path',
+      disabled: true,
     },
   ];
 

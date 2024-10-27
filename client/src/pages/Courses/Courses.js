@@ -138,7 +138,6 @@ const Courses = () => {
             {properties.map((property) => (
               <MenuItem
                 key={property}
-                isSubItem={true}
                 size="small"
                 label={(
                   property.charAt(0).toUpperCase() + property.slice(1)

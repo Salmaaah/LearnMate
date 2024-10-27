@@ -47,6 +47,10 @@
       border-bottom: u.rem(4) solid var(--M300);
       box-shadow: 0 u.rem(5) u.rem(8) 0 hsla(0, 0%, 0%, 0.1);
       cursor: not-allowed;
+
+      svg {
+        filter: grayscale(80%);
+      }
     }
   }
 
@@ -78,6 +82,10 @@
       color: var(--M75);
       box-shadow: 0 u.rem(4) 0 0 var(--M100);
       cursor: not-allowed;
+
+      svg {
+        filter: grayscale(80%);
+      }
     }
   }
 
