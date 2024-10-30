@@ -20,14 +20,14 @@ const useFlashcard = () => {
    * Creates a new flashcard on the server.
    *
    * @async
-   * @param {number} fileId - The ID of the file associated with the flashcard.
+   * @param {number} DeckId - The ID of the flashcard deck associated with the flashcard.
    * @param {number} order - The order number for the flashcard.
    * @returns {Promise<number|null>} The ID of the created flashcard or null if failed.
    */
-  const handleCreateFlashcard = async (fileId, order) => {
+  const handleCreateFlashcard = async (DeckId, order) => {
     console.log('Creating flashcard');
     try {
-      const response = await axios.post(`/createFlashcard/${fileId}/${order}`);
+      const response = await axios.post(`/createFlashcard/${DeckId}/${order}`);
       fetchData();
       console.log(response.data.message);
       return response.data.flashcard.id;

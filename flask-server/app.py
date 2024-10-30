@@ -943,15 +943,15 @@ def askAI(context, keyword):
 
 
 @login_required
-@app.route('/createFlashcard/<file_id>/<order>', methods=["POST"])
-def create_flashcard(file_id, order):
+@app.route('/createFlashcard/<deck_id>/<order>', methods=["POST"])
+def create_flashcard(deck_id, order):
     try:
         new_flashcard = Flashcard(
             order=order,
             term='',
             definition='',
             user_id=session["user_id"],
-            file_id=file_id,
+            deck_id=deck_id,
         )
         db.session.add(new_flashcard)
         db.session.commit()
@@ -1074,10 +1074,10 @@ def delete_flashcard(flashcard_id):
     flashcard = Flashcard.query.filter_by(id=flashcard_id).first()
 
     if flashcard:
-        # Save file_id to extract remaining_flashcards later
-        file_id = flashcard.file_id
+        # Save deck_id to extract remaining_flashcards later
+        deck_id = flashcard.deck_id
 
-        # delete flashcard image from folder
+        # delete flashcard image from folder if it exists
         if flashcard.image_path:
             os.remove(flashcard.image_path)
 
@@ -1085,8 +1085,8 @@ def delete_flashcard(flashcard_id):
         db.session.delete(flashcard)
         db.session.commit()
 
-        # Update order of remaining flashcards
-        remaining_flashcards = Flashcard.query.filter_by(file_id=file_id).order_by(Flashcard.order).all()
+        # Update order of remaining flashcards in the same deck
+        remaining_flashcards = Flashcard.query.filter_by(deck_id=deck_id).order_by(Flashcard.order).all()
         
         for index, card in enumerate(remaining_flashcards):
             card.order = index + 1
