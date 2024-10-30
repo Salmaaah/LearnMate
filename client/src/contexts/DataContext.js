@@ -24,7 +24,7 @@ export const DataProvider = ({ children }) => {
     subjects: [],
     projects: [],
     notes: [],
-    flashcards: [],
+    flashcard_decks: [],
     todos: [],
     tags: [],
   });

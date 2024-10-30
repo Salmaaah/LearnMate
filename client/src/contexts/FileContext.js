@@ -14,7 +14,7 @@ export const FileProvider = ({ children, file }) => {
     subject,
     project,
     notes,
-    flashcards,
+    flashcard_decks,
     todos,
     tags,
   } = file;
@@ -28,7 +28,7 @@ export const FileProvider = ({ children, file }) => {
         subject,
         project,
         notes,
-        flashcards,
+        flashcard_decks,
         todos,
         tags,
       }}
