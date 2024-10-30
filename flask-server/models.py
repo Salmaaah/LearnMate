@@ -129,6 +129,25 @@ class NoteTag(db.Model):
     note_id = db.Column(db.Integer, db.ForeignKey('note.id'), nullable=False)
     tag_id = db.Column(db.Integer, db.ForeignKey('tag.id'), nullable=False)
 
+class FlashcardDeck(db.Model):
+    """FlashcardDeck model representing a collection of flashcards."""
+    __tablename__ = 'flashcard_deck'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), unique=True, nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    modified_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    last_reviewed_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Foreign key to associate the flashcard deck with a user
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('flashcard_decks', lazy=True))
+
+    # Foreign key to associate the flashcard deck with a file
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id'))
+    file = db.relationship('File', backref=db.backref('flashcard_decks', lazy=True))
+
 class Flashcard(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     term = db.Column(db.String(255), nullable=False)
@@ -140,9 +159,9 @@ class Flashcard(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('flashcards', lazy=True))
 
-    # Foreign key to associate the flashcard with a file
-    file_id = db.Column(db.Integer, db.ForeignKey('file.id'))
-    file = db.relationship('File', backref=db.backref('flashcards', lazy=True))
+    # Foreign key to associate the flashcard with a deck
+    deck_id = db.Column(db.Integer, db.ForeignKey('flashcard_deck.id'))
+    deck = db.relationship('FlashcardDeck', backref=db.backref('flashcards', lazy=True))
 
 class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
