@@ -342,7 +342,6 @@ def extract_text_from_pdf(pdf_file):
     return text.strip()
 
 
-# @uploaded_files_bp.route("/files", methods=["GET"])
 @login_required
 @app.route("/data", methods=["GET"])
 def get_user_data():
@@ -382,15 +381,25 @@ def get_user_data():
                 } 
                 for note in file.notes
             ],
-            "flashcards": [
+            "flashcard_decks": [
                 {
-                    "id": flashcard.id,
-                    "term": flashcard.term,
-                    "definition": flashcard.definition,
-                    "order": flashcard.order,
-                    "imagePath": flashcard.image_path,
+                    "id": flashcard_deck.id,
+                    "name": flashcard_deck.name,
+                    "description": flashcard_deck.description,
+                    "modified_at": flashcard_deck.modified_at,
+                    "last_reviewed_at": flashcard_deck.last_reviewed_at,
+                    "flashcards": [
+                        {
+                            "id": flashcard.id,
+                            "term": flashcard.term,
+                            "definition": flashcard.definition,
+                            "order": flashcard.order,
+                            "imagePath": flashcard.image_path,
+                        } 
+                        for flashcard in flashcard_deck.flashcards
+                    ],
                 } 
-                for flashcard in file.flashcards
+                for flashcard_deck in file.flashcard_decks
             ],
             "todos": [
                 {
@@ -443,16 +452,26 @@ def get_user_data():
         for note in notes
     ]
 
-    flashcards = user.flashcards
-    flashcards_list = [
+    flashcard_decks = user.flashcard_decks
+    flashcard_decks_list = [
         {
-            "id": flashcard.id,
-            "term": flashcard.term,
-            "definition": flashcard.definition,
-            "order": flashcard.order,
-            "imagePath": flashcard.image_path,
+            "id": flashcard_deck.id,
+            "name": flashcard_deck.name,
+            "description": flashcard_deck.description,
+            "modified_at": flashcard_deck.modified_at,
+            "last_reviewed_at": flashcard_deck.last_reviewed_at,
+            "flashcards": [
+                {
+                    "id": flashcard.id,
+                    "term": flashcard.term,
+                    "definition": flashcard.definition,
+                    "order": flashcard.order,
+                    "imagePath": flashcard.image_path,
+                } 
+                for flashcard in flashcard_deck.flashcards
+            ],
         }
-        for flashcard in flashcards
+        for flashcard_deck in flashcard_decks
     ]
 
     todos = user.todos
@@ -476,7 +495,7 @@ def get_user_data():
         for tag in tags
     ]
     
-    return jsonify({"username": username, "files": file_list, "subjects": subjects_list, "projects": projects_list, "notes": notes_list, "flashcards": flashcards_list, "todos": todos_list, "tags": tags_list}), 200
+    return jsonify({"username": username, "files": file_list, "subjects": subjects_list, "projects": projects_list, "notes": notes_list, "flashcard_decks": flashcard_decks_list, "todos": todos_list, "tags": tags_list}), 200
 
 
 @login_required
