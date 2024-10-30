@@ -177,14 +177,14 @@ def login():
 
 @app.route("/terms")
 @logout_required
-def login():
+def terms():
     """Terms and Conditions"""
     return jsonify({"message": "Terms & Conditions page loaded successfully"}), 200
 
 
 @app.route("/privacy")
 @logout_required
-def login():
+def privacy():
     """Privacy Policy"""
     return jsonify({"message": "Privacy Policy page loaded successfully"}), 200
 

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import Layout from '../Layout/Layout';
@@ -222,16 +222,16 @@ const Courses = () => {
       ) : (
         <div className="filesContainer">
           {groupedFiles.map(([group, files]) => (
-            <>
+            <React.Fragment key={group}>
               {groupBy !== 'none' && <h3>{group}</h3>}
-              <div key={group} className="filesContainer__files" role="grid">
+              <div className="filesContainer__files" role="grid">
                 {files.map((file, index) => (
                   <FileProvider file={file} key={index}>
                     <File />
                   </FileProvider>
                 ))}
               </div>
-            </>
+            </React.Fragment>
           ))}
         </div>
       )}
