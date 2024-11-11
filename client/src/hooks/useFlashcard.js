@@ -17,17 +17,74 @@ const useFlashcard = () => {
   const { fetchData } = useDataContext();
 
   /**
+   * Creates a new flashcard deck on the server.
+   *
+   * @async
+   * @param {number} fileId - The ID of the file associated with the flashcard deck.
+   * @param {boolean} [empty=false] - Determines if the flashcard deck should be created with a default flashcard.
+   * @returns {Promise<Object|null>} The created deck object or null if failed.
+   */
+  const handleCreateFlashcardDeck = async (fileId, empty = false) => {
+    console.log('Creating flashcard deck');
+    try {
+      // Create the flashcard deck
+      const deckResponse = await axios.post(`/createFlashcardDeck/${fileId}`);
+      fetchData();
+      console.log(deckResponse.data.message);
+
+      if (!empty) {
+        // Create a default flashcard in the new deck
+        const deckId = deckResponse.data.flashcard_deck.id;
+        const defaultOrder = 1;
+        await handleCreateFlashcard(deckId, defaultOrder);
+      }
+
+      // Return deck data
+      return deckResponse.data.flashcard_deck;
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        console.error(error.response.data.error);
+      } else {
+        console.error('Error creating flashcard deck:', error.message);
+      }
+      return null;
+    }
+  };
+
+  /**
+   * Deletes a flashcard deck from the server.
+   *
+   * @async
+   * @param {number} deckId - The ID of the flashcard deck to delete.
+   * @returns {Promise<void>}
+   */
+  const handleDeleteFlashcardDeck = async (deckId) => {
+    console.log('Deleting flashcard deck');
+    try {
+      const response = await axios.post(`/deleteFlashcardDeck/${deckId}`);
+      fetchData();
+      console.log(response.data.message);
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        console.error(error.response.data.error);
+      } else {
+        console.error('Error deleting flashcard deck:', error.message);
+      }
+    }
+  };
+
+  /**
    * Creates a new flashcard on the server.
    *
    * @async
-   * @param {number} DeckId - The ID of the flashcard deck associated with the flashcard.
+   * @param {number} deckId - The ID of the flashcard deck associated with the flashcard.
    * @param {number} order - The order number for the flashcard.
    * @returns {Promise<number|null>} The ID of the created flashcard or null if failed.
    */
-  const handleCreateFlashcard = async (DeckId, order) => {
+  const handleCreateFlashcard = async (deckId, order) => {
     console.log('Creating flashcard');
     try {
-      const response = await axios.post(`/createFlashcard/${DeckId}/${order}`);
+      const response = await axios.post(`/createFlashcard/${deckId}/${order}`);
       fetchData();
       console.log(response.data.message);
       return response.data.flashcard.id;
@@ -147,6 +204,8 @@ const useFlashcard = () => {
   };
 
   return {
+    handleCreateFlashcardDeck,
+    handleDeleteFlashcardDeck,
     handleCreateFlashcard,
     handleUpdateFlashcard,
     handleUploadFlashcardImage,

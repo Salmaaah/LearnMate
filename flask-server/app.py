@@ -1,5 +1,4 @@
 import os
-import re
 from dotenv import load_dotenv
 import json
 from flask import Flask, session, request, jsonify, send_file, Response, stream_with_context
@@ -11,11 +10,11 @@ import magic
 from pypdf import PdfReader
 from openai import OpenAI, APIError, APIConnectionError, RateLimitError
 from validator_collection import is_email
-from models import db, User, File, Subject, Tag, Project, Note, Flashcard, Todo
+from models import db, User, File, Subject, Tag, Project, Note, FlashcardDeck, Flashcard, Todo
 from flask_migrate import Migrate
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_
-from helpers import login_required, logout_required
+from helpers import login_required, logout_required, generate_untitled_name
 
 
 # Configure application
@@ -474,6 +473,18 @@ def get_user_data():
         for flashcard_deck in flashcard_decks
     ]
 
+    flashcards = user.flashcards
+    flashcards_list = [
+        {
+            "id": flashcard.id,
+            "term": flashcard.term,
+            "definition": flashcard.definition,
+            "order": flashcard.order,
+            "imagePath": flashcard.image_path,
+        } 
+        for flashcard in flashcards
+    ]
+
     todos = user.todos
     todos_list = [
         {
@@ -495,7 +506,7 @@ def get_user_data():
         for tag in tags
     ]
     
-    return jsonify({"username": username, "files": file_list, "subjects": subjects_list, "projects": projects_list, "notes": notes_list, "flashcard_decks": flashcard_decks_list, "todos": todos_list, "tags": tags_list}), 200
+    return jsonify({"username": username, "files": file_list, "subjects": subjects_list, "projects": projects_list, "notes": notes_list, "flashcard_decks": flashcard_decks_list, "flashcards": flashcards_list, "todos": todos_list, "tags": tags_list}), 200
 
 
 @login_required
@@ -748,26 +759,9 @@ def delete_property(property_type, property_id):
 @app.route('/createNote/<file_id>/<note_name>', methods=["POST"])
 def create_note(file_id, note_name=None):
 
+    # Generate note name if not provided
     if note_name is None:
-        untitled_notes = Note.query.filter(Note.name.like("%Untitled note%")).all()
-
-        if len(untitled_notes) == 0 or all([note.name != "Untitled note" for note in untitled_notes]):
-                note_num = ""
-        else:
-            # leave only the untitled notes that strictly follow the format "Untitled note [number]"
-            untitled_notes = [note.name for note in untitled_notes if re.fullmatch(r'Untitled note \d+', note.name)]
-            # extract and sort the existing numbers used in the untitled notes
-            nums = sorted([int(note.split(' ')[-1]) for note in untitled_notes])
-
-            expected_num = 2
-            for num in nums:
-                if num != expected_num:
-                    note_num = " " + str(expected_num)
-                    break
-                expected_num += 1
-            note_num = " " + str(expected_num)
-
-        note_name="Untitled note" + note_num
+        note_name = generate_untitled_name('note')
         
     # Add new note to database
     try:
@@ -943,6 +937,54 @@ def askAI(context, keyword):
 
 
 @login_required
+@app.route('/createFlashcardDeck/<file_id>', methods=["POST"])
+def create_flashcard_deck(file_id):
+
+    # Add new deck to database
+    try:
+        new_deck = FlashcardDeck(
+            name=generate_untitled_name('deck'),
+            user_id=session["user_id"],
+            file_id=file_id,
+        )
+        db.session.add(new_deck)
+        db.session.commit()
+
+        deck = {
+            "id": new_deck.id,
+            "name": new_deck.name,
+            "description": new_deck.description,
+        }
+
+        return jsonify({"message": "Flashcard deck created successfully", "flashcard_deck": deck}), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@login_required
+@app.route("/deleteFlashcardDeck/<deck_id>", methods=["POST"])
+def delete_flashcard_deck(deck_id):
+    deck = FlashcardDeck.query.filter_by(id=deck_id).first()
+
+    if deck:
+        # Delete flashcards in the deck
+        flashcards = Flashcard.query.filter_by(deck_id=deck_id).order_by(Flashcard.order).all()
+
+        for flashcard in flashcards:
+            delete_flashcard(flashcard.id, True)
+
+        # delete flashcard deck from database
+        db.session.delete(deck)
+        db.session.commit()
+
+        return jsonify({"message": "Flashcard deck deleted successfully"}), 200
+
+    else:
+        return jsonify({"error": "Flashcard deck not found"}), 404
+
+
+@login_required
 @app.route('/createFlashcard/<deck_id>/<order>', methods=["POST"])
 def create_flashcard(deck_id, order):
     try:
@@ -1070,7 +1112,7 @@ def delete_image(flashcard_id):
 
 @login_required
 @app.route("/deleteFlashcard/<flashcard_id>", methods=["POST"])
-def delete_flashcard(flashcard_id):
+def delete_flashcard(flashcard_id, batch_deletion=False):
     flashcard = Flashcard.query.filter_by(id=flashcard_id).first()
 
     if flashcard:
@@ -1083,15 +1125,16 @@ def delete_flashcard(flashcard_id):
 
         # delete flashcard from database
         db.session.delete(flashcard)
-        db.session.commit()
 
-        # Update order of remaining flashcards in the same deck
-        remaining_flashcards = Flashcard.query.filter_by(deck_id=deck_id).order_by(Flashcard.order).all()
+        if not batch_deletion:
+            # Update order of remaining flashcards in the same deck
+            remaining_flashcards = Flashcard.query.filter_by(deck_id=deck_id).order_by(Flashcard.order).all()
+            
+            for index, card in enumerate(remaining_flashcards):
+                card.order = index + 1
+                db.session.add(card)
         
-        for index, card in enumerate(remaining_flashcards):
-            card.order = index + 1
-            db.session.add(card)
-        db.session.commit()
+            db.session.commit()
 
         return jsonify({"message": "Flashcard deleted successfully"}), 200
 
