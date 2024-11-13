@@ -31,21 +31,41 @@ const Note = ({
   const AIsearchRef = useRef(null);
 
   /**
-   * Formats the given date, displaying either the day name (if within past week)
-   * or as MM/DD/YYYY.
+   * Formats the given date, displaying "Today" or "Yesterday" if the date is today or yesterday,
+   * the day name if within the past week, or as MM/DD/YYYY for earlier dates.
    *
    * @param {Date|string} date - Date to format.
    * @returns {string} - Formatted date string.
    */
   const formatDate = (date) => {
     const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
     const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     // Convert date to a Date object if it's a string
     if (!(date instanceof Date)) date = new Date(date);
 
+    // Check if the date is today
+    if (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    ) {
+      return 'Today';
+    }
+
+    // Check if the date is yesterday
+    if (
+      date.getDate() === yesterday.getDate() &&
+      date.getMonth() === yesterday.getMonth() &&
+      date.getFullYear() === yesterday.getFullYear()
+    ) {
+      return 'Yesterday';
+    }
+
+    // Return the day name if the date is within the past week
     if (date > oneWeekAgo) {
-      // Return the day name when date is within the past week
       const days = [
         'Sunday',
         'Monday',
@@ -61,7 +81,7 @@ const Note = ({
       const month = date.getMonth() + 1;
       const day = date.getDate();
       const year = date.getFullYear();
-      return month + '/' + day + '/' + year;
+      return `${month}/${day}/${year}`;
     }
   };
 
