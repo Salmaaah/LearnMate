@@ -376,7 +376,8 @@ def get_user_data():
                     "id": note.id,
                     "name": note.name,
                     "content": json.loads(note.content) if note.content is not None else '',
-                    "modified_date" : note.modified_date,
+                    "modified_at" : note.modified_at,
+                    "table": Note.__tablename__,
                 } 
                 for note in file.notes
             ],
@@ -397,6 +398,7 @@ def get_user_data():
                         } 
                         for flashcard in flashcard_deck.flashcards
                     ],
+                    "table": FlashcardDeck.__tablename__,
                 } 
                 for flashcard_deck in file.flashcard_decks
             ],

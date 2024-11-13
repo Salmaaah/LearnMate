@@ -11,7 +11,7 @@ import { useEffect, useState, useRef } from 'react';
  *
  * @component
  * @param {Object} props - The props object.
- * @param {{id: number, name: string, content: object, modified_date: string}} props.note - The note data object.
+ * @param {{id: number, name: string, content: object, modified_at: string}} props.note - The note data object.
  * @param {number} [props.openSubItemId] - The ID of the note to be opened.
  * @param {(action: string, item: object) => Promise<void>} props.handleButtonClick - Async function to handle button click actions, edit note in this case.
  * @param {(noteID: number) => Promise<void>} props.handleDeleteNote - Async function to delete the note.
@@ -109,17 +109,17 @@ const Note = ({
           if (e.key === 'Enter') handleButtonClick('edit', note);
         }}
         aria-label={`Note titled ${note.name}, modified on ${formatDate(
-          note.modified_date
+          note.modified_at
         )}`}
       >
         <div className="note__info">
           <div className="note__name">{note.name}</div>
           <div className="note__other">
             <time
-              dateTime={new Date(note.modified_date).toISOString()}
-              aria-label={`Last modified on ${formatDate(note.modified_date)}`}
+              dateTime={new Date(note.modified_at).toISOString()}
+              aria-label={`Last modified on ${formatDate(note.modified_at)}`}
             >
-              {formatDate(note.modified_date)}
+              {formatDate(note.modified_at)}
             </time>
             <div aria-label="Note content preview">
               {note.content?.blocks?.[0]?.data?.text?.replace(/&nbsp;/g, '') ??
@@ -168,7 +168,7 @@ Note.propTypes = {
     id: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
     content: PropTypes.object.isRequired,
-    modified_date: PropTypes.string.isRequired,
+    modified_at: PropTypes.string.isRequired,
   }).isRequired,
   openSubItemId: PropTypes.number,
   handleButtonClick: PropTypes.func,

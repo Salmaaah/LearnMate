@@ -81,8 +81,8 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=True, nullable=False)
     color = db.Column(db.String(50), default='#eae9ec')
-    created_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    modified_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    modified_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     progress = db.Column(db.Integer, db.CheckConstraint('progress >= 0 AND progress <= 100'), default=0)
     
     # Foreign key to associate the project with a user
@@ -103,8 +103,8 @@ class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=True, nullable=False)
     content = db.Column(db.Text)
-    created_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    modified_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    modified_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Foreign key to associate the note with a user
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -131,7 +131,7 @@ class NoteTag(db.Model):
 
 class FlashcardDeck(db.Model):
     """FlashcardDeck model representing a collection of flashcards."""
-    __tablename__ = 'flashcard_deck'
+    __tablename__ = 'deck'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=True, nullable=False)
@@ -160,7 +160,7 @@ class Flashcard(db.Model):
     user = db.relationship('User', backref=db.backref('flashcards', lazy=True))
 
     # Foreign key to associate the flashcard with a deck
-    deck_id = db.Column(db.Integer, db.ForeignKey('flashcard_deck.id'))
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
     deck = db.relationship('FlashcardDeck', backref=db.backref('flashcards', lazy=True))
 
 class Todo(db.Model):
