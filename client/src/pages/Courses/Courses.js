@@ -15,6 +15,7 @@ import { ReactComponent as NewIcon } from '../../assets/icons/new.svg';
 import MenuItem from '../../components/Shared/MenuItem/MenuItem';
 import File from '../../components/Shared/File/File';
 import Button from '../../components/Shared/Button/Button';
+import { capitalize } from '../../utils/stringUtils';
 
 /**
  * Component page for displaying and managing courses.
@@ -139,9 +140,7 @@ const Courses = () => {
               <MenuItem
                 key={property}
                 size="small"
-                label={(
-                  property.charAt(0).toUpperCase() + property.slice(1)
-                ).replace(/s$/, '')}
+                label={capitalize(property).replace(/s$/, '')}
                 active={groupBy === property}
                 onInteraction={() => setGroupBy(property)}
               />

@@ -1,3 +1,11 @@
+export const capitalize = (str) => {
+  if (typeof str !== 'string') {
+    throw new Error('Input must be a string. Input:', str);
+  } else if (!str) return str; // return the original string if it's empty or undefined
+
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
 export const toCamelCase = (str) => {
   if (typeof str !== 'string') {
     throw new Error('Input must be a string. Input:', str);
