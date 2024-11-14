@@ -108,7 +108,7 @@ const ActionSubItem = ({
       renderContent() // Pass custom content from child components
     ) : (
       <li
-        className="note"
+        className="action-sub-item"
         onClick={() => handleButtonClick('edit', item)}
         role="button"
         tabIndex={0}
@@ -117,9 +117,9 @@ const ActionSubItem = ({
           item.name
         }, modified on ${formatDate(item.modified_at)}`}
       >
-        <div className="note__info">
-          <div className="note__name">{item.name}</div>
-          <div className="note__other">
+        <div className="action-sub-item__info">
+          <div className="action-sub-item__name">{item.name}</div>
+          <div className="action-sub-item__other">
             <time
               dateTime={new Date(item.modified_at).toISOString()}
               aria-label={`Last modified on ${formatDate(item.modified_at)}`}

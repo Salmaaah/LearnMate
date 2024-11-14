@@ -1,6 +1,6 @@
-@use '../../../styles/util/' as u;
+@use '../../styles/util/' as u;
 
-.note {
+.action-sub-item {
   border-radius: u.rem(20);
   padding: u.rem(8) u.rem(25) u.rem(10) u.rem(30);
   display: flex;
@@ -55,7 +55,7 @@
       white-space: noWrap;
     }
 
-    // Content preview
+    // Additional info
     div {
       color: var(--D100);
       overflow: hidden;
