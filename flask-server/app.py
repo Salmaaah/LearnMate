@@ -788,34 +788,38 @@ def create_note(file_id, note_name=None):
 
 
 @login_required
-@app.route("/updateNote/<note_id>/<element>", methods=["POST"])
-def update_note(note_id, element):
-
+@app.route("/updateNote/<note_id>", methods=["POST"])
+def update_note(note_id):
     note = Note.query.filter_by(id=note_id).first()
-    data = request.json.get("value")
+    data = request.json
     
-    if element == "name":
-        note.name = data.strip()
+    if note:
+        try:
+            if "name" in data:
+                note.name = data["name"].strip()
+
+            if "content" in data:
+                note.content = json.dumps(data["content"])
+
+            db.session.commit()
+
+            note_data = {
+                "type": Note.__tablename__,
+                "id": note.id,
+                "name": note.name,
+                "content": json.loads(note.content) if note.content is not None else '',
+            }
+            return jsonify({"message": "Note updated successfully", "note": note_data}), 200
+        
+        except IntegrityError as e:
+            db.session.rollback()
+            if f"UNIQUE constraint failed: note.name" in str(e.orig):
+                return jsonify({"error": "Note name already exists."}), 400
+
+            else:
+                return jsonify({"error": str(e)}), 400
     else:
-        note.content = json.dumps(data)
-
-    note_data = {
-        "id": note.id,
-        "name": note.name,
-        "content": json.loads(note.content) if note.content is not None else '',
-    }
-
-    try:
-        db.session.commit()
-        return jsonify({"message": "Note updated successfully", "note": note_data}), 200
-    
-    except IntegrityError as e:
-        db.session.rollback()
-        if f"UNIQUE constraint failed: note.name" in str(e.orig):
-            return jsonify({"error": {"name": f"note name already exists."}}), 400
-
-        else:
-            return jsonify({"error": str(e)}), 400
+        return jsonify({"error": "Note not found"}), 404
 
 
 @login_required

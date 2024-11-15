@@ -48,14 +48,13 @@ const useNote = () => {
    * @param {string} value - The new value to set for the specified element.
    * @returns {Promise<void>}
    */
-  const handleUpdateNote = async (noteId, element, value) => {
-    console.log('Updating', element, 'of note to', value);
+  const handleUpdateNote = async (noteId, data) => {
+    console.log('Updating note');
     try {
-      const response = await axios.post(`/updateNote/${noteId}/${element}`, {
-        value: value,
-      });
+      const response = await axios.post(`/updateNote/${noteId}`, data);
       await fetchData();
       console.log(response.data.message);
+      return response.data.note;
     } catch (error) {
       if (error.response && error.response.status === 400) {
         console.error(error.response.data.error);
