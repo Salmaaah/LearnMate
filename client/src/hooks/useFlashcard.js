@@ -52,6 +52,34 @@ const useFlashcard = () => {
   };
 
   /**
+   * Updates an existing flashcard deck on the server.
+   *
+   * @async
+   * @param {number} deckId - The ID of the flashcard deck to update.
+   * @param {object} data - The new data to update the deck with.
+   * @param {string} [data.name] - The new name of the deck.
+   * @param {string} [data.description] - The new description of the deck.
+   * @returns {Promise<Object|null>} The updated deck object or null if failed.
+   */
+  const handleUpdateFlashcardDeck = async (deckId, data) => {
+    console.log('Updating flashcard deck');
+
+    try {
+      const response = await axios.post(`/updateFlashcardDeck/${deckId}`, data);
+      fetchData();
+      console.log(response.data.message);
+      return response.data.deck;
+    } catch (error) {
+      if (error.response?.status === 400) {
+        console.error(error.response.data.error);
+      } else {
+        console.error('Error updating flashcard deck:', error.message);
+      }
+      return null;
+    }
+  };
+
+  /**
    * Deletes a flashcard deck from the server.
    *
    * @async
@@ -205,6 +233,7 @@ const useFlashcard = () => {
 
   return {
     handleCreateFlashcardDeck,
+    handleUpdateFlashcardDeck,
     handleDeleteFlashcardDeck,
     handleCreateFlashcard,
     handleUpdateFlashcard,

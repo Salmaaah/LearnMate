@@ -969,6 +969,49 @@ def create_flashcard_deck(file_id):
 
 
 @login_required
+@app.route("/updateFlashcardDeck/<deck_id>", methods=["POST"])
+def update_flashcard_deck(deck_id):
+    deck = FlashcardDeck.query.filter_by(id=deck_id).first()
+    data = request.json
+
+    if deck:
+        try:
+            if "name" in data:
+                deck.name = data["name"].strip()
+            
+            db.session.commit()
+
+            deck_data = {
+                "type": FlashcardDeck.__tablename__,
+                "id": deck.id,
+                "name": deck.name,
+                "flashcards": [
+                    {
+                        "id": flashcard.id,
+                        "term": flashcard.term,
+                        "definition": flashcard.definition,
+                        "order": flashcard.order,
+                        "imagePath": flashcard.image_path,
+                    } 
+                    for flashcard in deck.flashcards
+                ],
+            }
+
+            return jsonify({"message": "Flashcard deck updated successfully", "deck": deck_data}), 200
+        
+        except IntegrityError as e:
+            db.session.rollback()
+            if f"UNIQUE constraint failed: deck.name" in str(e.orig):
+                return jsonify({"error": "Deck name already exists."}), 400
+
+            else:
+                return jsonify({"error": str(e)}), 400
+
+    else:
+        return jsonify({"error": "Flashcard deck not found"}), 404
+
+
+@login_required
 @app.route("/deleteFlashcardDeck/<deck_id>", methods=["POST"])
 def delete_flashcard_deck(deck_id):
     deck = FlashcardDeck.query.filter_by(id=deck_id).first()
