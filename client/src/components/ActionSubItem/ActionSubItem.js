@@ -13,9 +13,9 @@ import { capitalize } from '../../utils/stringUtils';
  *
  * @component
  * @param {Object} props - The component props.
- * @param {{id: number, name: string, modified_at: string, table: string, [key: string]: any}} props.item - The sub-item data object.
- * @param {number} [props.openSubItemId] - ID of the sub-item to be opened, controlling the component's visibility.
- * @param {(action: string, item: object) => Promise<void>} props.handleButtonClick - Function to handle clicking on ActionSubItem.
+ * @param {{id: number, name: string, modified_at: string, type: string, [key: string]: any}} props.item - The sub-item data object.
+ * @param {number} [props.openSubItemId] - ID of the sub-item to be opened.
+ * @param {(action: string, item: object) => Promise<void>} props.handleEdit - Function to handle clicking on ActionSubItem.
  * @param {function(number): Promise<void>} props.handleDelete - Function to handle deletion of the sub-item by ID.
  * @param {() => React.ReactNode} props.renderContent - Function that renders the content displayed when the sub-item is opened.
  * @param {React.ReactNode} props.additionalInfo - div of additional info displayed when the sub-item is closed.
@@ -24,7 +24,7 @@ import { capitalize } from '../../utils/stringUtils';
 const ActionSubItem = ({
   item,
   openSubItemId,
-  handleButtonClick,
+  handleEdit,
   handleDelete,
   renderContent,
   additionalInfo,
@@ -109,11 +109,11 @@ const ActionSubItem = ({
     ) : (
       <li
         className="action-sub-item"
-        onClick={() => handleButtonClick('edit', item)}
+        onClick={() => handleEdit('edit', item)}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => e.key === 'Enter' && handleButtonClick('edit', item)}
-        aria-label={`${capitalize(item.table)} titled ${
+        onKeyDown={(e) => e.key === 'Enter' && handleEdit('edit', item)}
+        aria-label={`${capitalize(item.type)} titled ${
           item.name
         }, modified on ${formatDate(item.modified_at)}`}
       >
@@ -142,16 +142,16 @@ const ActionSubItem = ({
           ariaProps={{
             'aria-label': `Delete ${item.name}`,
             'aria-haspopup': 'dialog',
-            'aria-controls': `delete-${item.table}-popup-${item.id}`,
+            'aria-controls': `delete-${item.type}-popup-${item.id}`,
             'aria-expanded': showPopup,
           }}
         />
         <Popup
-          id={`delete-${item.table}-popup-${item.id}`}
-          title={`Delete ${item.table}?`}
+          id={`delete-${item.type}-popup-${item.id}`}
+          title={`Delete ${item.type}?`}
           content={
             <>
-              The <strong>{item.name}</strong> {item.table} will be deleted and
+              The <strong>{item.name}</strong> {item.type} will be deleted and
               can be found in Recently Deleted for 30 days.
             </>
           }
@@ -170,10 +170,10 @@ ActionSubItem.propTypes = {
     id: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
     modified_at: PropTypes.string.isRequired,
-    table: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
   }).isRequired,
   openSubItemId: PropTypes.number,
-  handleButtonClick: PropTypes.func.isRequired,
+  handleEdit: PropTypes.func.isRequired,
   handleDelete: PropTypes.func.isRequired,
   renderContent: PropTypes.func.isRequired,
   additionalInfo: PropTypes.node.isRequired,

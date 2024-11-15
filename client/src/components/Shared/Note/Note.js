@@ -9,20 +9,14 @@ import { useEffect, useRef } from 'react';
  *
  * @component
  * @param {Object} props - The props object.
- * @param {{id: number, name: string, content: object, modified_at: string, table: string}} props.note - The note data object.
- * @param {number} [props.openSubItemId] - The ID of the note to be opened.
- * @param {(action: string, item: object) => Promise<void>} props.handleButtonClick - Async function to handle clicking on the note.
- * @param {(noteID: number) => Promise<void>} props.handleDeleteNote - Async function to delete the note.
+ * @param {{id: number, name: string, content: object, modified_at: string, type: string}} props.note - The note data object.
+ * @param {number} [props.openNoteId] - The ID of the note to be opened.
+ * @param {(action: string, item: object) => Promise<void>} props.handleEdit - Async function to handle clicking on the note.
+ * @param {(noteID: number) => Promise<void>} props.handleDelete - Async function to delete the note.
  * @param {boolean} props.showAIsearch - Boolean to control the visibility of the AIsearch component.
  * @returns {JSX.Element} The rendered Note component.
  */
-const Note = ({
-  note,
-  openSubItemId,
-  handleButtonClick,
-  handleDeleteNote,
-  showAIsearch,
-}) => {
+const Note = ({ note, openNoteId, handleEdit, handleDelete, showAIsearch }) => {
   const AIsearchRef = useRef(null);
 
   // Effect to manage visibility of AIsearch
@@ -35,9 +29,9 @@ const Note = ({
   return (
     <ActionSubItem
       item={note}
-      openSubItemId={openSubItemId}
-      handleButtonClick={handleButtonClick}
-      handleDelete={handleDeleteNote}
+      openSubItemId={openNoteId}
+      handleEdit={handleEdit}
+      handleDelete={handleDelete}
       renderContent={() => (
         <>
           <AIsearch ref={AIsearchRef} context="Notes" />
@@ -65,11 +59,11 @@ Note.propTypes = {
     name: PropTypes.string.isRequired,
     content: PropTypes.object.isRequired,
     modified_at: PropTypes.string.isRequired,
-    table: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
   }).isRequired,
-  openSubItemId: PropTypes.number,
-  handleButtonClick: PropTypes.func,
-  handleDeleteNote: PropTypes.func,
+  openNoteId: PropTypes.number,
+  handleEdit: PropTypes.func,
+  handleDelete: PropTypes.func,
   showAIsearch: PropTypes.bool,
 };
 

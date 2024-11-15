@@ -19,10 +19,10 @@ import { ReactComponent as SwitchIcon } from '../../assets/icons/switch.svg';
  * @param {Object} props - The props object.
  * @param {{id: number, term: string, definition: string, imagePath: string, order: number}} props.flashcard - The flashcard data object.
  * @param {object} props.provided - React Beautiful DnD's provided object for drag-and-drop functionality.
- * @param {(action: string, item: string) => Promise<void>} props.handleButtonClick - Function to handle button click actions.
+ * @param {(action: string, item: string) => Promise<void>} props.handleGenerate - Function to handle clicking on AI generation button.
  * @returns {JSX.Element} - Rendered Flashcard component.
  */
-const Flashcard = ({ flashcard, provided, handleButtonClick }) => {
+const Flashcard = ({ flashcard, provided, handleGenerate }) => {
   const termRef = useRef(null);
   const definitionRef = useRef(null);
   const [term, setTerm] = useState(flashcard.term);
@@ -110,7 +110,7 @@ const Flashcard = ({ flashcard, provided, handleButtonClick }) => {
             icon={<StarsIcon />}
             size="13px"
             onClick={() =>
-              handleButtonClick(
+              handleGenerate(
                 'generate',
                 term !== '' && definition === ''
                   ? `${flashcard.id}-definition`
@@ -289,7 +289,7 @@ Flashcard.propTypes = {
     imagePath: PropTypes.string,
   }).isRequired,
   provided: PropTypes.object,
-  handleButtonClick: PropTypes.func,
+  handleGenerate: PropTypes.func,
 };
 
 export default Flashcard;

@@ -7,19 +7,19 @@ import ActionSubItem from '../ActionSubItem/ActionSubItem';
  *
  * @component
  * @param {Object} props - The props object.
- * @param {{id: number, name: string, modified_at: string, flashcards: Array, table: string, [key: string]: any}} props.deck - The deck data object.
- * @param {number} [props.openSubItemId] - The ID of the deck to be opened.
- * @param {(action: string, item: object) => Promise<void>} props.handleButtonClick - Async function to handle clicking on the deck.
- * @param {(noteID: number) => Promise<void>} props.handleDeleteFlashcardDeck - Async function to delete the deck.
+ * @param {{id: number, name: string, modified_at: string, flashcards: Array, type: string, [key: string]: any}} props.deck - The deck data object.
+ * @param {number} [props.openDeckId] - The ID of the deck to be opened.
+ * @param {(action: string, item: object) => Promise<void>} props.handleEdit - Async function to handle clicking on the deck.
+ * @param {(noteID: number) => Promise<void>} props.handleDelete - Async function to delete the deck.
  * @param {React.ReactNode} props.children - Flashcards passed to the FlashcardDeck component as children.
  * @param {(children: React.ReactNode) => React.ReactNode} props.handleChildren - Function that passes necessary props to child flashcards.
  * @returns {JSX.Element} The rendered FlashcardDeck component.
  */
 const FlashcardDeck = ({
   deck,
-  openSubItemId,
-  handleButtonClick,
-  handleDeleteFlashcardDeck,
+  openDeckId,
+  handleEdit,
+  handleDelete,
   children,
   handleChildren,
 }) => {
@@ -28,9 +28,9 @@ const FlashcardDeck = ({
   return (
     <ActionSubItem
       item={deck}
-      openSubItemId={openSubItemId}
-      handleButtonClick={handleButtonClick}
-      handleDelete={handleDeleteFlashcardDeck}
+      openSubItemId={openDeckId}
+      handleEdit={handleEdit}
+      handleDelete={handleDelete}
       renderContent={() => handleChildren(children)}
       additionalInfo={
         <div aria-label="Number of items in flashcard deck">
@@ -47,11 +47,11 @@ FlashcardDeck.propTypes = {
     name: PropTypes.string.isRequired,
     modified_at: PropTypes.string.isRequired,
     flashcards: PropTypes.array.isRequired,
-    table: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
   }).isRequired,
-  openSubItemId: PropTypes.number,
-  handleButtonClick: PropTypes.func,
-  handleDeleteFlashcardDeck: PropTypes.func,
+  openDeckId: PropTypes.number,
+  handleEdit: PropTypes.func,
+  handleDelete: PropTypes.func,
   children: PropTypes.node.isRequired,
   handleChildren: PropTypes.func,
 };

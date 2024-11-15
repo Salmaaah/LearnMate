@@ -373,21 +373,20 @@ def get_user_data():
             else [],
             "notes": [
                 {
+                    "type": Note.__tablename__,
                     "id": note.id,
                     "name": note.name,
                     "content": json.loads(note.content) if note.content is not None else '',
                     "modified_at" : note.modified_at,
-                    "table": Note.__tablename__,
                 } 
                 for note in file.notes
             ],
             "flashcard_decks": [
                 {
+                    "type": FlashcardDeck.__tablename__,
                     "id": flashcard_deck.id,
                     "name": flashcard_deck.name,
-                    "description": flashcard_deck.description,
                     "modified_at": flashcard_deck.modified_at,
-                    "last_reviewed_at": flashcard_deck.last_reviewed_at,
                     "flashcards": [
                         {
                             "id": flashcard.id,
@@ -398,7 +397,6 @@ def get_user_data():
                         } 
                         for flashcard in flashcard_deck.flashcards
                     ],
-                    "table": FlashcardDeck.__tablename__,
                 } 
                 for flashcard_deck in file.flashcard_decks
             ],
@@ -448,7 +446,7 @@ def get_user_data():
         {
             "id": note.id,
             "name": note.name,
-            "content": note.content,
+            "content": json.loads(note.content) if note.content is not None else '',
         }
         for note in notes
     ]
@@ -458,9 +456,7 @@ def get_user_data():
         {
             "id": flashcard_deck.id,
             "name": flashcard_deck.name,
-            "description": flashcard_deck.description,
             "modified_at": flashcard_deck.modified_at,
-            "last_reviewed_at": flashcard_deck.last_reviewed_at,
             "flashcards": [
                 {
                     "id": flashcard.id,
@@ -776,6 +772,7 @@ def create_note(file_id, note_name=None):
         db.session.commit()
 
         note_data = {
+            "type": Note.__tablename__,
             "id": new_note.id,
             "name": new_note.name,
             "content": new_note.content
@@ -956,13 +953,13 @@ def create_flashcard_deck(file_id):
         db.session.add(new_deck)
         db.session.commit()
 
-        deck = {
+        deck_data = {
+            "type": FlashcardDeck.__tablename__,
             "id": new_deck.id,
             "name": new_deck.name,
-            "description": new_deck.description,
         }
 
-        return jsonify({"message": "Flashcard deck created successfully", "flashcard_deck": deck}), 200
+        return jsonify({"message": "Flashcard deck created successfully", "flashcard_deck": deck_data}), 200
     
     except Exception as e:
         return jsonify({"error": str(e)}), 400

@@ -279,9 +279,9 @@ const ActionItem = ({
       if (child.type === Note) {
         return React.cloneElement(child, {
           ...child.props,
-          openSubItemId,
-          handleButtonClick,
-          handleDeleteNote,
+          openNoteId: openSubItemId,
+          handleEdit: handleButtonClick,
+          handleDelete: handleDeleteNote,
           showAIsearch,
         });
       } else if (child.type === Draggable) {
@@ -296,7 +296,7 @@ const ActionItem = ({
           if (draggableChild.type.name === 'Flashcard') {
             return React.cloneElement(draggableChild, {
               ...draggableChild.props,
-              handleButtonClick,
+              handleGenerate: handleButtonClick,
             });
           }
 
