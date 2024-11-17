@@ -5,12 +5,14 @@ import useTodo from '../../hooks/useTodo';
 import { useSidebar } from '../../contexts/SidebarContext';
 import { useDataContext } from '../../contexts/DataContext';
 import { FileProvider } from '../../contexts/FileContext';
+import { useOpenDeck } from '../../contexts/DeckContext';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import Layout from '../../pages/Layout/Layout';
 import DocViewer from '../../components/Docviewer/Docviewer';
 import ActionItem from '../../components/Shared/ActionItem/ActionItem';
 import Note from '../../components/Shared/Note/Note';
 import Flashcard from '../../components/Flashcard/Flashcard';
+import FlashcardDeck from '../../components/FlashcardDeck/FlashcardDeck';
 import Todo from '../../components/Todo/Todo';
 import { ReactComponent as NotesIllustration } from '../../assets/illustrations/notes.svg';
 import { ReactComponent as TodosIllustration } from '../../assets/illustrations/todos.svg';
@@ -26,8 +28,8 @@ const Learn = () => {
   const { setIsExpanded } = useSidebar();
   const { id } = useParams();
   const { data } = useDataContext();
+  const { openDeckFlashcards } = useOpenDeck();
   const file = data?.files.find((file) => file.id === parseInt(id));
-  const flashcards = file?.flashcards?.sort((a, b) => a.order - b.order) || [];
   const todos =
     file?.todos?.sort((a, b) => {
       if (a.done !== b.done) return a.done - b.done; // compare by done property
@@ -41,7 +43,6 @@ const Learn = () => {
     flashcards: false,
     quizzes: false,
   });
-
   // Effect to hide the sidebar when the component is mounted.
   useEffect(() => {
     setIsExpanded(false);
@@ -148,7 +149,7 @@ const Learn = () => {
             </ActionItem>
             {/* Flashcards Section with Drag-and-Drop */}
             <DragDropContext
-              onDragEnd={onDragEnd(flashcards, handleUpdateFlashcard)}
+              onDragEnd={onDragEnd(openDeckFlashcards, handleUpdateFlashcard)}
             >
               <Droppable droppableId="flashcards">
                 {(provided) => (
@@ -158,21 +159,28 @@ const Learn = () => {
                     illustration={<NotesIllustration />}
                     enlargedState={getEnlargedState('flashcards')}
                   >
-                    {flashcards.length > 0 &&
-                      flashcards.map((flashcard, index) => (
-                        <Draggable
-                          key={flashcard.id.toString()}
-                          draggableId={flashcard.id.toString()}
-                          index={index}
-                        >
-                          {(provided) => (
-                            <Flashcard
-                              provided={provided}
-                              flashcard={flashcard}
-                            />
-                          )}
-                        </Draggable>
-                      ))}
+                    {file?.flashcard_decks?.length > 0 &&
+                      file.flashcard_decks.map((deck) => {
+                        return (
+                          <FlashcardDeck key={deck.id} deck={deck}>
+                            {openDeckFlashcards.length > 0 &&
+                              openDeckFlashcards.map((flashcard, index) => (
+                                <Draggable
+                                  key={flashcard.id.toString()}
+                                  draggableId={flashcard.id.toString()}
+                                  index={index}
+                                >
+                                  {(provided) => (
+                                    <Flashcard
+                                      provided={provided}
+                                      flashcard={flashcard}
+                                    />
+                                  )}
+                                </Draggable>
+                              ))}
+                          </FlashcardDeck>
+                        );
+                      })}
                   </ActionItem>
                 )}
               </Droppable>
