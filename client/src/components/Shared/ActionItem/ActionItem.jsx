@@ -138,12 +138,7 @@ useEffect(() => {
 
         // Wait for the visibility and open states in note to be saved to have the editorjs element in the DOM before trying to open note
         setTimeout(async () => {
-          await initEditor(
-            note.id,
-            handleUpdateNote,
-            '',
-            action === 'generate'
-          );
+          await initEditor(handleUpdateNote, note, action === 'generate');
         }, 1);
 
         // Wait for the editor to finish initializing and have the autofocus set to determine the position of AIsearch
@@ -156,7 +151,7 @@ useEffect(() => {
         setOpenSubItem(item);
         // Wait for the visibility and open states in note to be saved to have the editorjs element in the DOM before trying to open note
         setTimeout(async () => {
-          await initEditor(undefined, handleUpdateNote, item);
+          await initEditor(handleUpdateNote, item);
         }, 1);
       }
     } else if (label === 'Flashcards') {

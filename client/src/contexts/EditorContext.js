@@ -46,9 +46,9 @@ export const EditorProvider = ({ children }) => {
   const [paddingBottom, setPaddingBottom] = useState(300);
   const [numBlocks, setNumBlocks] = useState(1);
 
-  const initEditor = (noteId, updateNote, data, autofocus = false) => {
+  const initEditor = (updateNote, note, autofocus = false) => {
     const debouncedUpdateNote = debounce(
-      (id, type, value) => updateNote(id, type, value),
+      (id, element, value) => updateNote(id, { [element]: value }),
       200
     );
 
@@ -301,10 +301,10 @@ export const EditorProvider = ({ children }) => {
 
         // Save content updates to note
         const updatedData = await editor.save();
-        debouncedUpdateNote(noteId || data.id, 'content', updatedData);
+        debouncedUpdateNote(note.id, 'content', updatedData);
       },
 
-      data: data.content,
+      data: note.content,
       autofocus: autofocus,
 
       // (event) => {
