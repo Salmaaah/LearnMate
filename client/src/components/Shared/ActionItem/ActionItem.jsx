@@ -51,6 +51,7 @@ const ActionItem = ({
   const [isOpen, setIsOpen] = useState(false);
   const [openSubItem, setOpenSubItem] = useState(noSubItem);
   const [showAIsearch, setShowAIsearch] = useState(false);
+  const [scrollToListItem, setScrollToListItem] = useState(null);
 
   // Refs
   const actionItemRef = useRef(null);
@@ -80,24 +81,70 @@ useEffect(() => {
   }, [openSubItemFromCtx]);
 
   // Handles scrolling and focusing behaviors based on component state.
+  useEffect(() => {
+    const scroll = async () => {
+      // Align the actionItem to the top of the screen when opening an action item or sub-item
+      if (isOpen || openSubItem.id) await handleScroll(actionItemRef, 'start');
+
+      // Handle scrolling to a list item if indicated
+      if (scrollToListItem) {
+        await handleScroll(listEndRef, 'nearest');
+
+        // Focus the list item unless explicitly told not to ('noFocus')
+        if (scrollToListItem !== 'noFocus') {
+          const targetElement = document.getElementById(scrollToListItem);
+          if (targetElement) {
+            targetElement.focus();
+          } else {
+            console.warn(`Element with ID '${scrollToListItem}' not found.`);
+          }
+        }
+
+        // Reset scrollToListItem
+        setScrollToListItem(null);
+      }
+    };
+
+    scroll();
+  }, [isOpen, openSubItem.id, scrollToListItem]);
 
   /**
-   * Scrolls to the specified reference.
+   * Handles scrolling to the specified reference and alignment.
    *
    * @param {React.RefObject} ref - Element to scroll into view.
    * @param {string} alignment - Scroll alignment (e.g., 'start', 'nearest').
    */
   const handleScroll = (ref, alignment) => {
-    setTimeout(() => {
-      ref?.current?.scrollIntoView({ behavior: 'smooth', block: alignment });
-    }, 1);
+    return new Promise((resolve) => {
+      const targetElement = ref.current;
+      if (!targetElement) return resolve();
+
+      // Calculate the distance and approximate duration
+      const currentScroll = window.scrollY;
+      const targetScroll =
+        targetElement.getBoundingClientRect().top + currentScroll;
+      const distance = Math.abs(currentScroll - targetScroll);
+      const speed = 1; // Pixels per millisecond (adjust for your use case)
+      const estimatedDuration = Math.min(
+        Math.round(distance / speed) + 200,
+        1000
+      ); // Cap duration at 1 second
+
+      // Use smooth scroll
+      targetElement.scrollIntoView({
+        behavior: 'smooth',
+        block: alignment,
+      });
+
+      // Resolve after the estimated duration
+      setTimeout(resolve, estimatedDuration);
+    });
   };
 
   // Handles Clicking on ActionItem header
   const handleHeaderClick = () => {
     if (!openSubItem.id && children) setIsOpen(!isOpen);
     if (isOpen && !openSubItem.id && isEnlarged) toggleSize();
-    if (!isOpen) handleScroll(actionItemRef, 'start');
   };
 
   /**
@@ -127,9 +174,7 @@ useEffect(() => {
     // Open ActionItem if not already open
     setIsOpen(true);
 
-    // Scroll to align the actionItem to the top of the screen
-    handleScroll(actionItemRef, 'start');
-
+    // Handle different action types based on the label (Notes, Flashcards, Todos)
     if (label === 'Notes') {
       if (action === 'create' || action === 'generate') {
         // Handle new note creation
@@ -158,19 +203,8 @@ useEffect(() => {
       if (action === 'create') {
         // Handle new Flashcard creation
         const order = children ? children.length + 1 : 1;
-        await handleCreateFlashcard(fileId, order);
-
-        // Delay to account for the previous scrolling animation
-        setTimeout(() => {
-          // Scroll to show the newly created flashcard in view
-          handleScroll(listEndRef, 'nearest');
-
-          // Dispatch flashcardFocus event
-          const focusEvent = new CustomEvent('flashcardFocus', {
-            detail: { flashcard: order },
-          });
-          document.dispatchEvent(focusEvent);
-        }, 400);
+          const flashcard = await handleCreateFlashcard(fileId, order);
+          setScrollToListItem(`term-${flashcard.id}`); // Scroll to the newly created flashcard
       } else if (action === 'generate') {
         // Handle AI generation on current flashcard
         // 1ms Delay because for some unknown reason without it this doesn't work
@@ -202,27 +236,15 @@ useEffect(() => {
             definition: back,
           });
 
-          handleScroll(listEndRef, 'nearest');
+          setScrollToListItem('noFocus');
           order += 1;
         }
       }
     } else if (label === 'Todos') {
       // Handle new Todo creation
       const order = children ? children.length + 1 : 1;
-      await handleCreateTodo(fileId, order);
-
-      // Delay to account for the previous scrolling animation
-      setTimeout(() => {
-        // Scroll to show the newly created todo in view
-        handleScroll(listEndRef, 'nearest');
-
-        // Dispatch todoFocus event
-        const focusEvent = new CustomEvent('todoFocus', {
-          detail: { todo: order },
-        });
-        document.dispatchEvent(focusEvent);
-        console.log('dispatched event', focusEvent);
-      }, 400);
+      const todo = await handleCreateTodo(fileId, order);
+setScrollToListItem(`todo-text-${todo.id}`); // Scroll to the newly created Todo
     }
   };
 
