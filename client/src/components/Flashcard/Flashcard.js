@@ -61,21 +61,6 @@ const Flashcard = ({ flashcard, provided, handleGenerate }) => {
     handleDefinitionRows();
   }, [definition, handleDefinitionRows]);
 
-  // Effect to set focus to term on a newly created flashcard with a delay to account for the scrolling animation
-  useEffect(() => {
-    const handleFocus = (event) => {
-      setTimeout(() => {
-        flashcard.order === event.detail.flashcard && termRef.current.focus();
-      }, 500);
-    };
-
-    document.addEventListener('flashcardFocus', handleFocus);
-
-    return () => {
-      document.removeEventListener('flashcardFocus', handleFocus);
-    };
-  }, [flashcard.order]);
-
   // Effect to ensure that the UI always reflects the changes implemented in the backend
   useEffect(() => {
     setTerm(flashcard.term);

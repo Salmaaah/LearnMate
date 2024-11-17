@@ -43,21 +43,6 @@ const Todo = ({ provided, todo }) => {
     if (!content) setDone(false); // reset done state when todo is empty
   }, [content, handleRows]);
 
-  // Effect to set focus on a newly created todo with a delay to account for the scrolling animation
-  useEffect(() => {
-    const handleFocus = (event) => {
-      setTimeout(() => {
-        if (todo.order === event.detail.todo) ref.current?.focus();
-      }, 200);
-    };
-
-    document.addEventListener('todoFocus', handleFocus);
-
-    return () => {
-      document.removeEventListener('todoFocus', handleFocus);
-    };
-  }, [todo.order]);
-
   // Effect to ensure that the UI always reflects the changes implemented in the backend
   useEffect(() => {
     setContent(todo.content);
