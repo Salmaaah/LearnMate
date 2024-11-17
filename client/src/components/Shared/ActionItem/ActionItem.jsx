@@ -39,17 +39,17 @@ const ActionItem = ({
   enlargedState: { toggleSize, isVisible, isEnlarged },
   children,
 }) => {
-  // Default empty note
-  const noNote = {
+  // Default empty sub-item data
+  const noSubItem = {
     id: null,
-    name: '',
-    content: null,
+    name: null,
+    ...(label === 'Notes' ? { content: null } : {}),
+    ...(label === 'Flashcards' ? { flashcards: null } : {}),
   };
 
   // State management
   const [isOpen, setIsOpen] = useState(false);
-  const [openSubItemId, setOpenSubItemId] = useState(null); // in case of subItems that are clickable such as notes and quizzes
-  const [currentNote, setCurrentNote] = useState(noNote);
+  const [openSubItem, setOpenSubItem] = useState(noSubItem);
   const [showAIsearch, setShowAIsearch] = useState(false);
 
   // Refs
@@ -70,19 +70,16 @@ const ActionItem = ({
   // Derived data
   const actionItems = { notes, flashcards, todos }; // quizzes
   const subItems = actionItems[label.toLowerCase()];
-  const noteFromData = data?.notes?.find(
-    (note) => note.id === parseInt(currentNote.id)
+  const openSubItemFromCtx = subItems?.find(
+    (item) => item.id === parseInt(openSubItem.id)
   );
 
-  // Effect to Synchronize the currentNote state with data changes from the server.
-  useEffect(() => {
-    if (noteFromData) {
-      setCurrentNote({
-        ...noteFromData,
-        content: JSON.parse(noteFromData.content),
-      });
-    }
-  }, [noteFromData]);
+  // Effect to Synchronize the openSubItem state with data changes from the server.
+useEffect(() => {
+    openSubItemFromCtx && setOpenSubItem(openSubItemFromCtx);
+  }, [openSubItemFromCtx]);
+
+  // Handles scrolling and focusing behaviors based on component state.
 
   /**
    * Scrolls to the specified reference.
@@ -98,8 +95,8 @@ const ActionItem = ({
 
   // Handles Clicking on ActionItem header
   const handleHeaderClick = () => {
-    if (!openSubItemId && children) setIsOpen(!isOpen);
-    if (isOpen && isEnlarged) toggleSize();
+    if (!openSubItem.id && children) setIsOpen(!isOpen);
+    if (isOpen && !openSubItem.id && isEnlarged) toggleSize();
     if (!isOpen) handleScroll(actionItemRef, 'start');
   };
 
@@ -120,7 +117,7 @@ const ActionItem = ({
    * @returns {Promise<void>} - Resolves when the action is completed. It may involve DOM updates, scrolling, or event dispatching.
    *
    * @sideEffects
-   * - Modifies component state (e.g., `setIsOpen`, `setCurrentNote`, `setOpenSubItemId`).
+   * - Modifies component state (e.g., `setIsOpen`, `setOpenSubItem`).
    * - Scrolls the view to align newly created or modified items into view.
    * - Dispatches custom DOM events (e.g., 'flashcardFocus', 'todoFocus').
    * - Uses `setTimeout` for timed interactions with the DOM (e.g., scrolling, initializing the editor, AI search focus).
@@ -137,8 +134,7 @@ const ActionItem = ({
       if (action === 'create' || action === 'generate') {
         // Handle new note creation
         const note = await handleCreateNote(fileId);
-        setCurrentNote(note);
-        setOpenSubItemId(note.id);
+        setOpenSubItem(note);
 
         // Wait for the visibility and open states in note to be saved to have the editorjs element in the DOM before trying to open note
         setTimeout(async () => {
@@ -157,13 +153,7 @@ const ActionItem = ({
         }, 100);
       } else if (action === 'edit') {
         // Handle when an existing note is clicked
-        setOpenSubItemId(item.id);
-        setCurrentNote({
-          id: item.id,
-          name: item.name,
-          content: item.content,
-        });
-
+        setOpenSubItem(item);
         // Wait for the visibility and open states in note to be saved to have the editorjs element in the DOM before trying to open note
         setTimeout(async () => {
           await initEditor(undefined, handleUpdateNote, item);
@@ -251,19 +241,17 @@ const ActionItem = ({
     // When subItem is a note, we need to check if it's empty and delete it before closing
     if (
       label === 'Notes' &&
-      (currentNote.content === null ||
-        currentNote.content === '' ||
-        currentNote.content.blocks.every((block) => {
+      (!openSubItem.content ||
+        openSubItem.content.blocks.every((block) => {
           return block.data.text.replace(/&nbsp;/g, '') === '';
         }))
     ) {
-      await handleDeleteNote(currentNote.id);
-      setCurrentNote(noNote);
+      await handleDeleteNote(openSubItem.id);
       setShowAIsearch(false);
     }
 
-    // Reset the subItem ID
-    setOpenSubItemId(null);
+    // Reset the open sub-item
+    setOpenSubItem(noSubItem);
   };
 
   /**
@@ -279,7 +267,7 @@ const ActionItem = ({
       if (child.type === Note) {
         return React.cloneElement(child, {
           ...child.props,
-          openNoteId: openSubItemId,
+          openNoteId: openSubItem.id,
           handleEdit: handleButtonClick,
           handleDelete: handleDeleteNote,
           showAIsearch,
@@ -337,7 +325,7 @@ const ActionItem = ({
     >
       <div
         className={`action-item__header${
-          openSubItemId || !children ? '' : ' pointer'
+          openSubItem.id || !children ? '' : ' pointer'
         }`}
         onClick={handleHeaderClick}
         tabIndex={0}
@@ -350,7 +338,7 @@ const ActionItem = ({
       >
         <div id="left-section">
           {/* TODO: This is focused solely on when a note is open, need to make it adaptable to when it's a quizz */}
-          {openSubItemId && isOpen ? (
+          {openSubItem.id && isOpen ? (
             <div id="title-2">
               <Button
                 icon_l={<BackIcon />}
@@ -364,11 +352,11 @@ const ActionItem = ({
                 autoComplete="off"
                 onClick={(event) => event.stopPropagation()}
                 onFocus={(event) => event.target.select()}
-                value={currentNote.name}
+                value={openSubItem.name}
                 onChange={
                   (e) =>
-                    setCurrentNote({
-                      ...currentNote,
+                    setOpenSubItem({
+                      ...openSubItem,
                       [e.target.name]: e.target.value,
                     }) // Update the value of the title as the user types
                 }
@@ -376,7 +364,7 @@ const ActionItem = ({
                   e.key === 'Enter' && editorInstanceRef.current?.focus()
                 }
                 onBlur={() =>
-                  handleUpdateNote(currentNote.id, 'name', currentNote.name)
+                  handleUpdateNote(openSubItem.id, 'name', openSubItem.name)
                 }
                 aria-label="Note title"
                 autoFocus
@@ -492,12 +480,12 @@ const ActionItem = ({
       {isOpen && (
         <div
           className={`action-item__content${
-            openSubItemId ? ' openSubItem' : ''
+            openSubItem.id ? ' openSubItem' : ''
           }`}
           style={isEnlarged ? { height: '100%' } : {}}
           id={`${label.toLowerCase()}-content`}
         >
-          {openSubItemId ? (
+          {openSubItem.id ? (
             handleChildren(children)
           ) : (
             <>
