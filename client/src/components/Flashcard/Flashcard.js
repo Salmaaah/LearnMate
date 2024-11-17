@@ -89,6 +89,7 @@ const Flashcard = ({ flashcard, provided, handleGenerate }) => {
   return (
     <li
       className="flashcard"
+      id={`flashcard-${flashcard.id}`}
       ref={provided?.innerRef}
       {...provided?.draggableProps}
       aria-label={`Flashcard for '${ariaTerm}'`}
@@ -113,10 +114,10 @@ const Flashcard = ({ flashcard, provided, handleGenerate }) => {
               handleGenerate(
                 'generate',
                 term !== '' && definition === ''
-                  ? `${flashcard.id}-definition`
-                  : `${flashcard.id}-term`
-              )
-            }
+                  ? `definition-${flashcard.id}`
+                  : `term-${flashcard.id}`
+              );
+            }}
             ariaProps={{
               'aria-label': 'Generate with AI',
             }}
@@ -171,11 +172,11 @@ const Flashcard = ({ flashcard, provided, handleGenerate }) => {
       <div className="flashcard__content">
         <div className="flashcard__leftContent">
           <div className="flashcard__entry">
-            <AIsearch context="Flashcards" parentId={`${flashcard.id}-term`} />
+            <AIsearch context="Flashcards" parentId={`term-${flashcard.id}`} />
 
             <textarea
               ref={termRef}
-              id={`${flashcard.id}-term`}
+              id={`term-${flashcard.id}`}
               value={term}
               placeholder="Enter your term"
               onChange={(e) => setTerm(e.target.value)}
@@ -193,11 +194,11 @@ const Flashcard = ({ flashcard, provided, handleGenerate }) => {
           <div className="flashcard__entry">
             <AIsearch
               context="Flashcards"
-              parentId={`${flashcard.id}-definition`}
+              parentId={`definition-${flashcard.id}`}
             />
             <textarea
               ref={definitionRef}
-              id={`${flashcard.id}-definition`}
+              id={`definition-${flashcard.id}`}
               value={definition}
               placeholder="Enter your definition"
               onChange={(e) => setDefinition(e.target.value)}

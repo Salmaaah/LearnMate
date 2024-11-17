@@ -68,7 +68,12 @@ const Todo = ({ provided, todo }) => {
   }, [todo]);
 
   return (
-    <li className="todo" ref={provided?.innerRef} {...provided?.draggableProps}>
+    <li
+      className="todo"
+      id={`todo-${todo.id}`}
+      ref={provided?.innerRef}
+      {...provided?.draggableProps}
+    >
       <div className="todo__content">
         <span
           className={`todo__checkbox${content ? ' full' : ''}${
@@ -81,11 +86,11 @@ const Todo = ({ provided, todo }) => {
           }}
           role="checkbox"
           aria-checked={done}
-          aria-labelledby={`todo-${todo.id}`}
+          aria-labelledby={`todo-text-${todo.id}`}
         />
         <textarea
           className={`todo__text${done ? ' done' : ''}`}
-          id={`todo-${todo.id}`}
+          id={`todo-text-${todo.id}`}
           ref={ref}
           value={content}
           onChange={(e) => setContent(e.target.value)}

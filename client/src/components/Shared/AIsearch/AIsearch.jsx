@@ -27,14 +27,14 @@ import ReactDOMServer from 'react-dom/server';
  *
  * @component
  * @param {('Notes' | 'Flashcards')} context - Defines the current context, either 'Notes' or 'Flashcards'.
- * @param {string} [parentId] - The ID of the parent Flashcard element to associate with AI operations (only used in Flashcards context).
+ * @param {string} [parentId] - The ID of the parent Flashcard term or definition element to associate with AI operations (only used in Flashcards context).
  * @param {React.Ref} ref - The ref to the component used to expose the setShowAIsearch function to parent components.
  * @returns {JSX.Element} The rendered AIsearch component.
  *
  * @example
  * <AIsearch
  *   context="Flashcards"
- *   parentId="flashcard_123"
+ *   parentId="term-123"
  * />
  */
 const AIsearch = forwardRef(({ context, parentId }, ref) => {
@@ -328,7 +328,7 @@ const AIsearch = forwardRef(({ context, parentId }, ref) => {
       if (match) {
         const [_, term, definition] = match;
 
-        await handleUpdateFlashcard(parentId.replace('-term', ''), {
+        await handleUpdateFlashcard(parentId.split('-')[1], {
           term: term.trim(),
           definition: definition.trim(),
         });
@@ -369,7 +369,7 @@ const AIsearch = forwardRef(({ context, parentId }, ref) => {
       insertResponse(response);
     } else if (context === 'Flashcards') {
       const flashcard = data.flashcards.find(
-        (flashcard) => flashcard.id === parseInt(parentId.replace('-term', ''))
+        (flashcard) => flashcard.id === parseInt(parentId.split('-')[1])
       );
 
       if (!flashcard.term === !flashcard.definition) {
