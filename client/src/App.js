@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { SidebarProvider } from './contexts/SidebarContext';
 import { DataProvider } from './contexts/DataContext';
 import { EditorProvider } from './contexts/EditorContext';
+import { OpenDeckProvider } from './contexts/DeckContext';
 import Welcome from './pages/Welcome/Welcome';
 import Signup from './pages/Signup/Signup';
 import Login from './pages/Login/Login';
@@ -16,15 +17,17 @@ function App() {
       <DataProvider>
         <SidebarProvider>
           <EditorProvider>
-            <Routes>
-              <Route path="/" element={<Welcome />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/courses" element={<Courses />} />
-              <Route path="/learn/:id" element={<Learn />} />
-            </Routes>
+            <OpenDeckProvider>
+              <Routes>
+                <Route path="/" element={<Welcome />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/learn/:id" element={<Learn />} />
+              </Routes>
+            </OpenDeckProvider>
           </EditorProvider>
         </SidebarProvider>
       </DataProvider>
