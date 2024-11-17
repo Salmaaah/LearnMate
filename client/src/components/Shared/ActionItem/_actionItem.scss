@@ -209,7 +209,7 @@
     justify-content: space-between;
     gap: u.rem(10);
 
-    &.openSubItem {
+    &.open-note {
       padding-inline: u.rem(80) u.rem(35);
       flex: 1;
       overflow-y: scroll;

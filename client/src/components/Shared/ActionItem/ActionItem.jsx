@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, { useState, useEffect, useRef } from 'react';
 import { useFileContext } from '../../../contexts/FileContext';
 import { useEditorContext } from '../../../contexts/EditorContext';
-import { useDataContext } from '../../../contexts/DataContext';
+import { useOpenDeck } from '../../../contexts/DeckContext';
 import useNote from '../../../hooks/useNote';
 import useFlashcard from '../../../hooks/useFlashcard';
 import useTodo from '../../../hooks/useTodo';
@@ -15,6 +15,7 @@ import { ReactComponent as StarsIcon } from '../../../assets/icons/stars.svg';
 import Button from '../Button/Button';
 import MenuItem from '../MenuItem/MenuItem';
 import Note from '../Note/Note';
+import FlashcardDeck from '../../FlashcardDeck/FlashcardDeck';
 import { Draggable } from '@hello-pangea/dnd';
 
 /**
@@ -60,19 +61,28 @@ const ActionItem = ({
   const listEndRef = useRef(null);
 
   // Contexts
-  const { data } = useDataContext();
-  const { id: fileId, notes, flashcards, todos } = useFileContext();
+  const { id: fileId, notes, flashcard_decks, todos } = useFileContext();
   const { editorInstanceRef, initEditor } = useEditorContext();
+  const { setOpenDeckId } = useOpenDeck();
 
   // Custom Hooks (handling notes, flashcards, todos)
   const { handleCreateNote, handleUpdateNote, handleDeleteNote } = useNote();
-  const { handleCreateFlashcard, handleUpdateFlashcard } = useFlashcard();
+  const {
+    handleCreateFlashcardDeck,
+    handleUpdateFlashcardDeck,
+    handleDeleteFlashcardDeck,
+    handleCreateFlashcard,
+    handleUpdateFlashcard,
+  } = useFlashcard();
   const { handleCreateTodo } = useTodo();
   const { askAI } = useAI();
 
   // Derived data
-  const actionItems = { notes, flashcards, todos }; // quizzes
-  const subItems = actionItems[label.toLowerCase()];
+  const actionItems = { notes, flashcard_decks, todos }; // quizzes
+  const subItems =
+    actionItems[
+      label === 'Flashcards' ? 'flashcard_decks' : label.toLowerCase()
+    ];
   const openSubItemFromCtx = subItems?.find(
     (item) => item.id === parseInt(openSubItem.id)
   );
@@ -127,10 +137,7 @@ const ActionItem = ({
         targetElement.getBoundingClientRect().top + currentScroll;
       const distance = Math.abs(currentScroll - targetScroll);
       const speed = 1; // Pixels per millisecond (adjust for your use case)
-      const estimatedDuration = Math.min(
-        Math.round(distance / speed) + 200,
-        1000
-      ); // Cap duration at 1 second
+      const estimatedDuration = Math.min(distance / speed, 1000); // Cap duration at 1 second
 
       // Use smooth scroll
       targetElement.scrollIntoView({
@@ -193,75 +200,116 @@ const ActionItem = ({
    *
    * @async
    * @param {('create' | 'generate' | 'multigen' | 'edit')} action - The type of action to perform. Supported actions vary by context:
-   *  - 'create': Creates a new note, flashcard, or todo.
-   *  - 'generate': AI-powered generation of a note or flashcard.
-   *  - 'multigen': Generates multiple flashcards at once based on a file's content (only applicable to Flashcards context).
+   *  - 'create': Creates a new note, flashcard deck, flashcard, or todo.
+   *  - 'generate': AI-powered generation of a single note or flashcard.
+   *  - 'multigen': Generates multiple flashcards at once in a new or existing deck based on a file's content (only applicable to Flashcards context).
    *  - 'edit': Edits an existing note (only applicable to Notes context).
-   * @param {object|string} [item] - Relevant item data. The expected type depends on the context and action:
-   *  - For Notes 'edit' action: an object with note details (id, name, content).
+   * @param {object|number|string} [itemData] - Relevant item data. The expected type depends on the context and action:
+   *  - For Notes and FlashcardDecks 'edit' action: an object with item data (id, name, content/flashcards).
    *  - For Flashcards 'generate' action: a string representing the flashcard's term/definition ID.
    *  - For other contexts and actions, this may be omitted.
    * @returns {Promise<void>} - Resolves when the action is completed. It may involve DOM updates, scrolling, or event dispatching.
    */
   // TODO: refractor function to improve readability, maintainability, and future extensibility.
-  const handleButtonClick = async (action, item) => {
+  const handleButtonClick = async (action, itemData) => {
     // Open ActionItem if not already open
-    setIsOpen(true);
+    !isOpen && setIsOpen(true);
 
     // Handle different action types based on the label (Notes, Flashcards, Todos)
     if (label === 'Notes') {
       if (action === 'create' || action === 'generate') {
         // Handle new note creation
         const note = await handleCreateNote(fileId);
-        setOpenSubItem(note);
+        setOpenSubItem(note); // Set the newly created note as the open sub-item
         setEditorState({ note, action, initialized: false }); // Initialize editor with the new note and showAIsearch in case of 'generate'
       } else if (action === 'edit') {
-        // Handle when an existing note is clicked
-        setOpenSubItem(item);
-        setEditorState({ note: item, action, initialized: false }); // Initialize editor with the existing note
+        // Handle opening an existing note
+        setOpenSubItem(itemData); // Set the note as the open sub-item
+        setEditorState({ note: itemData, action, initialized: false }); // Initialize editor with the existing note
       }
     } else if (label === 'Flashcards') {
-      if (action === 'create') {
-        // Handle new Flashcard creation
-        const order = children ? children.length + 1 : 1;
-        const flashcard = await handleCreateFlashcard(fileId, order);
-        setScrollToListItem(`term-${flashcard.id}`); // Scroll to the newly created flashcard
-      } else if (action === 'generate') {
-        // Dispatch a simulated spacebar key event to trigger show AIsearch logic inside AIsearch component
-        const targetElement = document.getElementById(item);
-        const spaceEvent = new KeyboardEvent('keydown', {
-          key: ' ',
-          bubbles: true, // Ensure the event bubbles up through the DOM
-        });
-        targetElement.dispatchEvent(spaceEvent);
-      } else if (action === 'multigen') {
-        // Handle multiple flashcard generation from file content
-        const response = await askAI('Flashcards', action, fileId);
-        const flashcardRegex = /F:\s(.*?)\nB:\s(.*?)(?=\nF:|\n$)/gs;
-        let match;
-        let order = flashcards.length + 1;
+      if (openSubItem.id) {
+        // Flashcard level actions (if a sub-item is already open)
+        const flashcards =
+          flashcard_decks.find((deck) => deck.id === parseInt(openSubItem.id))
+            ?.flashcards || [];
 
-        // Match, create, and scroll to view flashcards one at a time
-        while ((match = flashcardRegex.exec(response)) !== null) {
-          const front = match[1].trim();
-          const back = match[2].trim();
-          const flashcardId = await handleCreateFlashcard(fileId, order);
-
-          await handleUpdateFlashcard(flashcardId, {
-            term: front,
-            definition: back,
+        if (action === 'create') {
+          // Handle creating a new flashcard in the current deck
+          const order = flashcards.length + 1; // Set the new flashcard's order based on the existing count
+          const flashcard = await handleCreateFlashcard(openSubItem.id, order);
+          setScrollToListItem(`term-${flashcard.id}`); // Scroll to the newly created flashcard
+        } else if (action === 'generate') {
+          // Dispatch a simulated spacebar key event to trigger show AIsearch logic inside AIsearch component
+          const targetElement = document.getElementById(itemData);
+          const spaceEvent = new KeyboardEvent('keydown', {
+            key: ' ',
+            bubbles: true, // Ensure the event bubbles up through the DOM
           });
+          targetElement.dispatchEvent(spaceEvent);
+        } else if (action === 'multigen') {
+          // Handle multiple flashcard generation from file content into currently open deck
+          handleMultigenFlashcards(openSubItem.id, fileId, flashcards.length);
+        }
+      } else {
+        // Deck level actions (if no sub-item is open)
 
-          setScrollToListItem('noFocus');
-          order += 1;
+        if (action === 'create' || action === 'multigen') {
+          // Handle new deck creation
+          const deck = await handleCreateFlashcardDeck(
+            fileId,
+            action === 'multigen' // create an empty deck in case of batch generation
+          );
+          setOpenSubItem(deck); // Set the new deck as the open sub-item
+
+          // For 'multigen', trigger batch flashcard generation in the newly created deck
+          action === 'multigen' && handleMultigenFlashcards(deck.id, fileId, 0);
+        } else if (action === 'edit') {
+          // Handle opening an existing deck
+          setOpenSubItem(itemData);
         }
       }
     } else if (label === 'Todos') {
       // Handle new Todo creation
-      const order = children ? children.length + 1 : 1;
+      const order = children ? children.length + 1 : 1; // Set order based on existing todos
       const todo = await handleCreateTodo(fileId, order);
       setScrollToListItem(`todo-text-${todo.id}`); // Scroll to the newly created Todo
     }
+  };
+
+  const handleMultigenFlashcards = async (deckId, fileId, currentCount) => {
+    const response = await askAI('Flashcards', 'multigen', fileId);
+    const flashcardRegex = /F:\s(.*?)\nB:\s(.*?)(?=\nF:|\n$)/gs;
+    let match;
+    let order = currentCount + 1;
+
+    // Create and update flashcards concurrently
+    const flashcardPromises = [];
+    while ((match = flashcardRegex.exec(response)) !== null) {
+      const front = match[1].trim();
+      const back = match[2].trim();
+      const flashcardPromise = handleCreateFlashcard(deckId, order).then(
+        (flashcard) =>
+          handleUpdateFlashcard(flashcard.id, { term: front, definition: back })
+      );
+      flashcardPromises.push(flashcardPromise);
+      order += 1;
+    }
+
+    await Promise.all(flashcardPromises);
+    setScrollToListItem('noFocus');
+  };
+
+  // Effect to update the OpenDeckId state from DeckContext to to supply the onDragEnd function with the correct list of flashcards for dragging.
+  useEffect(() => {
+    label === 'Flashcards' && setOpenDeckId(openSubItem.id);
+  }, [openSubItem.id]);
+
+  // Handles name update of open sub-item on blur in case of Notes and Flashcards
+  const updateItemName = (itemId, updatedName) => {
+    const updateHandler =
+      label === 'Notes' ? handleUpdateNote : handleUpdateFlashcardDeck;
+    return updateHandler(itemId, { name: updatedName });
   };
 
   /**
@@ -283,6 +331,13 @@ const ActionItem = ({
         // Delete note if empty
         await handleDeleteNote(openSubItem.id);
       }
+    } else if (
+      label === 'Flashcards' &&
+      openSubItem.flashcards.every((flashcard) => {
+        return !flashcard.term && !flashcard.definition && !flashcard.imagePath;
+      })
+    ) {
+      await handleDeleteFlashcardDeck(openSubItem.id);
     }
 
     // Reset the open sub-item
@@ -306,6 +361,14 @@ const ActionItem = ({
           handleEdit: handleButtonClick,
           handleDelete: handleDeleteNote,
           showAIsearch,
+        });
+      } else if (child.type === FlashcardDeck) {
+        return React.cloneElement(child, {
+          ...child.props,
+          openDeckId: openSubItem.id,
+          handleEdit: handleButtonClick,
+          handleDelete: handleDeleteFlashcardDeck,
+          handleChildren,
         });
       } else if (child.type === Draggable) {
         // Extract the function passed to Draggable's children prop
@@ -349,13 +412,11 @@ const ActionItem = ({
       className={`action-item${children ? ' full' : ''}${
         isOpen ? ' open' : ' closed'
       }${isVisible ? '' : ' hidden'}`}
-      style={
-        isEnlarged
-          ? { marginLeft: '28px', height: 'calc(100% - 20px)' }
-          : isOpen && label === 'Flashcards'
-          ? { backgroundColor: 'hsl(263, 15%, 98%)' }
-          : {}
-      }
+      style={{
+        ...(isEnlarged && { marginLeft: '28px', height: 'calc(100% - 20px)' }),
+        ...(openSubItem.id &&
+          label === 'Flashcards' && { backgroundColor: 'hsl(263, 15%, 98%)' }),
+      }}
       aria-labelledby="title"
     >
       <div
@@ -372,8 +433,8 @@ const ActionItem = ({
         aria-controls={`${label.toLowerCase()}-content`}
       >
         <div id="left-section">
-          {/* TODO: This is focused solely on when a note is open, need to make it adaptable to when it's a quizz */}
           {openSubItem.id && isOpen ? (
+            // aka a note or flashcard deck is open
             <div id="title-2">
               <Button
                 icon_l={<BackIcon />}
@@ -396,11 +457,11 @@ const ActionItem = ({
                     }) // Update the value of the title as the user types
                 }
                 onKeyDown={(e) =>
-                  e.key === 'Enter' && editorInstanceRef.current?.focus()
+                  label === 'Notes' &&
+                  e.key === 'Enter' &&
+                  editorInstanceRef.current?.focus()
                 }
-                onBlur={() =>
-                  handleUpdateNote(openSubItem.id, 'name', openSubItem.name)
-                }
+                onBlur={() => updateItemName(openSubItem.id, openSubItem.name)}
                 aria-label="Note title"
                 autoFocus
               />
@@ -463,7 +524,11 @@ const ActionItem = ({
                   <Button
                     icon_l={<StarsIcon />}
                     label="Generate with AI"
-                    onClick={() => handleButtonClick('generate')}
+                    onClick={() =>
+                      handleButtonClick(
+                        label === 'Flashcards' ? 'multigen' : 'generate'
+                      )
+                    }
                     disabled={label === 'Quizzes' ? true : false}
                   />
                   <button
@@ -487,16 +552,22 @@ const ActionItem = ({
           <>{illustration}</>
         ) : (
           <div id="right-section">
-            {label === 'Notes' && (
+            {(label === 'Notes' || label === 'Flashcards') && (
               <Button
                 icon_l={<StarsIcon />}
                 variant="secondary"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleButtonClick('generate');
+                  handleButtonClick(
+                    label === 'Notes' ? 'generate' : 'multigen'
+                  );
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && e.stopPropagation()} // when pressing "Enter" on a button element, browsers automatically trigger the onClick event but with a delay, that's why we stop propagation in the meantime
-                ariaLabel={'Click to generate note with AI'}
+                ariaLabel={`Click to ${
+                  label === 'Notes'
+                    ? 'generate note'
+                    : 'batch generate flashcards'
+                } with AI`}
               />
             )}
             <Button
@@ -515,12 +586,12 @@ const ActionItem = ({
       {isOpen && (
         <div
           className={`action-item__content${
-            openSubItem.id ? ' openSubItem' : ''
+            label === 'Notes' && openSubItem.id ? ' open-note' : ''
           }`}
           style={isEnlarged ? { height: '100%' } : {}}
           id={`${label.toLowerCase()}-content`}
         >
-          {openSubItem.id ? (
+          {label === 'Notes' && openSubItem.id ? (
             handleChildren(children)
           ) : (
             <>
@@ -537,7 +608,9 @@ const ActionItem = ({
               <MenuItem
                 as="div"
                 icon={<NewIcon />}
-                label={`New ${label.replace(/s$/, '')}`}
+                label={`New ${label.replace(/s$/, '')}${
+                  label === 'Flashcards' && !openSubItem.id ? ' Deck' : ''
+                }`}
                 onInteraction={() => handleButtonClick('create')}
               />
             </>
