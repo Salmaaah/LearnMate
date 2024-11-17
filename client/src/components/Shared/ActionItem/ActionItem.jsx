@@ -50,11 +50,13 @@ const ActionItem = ({
   // State management
   const [isOpen, setIsOpen] = useState(false);
   const [openSubItem, setOpenSubItem] = useState(noSubItem);
+  const [editorState, setEditorState] = useState(null);
   const [showAIsearch, setShowAIsearch] = useState(false);
   const [scrollToListItem, setScrollToListItem] = useState(null);
 
   // Refs
   const actionItemRef = useRef(null);
+  const editorContainerRef = useRef(null);
   const listEndRef = useRef(null);
 
   // Contexts
@@ -76,7 +78,7 @@ const ActionItem = ({
   );
 
   // Effect to Synchronize the openSubItem state with data changes from the server.
-useEffect(() => {
+  useEffect(() => {
     openSubItemFromCtx && setOpenSubItem(openSubItemFromCtx);
   }, [openSubItemFromCtx]);
 
@@ -147,6 +149,44 @@ useEffect(() => {
     if (isOpen && !openSubItem.id && isEnlarged) toggleSize();
   };
 
+  // Observes the DOM for the editorjs div to become available and trigger editor initialization logic.
+  useEffect(() => {
+    if (!editorState || editorState.initialized) return;
+
+    const observer = new MutationObserver(() => {
+      const editorElement = document.getElementById('editorjs');
+
+      if (editorElement) {
+        editorContainerRef.current = editorElement;
+        observer.disconnect();
+        setEditorState((prevState) => ({ ...prevState })); // Trigger re-run of `useEffect`
+      }
+    });
+
+    observer.observe(actionItemRef.current, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, [editorState]);
+
+  // Handles the editor initialization logic and related actions
+  useEffect(() => {
+    if (!editorState) return;
+
+    const { note, action, initialized } = editorState;
+
+    const initializeEditor = async () => {
+      if (editorContainerRef.current) {
+        await initEditor(handleUpdateNote, note, action === 'generate');
+        setEditorState((prevState) => ({ ...prevState, initialized: true }));
+      }
+    };
+
+    if (!initialized) {
+      initializeEditor();
+      action === 'generate' && setShowAIsearch(true);
+    }
+  }, [editorState]);
+
   /**
    * Handles interactions within different contexts (Notes, Flashcards, Todos).
    * The behavior of this function is dynamic and depends on the provided action type and the current context (`label`).
@@ -162,12 +202,6 @@ useEffect(() => {
    *  - For Flashcards 'generate' action: a string representing the flashcard's term/definition ID.
    *  - For other contexts and actions, this may be omitted.
    * @returns {Promise<void>} - Resolves when the action is completed. It may involve DOM updates, scrolling, or event dispatching.
-   *
-   * @sideEffects
-   * - Modifies component state (e.g., `setIsOpen`, `setOpenSubItem`).
-   * - Scrolls the view to align newly created or modified items into view.
-   * - Dispatches custom DOM events (e.g., 'flashcardFocus', 'todoFocus').
-   * - Uses `setTimeout` for timed interactions with the DOM (e.g., scrolling, initializing the editor, AI search focus).
    */
   // TODO: refractor function to improve readability, maintainability, and future extensibility.
   const handleButtonClick = async (action, item) => {
@@ -180,44 +214,26 @@ useEffect(() => {
         // Handle new note creation
         const note = await handleCreateNote(fileId);
         setOpenSubItem(note);
-
-        // Wait for the visibility and open states in note to be saved to have the editorjs element in the DOM before trying to open note
-        setTimeout(async () => {
-          await initEditor(handleUpdateNote, note, action === 'generate');
-        }, 1);
-
-        // Wait for the editor to finish initializing and have the autofocus set to determine the position of AIsearch
-        // before showing it to make sure the focus goes to the AIsearch input after opening as expected
-        setTimeout(() => {
-          if (action === 'generate') setShowAIsearch(true);
-        }, 100);
+        setEditorState({ note, action, initialized: false }); // Initialize editor with the new note and showAIsearch in case of 'generate'
       } else if (action === 'edit') {
         // Handle when an existing note is clicked
         setOpenSubItem(item);
-        // Wait for the visibility and open states in note to be saved to have the editorjs element in the DOM before trying to open note
-        setTimeout(async () => {
-          await initEditor(handleUpdateNote, item);
-        }, 1);
+        setEditorState({ note: item, action, initialized: false }); // Initialize editor with the existing note
       }
     } else if (label === 'Flashcards') {
       if (action === 'create') {
         // Handle new Flashcard creation
         const order = children ? children.length + 1 : 1;
-          const flashcard = await handleCreateFlashcard(fileId, order);
-          setScrollToListItem(`term-${flashcard.id}`); // Scroll to the newly created flashcard
+        const flashcard = await handleCreateFlashcard(fileId, order);
+        setScrollToListItem(`term-${flashcard.id}`); // Scroll to the newly created flashcard
       } else if (action === 'generate') {
-        // Handle AI generation on current flashcard
-        // 1ms Delay because for some unknown reason without it this doesn't work
-        setTimeout(() => {
-          // Dispatch space key event to trigger AIsearch
-          // in this case 'item' is the parentId that AIsearch needs, either id + term or id + definition
-          const targetElement = document.getElementById(item);
-          const spaceEvent = new KeyboardEvent('keydown', {
-            key: ' ',
-            bubbles: true, // Ensure the event bubbles up through the DOM
-          });
-          targetElement.dispatchEvent(spaceEvent);
-        }, 1);
+        // Dispatch a simulated spacebar key event to trigger show AIsearch logic inside AIsearch component
+        const targetElement = document.getElementById(item);
+        const spaceEvent = new KeyboardEvent('keydown', {
+          key: ' ',
+          bubbles: true, // Ensure the event bubbles up through the DOM
+        });
+        targetElement.dispatchEvent(spaceEvent);
       } else if (action === 'multigen') {
         // Handle multiple flashcard generation from file content
         const response = await askAI('Flashcards', action, fileId);
@@ -244,7 +260,7 @@ useEffect(() => {
       // Handle new Todo creation
       const order = children ? children.length + 1 : 1;
       const todo = await handleCreateTodo(fileId, order);
-setScrollToListItem(`todo-text-${todo.id}`); // Scroll to the newly created Todo
+      setScrollToListItem(`todo-text-${todo.id}`); // Scroll to the newly created Todo
     }
   };
 
@@ -255,16 +271,18 @@ setScrollToListItem(`todo-text-${todo.id}`); // Scroll to the newly created Todo
    * @returns {Promise<void>}
    */
   const handleBackClick = async () => {
-    // When subItem is a note, we need to check if it's empty and delete it before closing
-    if (
-      label === 'Notes' &&
-      (!openSubItem.content ||
+    if (label === 'Notes') {
+      editorContainerRef.current = null; // Reset editorContainerRef to avoid stale references
+
+      if (
+        !openSubItem.content ||
         openSubItem.content.blocks.every((block) => {
           return block.data.text.replace(/&nbsp;/g, '') === '';
-        }))
-    ) {
-      await handleDeleteNote(openSubItem.id);
-      setShowAIsearch(false);
+        })
+      ) {
+        // Delete note if empty
+        await handleDeleteNote(openSubItem.id);
+      }
     }
 
     // Reset the open sub-item

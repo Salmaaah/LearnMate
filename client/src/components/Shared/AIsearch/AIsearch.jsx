@@ -333,7 +333,9 @@ const AIsearch = forwardRef(({ context, parentId }, ref) => {
           definition: definition.trim(),
         });
       } else {
-        console.log('No match found.');
+        console.error(
+          'The AI response does not match the expected formatting.'
+        );
       }
     }
   };
@@ -362,7 +364,8 @@ const AIsearch = forwardRef(({ context, parentId }, ref) => {
    * @param {string} suggestion.keyword - The keyword to query the AI with.
    * @returns {Promise<void>}
    */
-  const handleSuggestionClick = async (suggestion) => {
+  const handleSuggestionClick = async (event, suggestion) => {
+    event.preventDefault(); // Stops the handleSubmit function from getting triggered
     if (context === 'Notes') {
       setShowAIsearch(false);
       const response = await askAI(context, suggestion.keyword, fileId);
@@ -423,7 +426,7 @@ const AIsearch = forwardRef(({ context, parentId }, ref) => {
               <MenuItem
                 key={index}
                 size="small"
-                onInteraction={() => handleSuggestionClick(suggestion)}
+                onInteraction={(e) => handleSuggestionClick(e, suggestion)}
                 label={suggestion.name}
                 icon={suggestion.icon}
               />

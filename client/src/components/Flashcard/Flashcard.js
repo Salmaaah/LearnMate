@@ -95,7 +95,8 @@ const Flashcard = ({ flashcard, provided, handleGenerate }) => {
           <IconButton
             icon={<StarsIcon />}
             size="13px"
-            onClick={() =>
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent the click event from bubbling up and triggering the outside-click listener which would close the AIsearch immediately after opening
               handleGenerate(
                 'generate',
                 term !== '' && definition === ''
