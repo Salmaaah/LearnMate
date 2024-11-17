@@ -29,7 +29,7 @@ const useTodo = () => {
       const response = await axios.post(`/createTodo/${fileId}/${order}`);
       fetchData();
       console.log(response.data.message);
-      return response.data.todo.id;
+      return response.data.todo;
     } catch (error) {
       if (error.response && error.response.status === 400) {
         console.error(error.response.data.error);

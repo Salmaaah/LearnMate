@@ -32,15 +32,17 @@ const useFlashcard = () => {
       fetchData();
       console.log(deckResponse.data.message);
 
+      let deck = deckResponse.data.flashcard_deck;
       if (!empty) {
         // Create a default flashcard in the new deck
         const deckId = deckResponse.data.flashcard_deck.id;
         const defaultOrder = 1;
-        await handleCreateFlashcard(deckId, defaultOrder);
+        const flashcard = await handleCreateFlashcard(deckId, defaultOrder);
+        deck.flashcards = [flashcard];
       }
 
       // Return deck data
-      return deckResponse.data.flashcard_deck;
+      return deck;
     } catch (error) {
       if (error.response && error.response.status === 400) {
         console.error(error.response.data.error);
@@ -107,7 +109,7 @@ const useFlashcard = () => {
    * @async
    * @param {number} deckId - The ID of the flashcard deck associated with the flashcard.
    * @param {number} order - The order number for the flashcard.
-   * @returns {Promise<number|null>} The ID of the created flashcard or null if failed.
+   * @returns {Promise<Object|null>} The created flashcard object or null if failed.
    */
   const handleCreateFlashcard = async (deckId, order) => {
     console.log('Creating flashcard');
@@ -115,7 +117,7 @@ const useFlashcard = () => {
       const response = await axios.post(`/createFlashcard/${deckId}/${order}`);
       fetchData();
       console.log(response.data.message);
-      return response.data.flashcard.id;
+      return response.data.flashcard;
     } catch (error) {
       if (error.response && error.response.status === 400) {
         console.error(error.response.data.error);
