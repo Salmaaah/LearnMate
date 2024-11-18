@@ -59,6 +59,7 @@ const ActionItem = ({
   const actionItemRef = useRef(null);
   const editorContainerRef = useRef(null);
   const listEndRef = useRef(null);
+  const prevDeps = useRef({ isOpen, id: openSubItem.id });
 
   // Contexts
   const { id: fileId, notes, flashcard_decks, todos } = useFileContext();
@@ -95,8 +96,13 @@ const ActionItem = ({
   // Handles scrolling and focusing behaviors based on component state.
   useEffect(() => {
     const scroll = async () => {
+      // Check if isOpen or openSubItem.id has changed
+      const isOpenChange = isOpen !== prevDeps.current.isOpen;
+      const idChange = openSubItem.id !== prevDeps.current.id;
+
       // Align the actionItem to the top of the screen when opening an action item or sub-item
-      if (isOpen || openSubItem.id) await handleScroll(actionItemRef, 'start');
+      if ((isOpen && isOpenChange) || (openSubItem.id && idChange))
+        await handleScroll(actionItemRef, 'start');
 
       // Handle scrolling to a list item if indicated
       if (scrollToListItem) {
@@ -117,7 +123,11 @@ const ActionItem = ({
       }
     };
 
+    // Run scroll logic
     scroll();
+
+    // Update the previous values for the next effect
+    prevDeps.current = { isOpen, id: openSubItem.id };
   }, [isOpen, openSubItem.id, scrollToListItem]);
 
   /**
