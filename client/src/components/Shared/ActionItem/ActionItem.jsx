@@ -323,10 +323,10 @@ const ActionItem = ({
       editorContainerRef.current = null; // Reset editorContainerRef to avoid stale references
 
       if (
-        !openSubItem.content ||
-        openSubItem.content.blocks.every((block) => {
+        Object.keys(openSubItem.content).length === 0 || // openSubItem.content is an empty object
+        openSubItem.content.blocks?.every((block) => {
           return block.data.text.replace(/&nbsp;/g, '') === '';
-        })
+        }) // All blocks within openSubItem.content contain empty values
       ) {
         // Delete note if empty
         await handleDeleteNote(openSubItem.id);

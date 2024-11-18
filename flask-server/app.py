@@ -376,7 +376,7 @@ def get_user_data():
                     "type": Note.__tablename__,
                     "id": note.id,
                     "name": note.name,
-                    "content": json.loads(note.content) if note.content is not None else '',
+                    "content": note.content,
                     "modified_at" : note.modified_at,
                 } 
                 for note in file.notes
@@ -446,7 +446,7 @@ def get_user_data():
         {
             "id": note.id,
             "name": note.name,
-            "content": json.loads(note.content) if note.content is not None else '',
+            "content": note.content,
         }
         for note in notes
     ]
@@ -775,7 +775,7 @@ def create_note(file_id, note_name=None):
             "type": Note.__tablename__,
             "id": new_note.id,
             "name": new_note.name,
-            "content": new_note.content
+            "content": new_note.content,
         }
 
         return jsonify({"message": "Note created successfully", "note": note_data}), 200
@@ -796,7 +796,7 @@ def update_note(note_id):
                 note.name = data["name"].strip()
 
             if "content" in data:
-                note.content = json.dumps(data["content"])
+                note.content = data["content"]
 
             db.session.commit()
 
@@ -804,7 +804,7 @@ def update_note(note_id):
                 "type": Note.__tablename__,
                 "id": note.id,
                 "name": note.name,
-                "content": json.loads(note.content) if note.content is not None else '',
+                "content": note.content,
             }
             return jsonify({"message": "Note updated successfully", "note": note_data}), 200
         

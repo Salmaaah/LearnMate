@@ -102,7 +102,7 @@ class Note(db.Model):
     """Note model representing notes associated with users, files, subjects, and projects."""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=True, nullable=False)
-    content = db.Column(db.Text)
+    content = db.Column(db.JSON, default={})
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     modified_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
