@@ -101,8 +101,14 @@ const ActionItem = ({
       const idChange = openSubItem.id !== prevDeps.current.id;
 
       // Align the actionItem to the top of the screen when opening an action item or sub-item
-      if ((isOpen && isOpenChange) || (openSubItem.id && idChange))
+      if ((isOpen && isOpenChange) || (openSubItem.id && idChange)) {
+        if (openSubItem.type === 'deck') {
+          // In case of opened deck, wait for flascards to render before scrolling
+          const targetCount = openSubItem.flashcards.length;
+          await waitForSubItemsToRender(actionItemRef, targetCount);
+        }
         await handleScroll(actionItemRef, 'start');
+      }
 
       // Handle scrolling to a list item if indicated
       if (scrollToListItem) {
@@ -128,7 +134,42 @@ const ActionItem = ({
 
     // Update the previous values for the next effect
     prevDeps.current = { isOpen, id: openSubItem.id };
-  }, [isOpen, openSubItem.id, scrollToListItem]);
+  }, [isOpen, openSubItem.id, editorState?.initialized, scrollToListItem]);
+
+  /**
+   * Waits for a specific number of `li` sub-items to be rendered within a target element.
+   * Currently only used for flashcards.
+   *
+   * @param {React.RefObject<HTMLElement>} ref - A React ref pointing to the parent container of the sub-items.
+   * @param {number} targetCount - The number of `li` elements to wait for within the target element.
+   * @returns {Promise<void>} A promise that resolves once the target count of sub-items is detected or a timeout occurs.
+   */
+  const waitForSubItemsToRender = (ref, targetCount) => {
+    return new Promise((resolve) => {
+      const targetElement = ref.current?.querySelector('#sub-items');
+
+      if (!targetElement) return resolve(); // If target doesn't exist, resolve immediately
+
+      // Use MutationObserver to monitor changes in the target element
+      const observer = new MutationObserver(() => {
+        const liCount = targetElement.querySelectorAll('li').length;
+
+        if (liCount === targetCount) {
+          observer.disconnect(); // Stop observing
+          resolve();
+        }
+      });
+
+      // Start observing child nodes of the target element
+      observer.observe(targetElement, { childList: true, subtree: true });
+
+      // Timeout as a fallback
+      setTimeout(() => {
+        observer.disconnect();
+        resolve(); // Resolve regardless to avoid infinite waiting
+      }, 2000);
+    });
+  };
 
   /**
    * Handles scrolling to the specified reference and alignment.
