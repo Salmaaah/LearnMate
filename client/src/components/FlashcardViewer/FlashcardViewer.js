@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
+import useScrollDetect from '../../hooks/useScrollDetect';
 import { motion, AnimatePresence } from 'framer-motion';
 import IconButton from '../IconButton/IconButton';
 import { ReactComponent as ArrowIcon } from '../../assets/icons/arrow.svg';
@@ -18,6 +19,10 @@ const FlashcardViewer = ({ flashcards }) => {
   const [shuffleButtonColor, setShuffleButtonColor] = useState(''); // Background color for shuffle button
   const [isResetting, setIsResetting] = useState(false); // Tracks whether the deck is resetting
 
+  // Refs for detecting scrollable content
+  const termRef = useRef(null); // Ref for front content
+  const defRef = useRef(null); // Ref for back content
+
   // Create a map for efficient lookups
   const flashcardMap = useMemo(() => {
     return flashcards.reduce((map, card) => {
@@ -28,6 +33,10 @@ const FlashcardViewer = ({ flashcards }) => {
 
   // Retrieve the current card using the map
   const currentCard = flashcardMap[currentOrder];
+
+  // Detect if the front (term) or back (definition) side of the current flashcard is scrollable
+  const frontIsScrollable = useScrollDetect(termRef, currentCard?.term);
+  const backIsScrollable = useScrollDetect(defRef, currentCard?.definition);
 
   // Get current index in the viewedCards array
   const currentIndex = viewedCards.indexOf(currentOrder);
@@ -148,6 +157,22 @@ const FlashcardViewer = ({ flashcards }) => {
     withFlipAnimation(reset, 400);
   };
 
+  // Renders the content for either side of the flashcard.
+  const renderContent = (side, ref, text, isScrollable) => (
+    <div className="flashcard-viewer__card-content">
+      <div
+        ref={ref}
+        className="flashcard-viewer__card-text"
+        style={isScrollable ? { paddingBottom: '2.5rem' } : {}}
+      >
+        {text}
+      </div>
+      {isScrollable && (
+        <div className={`flashcard-viewer__card-text-overlay ${side}`} />
+      )}
+    </div>
+  );
+
   // Common props for IconButtons
   const buttonProps = {
     size: '13px',
@@ -226,10 +251,20 @@ const FlashcardViewer = ({ flashcards }) => {
             onClick={handleFlip}
           >
             <div className="flashcard-viewer__card-front">
-              {currentCard?.term}
+              {renderContent(
+                'front',
+                termRef,
+                currentCard?.term,
+                frontIsScrollable
+              )}
             </div>
             <div className="flashcard-viewer__card-back">
-              {currentCard?.definition}
+              {renderContent(
+                'back',
+                defRef,
+                currentCard?.definition,
+                backIsScrollable
+              )}
             </div>
           </motion.div>
         </AnimatePresence>
