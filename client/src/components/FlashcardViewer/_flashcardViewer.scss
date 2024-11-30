@@ -5,14 +5,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: u.rem(10);
+  gap: u.rem(20);
 
-  &__card {
-    perspective: 1000px;
+  &__card-container {
     position: relative;
     width: u.rem(300);
     height: u.rem(200);
-    transition: transform 0.8s;
+  }
+
+  &__card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    perspective: 1000px;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.4s;
     transform-style: preserve-3d;
     cursor: pointer;
 
@@ -47,21 +55,27 @@
     align-items: center;
     justify-content: center;
     gap: u.rem(10);
+  }
 
-    > div:first-of-type {
-      width: 33%;
-      display: flex;
-      justify-content: end;
+  &__controls-left {
+    width: 33%;
+    display: flex;
+    justify-content: end;
+  }
+
+  &__controls-right {
+    width: 33%;
+    display: flex;
+    flex-direction: row;
+    gap: u.rem(10);
+
+    > .icon-button svg {
+      transform: rotate(180deg);
     }
-    > div:last-of-type {
-      width: 33%;
-      display: flex;
-      flex-direction: row;
-      gap: u.rem(10);
 
-      .icon-button:first-of-type svg {
-        transform: rotate(180deg);
-      }
+    > div {
+      display: flex;
+      gap: u.rem(5);
     }
   }
 }
