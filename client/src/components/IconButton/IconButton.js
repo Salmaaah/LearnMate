@@ -17,6 +17,7 @@ import PropTypes from 'prop-types';
  * @param {Function} props.onKeyDown - KeyDown event handler function.
  * @param {string} [props.size='24px'] - Size of the button.
  * @param {object} [props.ariaProps={}] - ARIA attributes for accessibility.
+ * @param {boolean} [props.disabled=false] - Determines if the button should be disabled.
  * @returns {JSX.Element} - Rendered button component.
  */
 const IconButton = ({
@@ -31,6 +32,7 @@ const IconButton = ({
   onKeyDown,
   size = '24px',
   ariaProps = {},
+  disabled = false,
 }) => {
   const buttonRef = useRef(null);
   const buttonStyle = {
@@ -66,6 +68,8 @@ const IconButton = ({
       className={`icon-button${shadow ? ' shadow' : ''}`}
       onClick={onClick}
       onKeyDown={onKeyDown}
+      disabled={disabled}
+      aria-disabled={disabled ? true : undefined}
       {...ariaProps}
       {...provided?.dragHandleProps}
     >
@@ -94,6 +98,7 @@ IconButton.propTypes = {
   onKeyDown: PropTypes.func,
   size: PropTypes.string,
   ariaProps: PropTypes.object,
+  disabled: PropTypes.bool,
 };
 
 export default IconButton;
