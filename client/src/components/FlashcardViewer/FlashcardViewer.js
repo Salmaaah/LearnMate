@@ -110,8 +110,17 @@ const FlashcardViewer = ({ flashcards }) => {
 
   return (
     <div className="flashcard-viewer">
-      <div className="flashcard-viewer__card" onClick={handleFlip}>
-        {isFront ? currentCard?.term : currentCard?.definition}
+      <div
+        className="flashcard-viewer__card"
+        style={{
+          transform: isFront ? 'rotateY(0deg)' : 'rotateY(180deg)',
+        }}
+        onClick={handleFlip}
+      >
+        <div className="flashcard-viewer__card-front">{currentCard?.term}</div>
+        <div className="flashcard-viewer__card-back">
+          {currentCard?.definition}
+        </div>
       </div>
       <div className="flashcard-viewer__controls">
         <div>

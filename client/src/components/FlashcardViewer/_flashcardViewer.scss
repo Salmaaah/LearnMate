@@ -8,14 +8,36 @@
   gap: u.rem(10);
 
   &__card {
-    height: u.rem(200);
+    perspective: 1000px;
+    position: relative;
     width: u.rem(300);
-    box-shadow: 0 u.rem(4) u.rem(24) 0 hsla(224, 22%, 20%, 0.122);
-    border-radius: u.rem(16);
-    padding: u.rem(24) u.rem(32);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    height: u.rem(200);
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+    cursor: pointer;
+
+    &-front,
+    &-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: u.rem(16);
+      box-shadow: 0 u.rem(4) u.rem(24) 0 hsla(224, 22%, 20%, 0.122);
+    }
+
+    &-front {
+      background-color: white;
+    }
+
+    &-back {
+      background-color: var(--P500);
+      transform: rotateY(180deg);
+      color: white;
+    }
   }
 
   &__controls {
