@@ -1,0 +1,45 @@
+@use '../../styles/util/' as u;
+
+.flashcard-viewer {
+  margin: u.rem(15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: u.rem(10);
+
+  &__card {
+    height: u.rem(200);
+    width: u.rem(300);
+    box-shadow: 0 u.rem(4) u.rem(24) 0 hsla(224, 22%, 20%, 0.122);
+    border-radius: u.rem(16);
+    padding: u.rem(24) u.rem(32);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__controls {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: u.rem(10);
+
+    > div:first-of-type {
+      width: 33%;
+      display: flex;
+      justify-content: end;
+    }
+    > div:last-of-type {
+      width: 33%;
+      display: flex;
+      flex-direction: row;
+      gap: u.rem(10);
+
+      .icon-button:first-of-type svg {
+        transform: rotate(180deg);
+      }
+    }
+  }
+}
