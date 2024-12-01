@@ -440,7 +440,7 @@ const ActionItem = ({
         return React.cloneElement(child, {
           ...child.props,
           openDeckId: openSubItem.id,
-          handleEdit: handleButtonClick,
+          handleClick: handleButtonClick,
           handleDelete: handleDeleteFlashcardDeck,
           handleChildren,
         });

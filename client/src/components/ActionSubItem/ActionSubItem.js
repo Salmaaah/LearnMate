@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import IconButton from '../IconButton/IconButton';
 import Popup from '../Popup/Popup';
+import { ReactComponent as EditIcon } from '../../assets/icons/edit.svg';
 import { ReactComponent as DeleteIcon } from '../../assets/icons/delete_3.svg';
 import { capitalize } from '../../utils/stringUtils';
 
@@ -15,8 +16,9 @@ import { capitalize } from '../../utils/stringUtils';
  * @param {Object} props - The component props.
  * @param {{id: number, name: string, modified_at: string, type: string, [key: string]: any}} props.item - The sub-item data object.
  * @param {number} [props.openSubItemId] - ID of the sub-item to be opened.
- * @param {(action: string, item: object) => Promise<void>} props.handleEdit - Function to handle clicking on ActionSubItem.
- * @param {function(number): Promise<void>} props.handleDelete - Function to handle deletion of the sub-item by ID.
+ * @param {(action: string, item: object) => Promise<void>} props.handleItemClick - Function to handle clicking on ActionSubItem.
+ * @param {function(number): Promise<void>} [props.handleEditIcon] - Function to handle clicking on the edit icon of the sub-item.
+ * @param {function(number): Promise<void>} props.handleDeleteIcon - Function to handle clicking on the delete icon of the sub-item.
  * @param {() => React.ReactNode} props.renderContent - Function that renders the content displayed when the sub-item is opened.
  * @param {React.ReactNode} props.additionalInfo - div of additional info displayed when the sub-item is closed.
  * @returns {JSX.Element} The rendered ActionSubItem component.
@@ -24,8 +26,9 @@ import { capitalize } from '../../utils/stringUtils';
 const ActionSubItem = ({
   item,
   openSubItemId,
-  handleEdit,
-  handleDelete,
+  handleItemClick,
+  handleEditIcon,
+  handleDeleteIcon,
   renderContent,
   additionalInfo,
 }) => {
@@ -109,10 +112,10 @@ const ActionSubItem = ({
     ) : (
       <li
         className="action-sub-item"
-        onClick={() => handleEdit('edit', item)}
+        onClick={handleItemClick}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => e.key === 'Enter' && handleEdit('edit', item)}
+        onKeyDown={(e) => e.key === 'Enter' && handleItemClick()}
         aria-label={`${capitalize(item.type)} titled ${
           item.name
         }, modified on ${formatDate(item.modified_at)}`}
@@ -129,23 +132,41 @@ const ActionSubItem = ({
             {additionalInfo}
           </div>
         </div>
-        <IconButton
-          icon={<DeleteIcon />}
-          size="13px"
-          iColor="var(--P200)"
-          bHcolor="var(--D50)"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowPopup(true);
-          }}
-          onKeyDown={(e) => e.key === 'Enter' && e.stopPropagation()} // when pressing "Enter" on a button element, browsers automatically trigger the onClick event but with a delay, that's why we stop propagation in the meantime
-          ariaProps={{
-            'aria-label': `Delete ${item.name}`,
-            'aria-haspopup': 'dialog',
-            'aria-controls': `delete-${item.type}-popup-${item.id}`,
-            'aria-expanded': showPopup,
-          }}
-        />
+        <div className="action-sub-item__actions">
+          {handleEditIcon && (
+            <IconButton
+              icon={<EditIcon />}
+              size="13px"
+              iColor="var(--P200)"
+              bHcolor="var(--D50)"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditIcon();
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && e.stopPropagation()} // when pressing "Enter" on a button element, browsers automatically trigger the onClick event but with a delay, that's why we stop propagation in the meantime
+              ariaProps={{
+                'aria-label': `Edit ${item.name}`,
+              }}
+            />
+          )}
+          <IconButton
+            icon={<DeleteIcon />}
+            size="13px"
+            iColor="var(--P200)"
+            bHcolor="var(--D50)"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPopup(true);
+            }}
+            onKeyDown={(e) => e.key === 'Enter' && e.stopPropagation()} // when pressing "Enter" on a button element, browsers automatically trigger the onClick event but with a delay, that's why we stop propagation in the meantime
+            ariaProps={{
+              'aria-label': `Delete ${item.name}`,
+              'aria-haspopup': 'dialog',
+              'aria-controls': `delete-${item.type}-popup-${item.id}`,
+              'aria-expanded': showPopup,
+            }}
+          />
+        </div>
         <Popup
           id={`delete-${item.type}-popup-${item.id}`}
           title={`Delete ${item.type}?`}
@@ -158,7 +179,7 @@ const ActionSubItem = ({
           isOpen={showPopup}
           setIsOpen={setShowPopup}
           action="Delete"
-          handleAction={() => handleDelete(item.id)}
+          handleAction={() => handleDeleteIcon(item.id)}
         />
       </li>
     ))
@@ -173,8 +194,9 @@ ActionSubItem.propTypes = {
     type: PropTypes.string.isRequired,
   }).isRequired,
   openSubItemId: PropTypes.number,
-  handleEdit: PropTypes.func.isRequired,
-  handleDelete: PropTypes.func.isRequired,
+  handleItemClick: PropTypes.func.isRequired,
+  handleEditIcon: PropTypes.func,
+  handleDeleteIcon: PropTypes.func.isRequired,
   renderContent: PropTypes.func.isRequired,
   additionalInfo: PropTypes.node.isRequired,
 };

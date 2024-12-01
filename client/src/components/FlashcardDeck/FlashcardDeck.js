@@ -10,7 +10,7 @@ import ActionSubItem from '../ActionSubItem/ActionSubItem';
  * @param {Object} props - The props object.
  * @param {{id: number, name: string, modified_at: string, flashcards: Array, type: string, [key: string]: any}} props.deck - The deck data object.
  * @param {number} [props.openDeckId] - The ID of the deck to be opened.
- * @param {(action: string, item: object) => Promise<void>} props.handleEdit - Async function to handle clicking on the deck.
+ * @param {(action: string, item: object) => Promise<void>} props.handleClick - Async function to handle viewing or editing the deck.
  * @param {(noteID: number) => Promise<void>} props.handleDelete - Async function to delete the deck.
  * @param {React.ReactNode} props.children - Flashcards passed to the FlashcardDeck component as children.
  * @param {(children: React.ReactNode) => React.ReactNode} props.handleChildren - Function that passes necessary props to child flashcards.
@@ -19,7 +19,7 @@ import ActionSubItem from '../ActionSubItem/ActionSubItem';
 const FlashcardDeck = ({
   deck,
   openDeckId,
-  handleEdit,
+  handleClick,
   handleDelete,
   children,
   handleChildren,
@@ -38,8 +38,9 @@ const FlashcardDeck = ({
     <ActionSubItem
       item={deck}
       openSubItemId={openDeckId}
-      handleEdit={handleEdit}
-      handleDelete={handleDelete}
+      handleItemClick={() => handleClick('study', deck)}
+      handleEditIcon={() => handleClick('edit', deck)}
+      handleDeleteIcon={handleDelete}
       renderContent={renderChildren}
       additionalInfo={
         <div aria-label="Number of items in flashcard deck">
@@ -59,7 +60,7 @@ FlashcardDeck.propTypes = {
     type: PropTypes.string.isRequired,
   }).isRequired,
   openDeckId: PropTypes.number,
-  handleEdit: PropTypes.func,
+  handleClick: PropTypes.func,
   handleDelete: PropTypes.func,
   children: PropTypes.node.isRequired,
   handleChildren: PropTypes.func,

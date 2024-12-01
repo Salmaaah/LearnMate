@@ -30,8 +30,8 @@ const Note = ({ note, openNoteId, handleEdit, handleDelete, showAIsearch }) => {
     <ActionSubItem
       item={note}
       openSubItemId={openNoteId}
-      handleEdit={handleEdit}
-      handleDelete={handleDelete}
+      handleItemClick={() => handleEdit('edit', note)}
+      handleDeleteIcon={handleDelete}
       renderContent={() => (
         <>
           <AIsearch ref={AIsearchRef} context="Notes" />
