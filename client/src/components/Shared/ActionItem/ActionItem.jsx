@@ -112,7 +112,11 @@ const ActionItem = ({
         if (openSubItem.mode === 'edit') {
           // In case of opening deck in edit mode, wait for flascards to render before scrolling
           const targetCount = openSubItem.flashcards.length;
-          await waitForSubItemsToRender(actionItemRef, targetCount);
+          await waitForSubItemsToRender(
+            actionItemRef,
+            targetCount,
+            'flashcard'
+          );
         }
         await handleScroll(actionItemRef, 'start');
       }
@@ -144,31 +148,29 @@ const ActionItem = ({
   }, [isOpen, openSubItem.id, editorState?.initialized, scrollToListItem]);
 
   /**
-   * Waits for a specific number of `li` sub-items to be rendered within a target element.
-   * Currently only used for flashcards.
+   * Waits for a specific number of sub-items with a given class to be rendered within a target element.
    *
    * @param {React.RefObject<HTMLElement>} ref - A React ref pointing to the parent container of the sub-items.
-   * @param {number} targetCount - The number of `li` elements to wait for within the target element.
+   * @param {number} targetCount - The number of sub-items to wait for within the target element.
+   * @param {string} className - The class name of the sub-items to query.
    * @returns {Promise<void>} A promise that resolves once the target count of sub-items is detected or a timeout occurs.
    */
-  const waitForSubItemsToRender = (ref, targetCount) => {
+  const waitForSubItemsToRender = (ref, targetCount, className) => {
     return new Promise((resolve) => {
-      const targetElement = ref.current?.querySelector('#sub-items');
-
-      if (!targetElement) return resolve(); // If target doesn't exist, resolve immediately
+      if (!ref.current) return resolve(); // If target doesn't exist, resolve immediately
 
       // Use MutationObserver to monitor changes in the target element
       const observer = new MutationObserver(() => {
-        const liCount = targetElement.querySelectorAll('li').length;
+        const itemCount = ref.current.querySelectorAll(`.${className}`).length;
 
-        if (liCount === targetCount) {
+        if (itemCount === targetCount) {
           observer.disconnect(); // Stop observing
           resolve();
         }
       });
 
       // Start observing child nodes of the target element
-      observer.observe(targetElement, { childList: true, subtree: true });
+      observer.observe(ref.current, { childList: true, subtree: true });
 
       // Timeout as a fallback
       setTimeout(() => {
