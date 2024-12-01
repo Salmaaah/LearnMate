@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React, { useMemo, useState, useRef } from 'react';
 import useScrollDetect from '../../hooks/useScrollDetect';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,6 +7,18 @@ import { ReactComponent as ArrowIcon } from '../../assets/icons/arrow.svg';
 import { ReactComponent as ShuffleIcon } from '../../assets/icons/shuffle.svg';
 import { ReactComponent as RestartIcon } from '../../assets/icons/restart.svg';
 
+/**
+ * Displays A stacked deck of flashcards to view and interact with.
+ * Allows navigation between flashcards, shuffling, and flipping to see term/definition.
+ *
+ * @component
+ * @param {Object} props - The props object.
+ * @param {Object[]} props.flashcards - Array of flashcard objects to display.
+ * @param {number} props.flashcards[].order - The unique order of the flashcard.
+ * @param {string} props.flashcards[].term - The term displayed on the front of the flashcard.
+ * @param {string} props.flashcards[].definition - The definition displayed on the back of the flashcard.
+ * @returns {JSX.Element} FlashcardViewer component.
+ */
 const FlashcardViewer = ({ flashcards }) => {
   const FLIP_ANIMATION = 0.4; // Duration of the flip animation in seconds
   const RESTART_ANIMATION = 0.7; // Duration of the restart animation in seconds
@@ -41,17 +54,32 @@ const FlashcardViewer = ({ flashcards }) => {
   // Get current index in the viewedCards array
   const currentIndex = viewedCards.indexOf(currentOrder);
 
-  // Helper function to get a random index from an array
+  /**
+   * Gets a random index from an array.
+   *
+   * @param {Array} array - The array to select a random index from.
+   * @returns {number} A random index from the array.
+   */
   const getRandomIndex = (array) => {
     return Math.floor(Math.random() * array.length);
   };
 
-  // Marks a card as viewed by adding its order to the viewedCards list
+  /**
+   * Marks a flashcard as viewed by adding its order to the viewedCards array.
+   *
+   * @param {number} order - The order of the flashcard to mark as viewed.
+   */
   const markAsViewed = (order) => {
     setViewedCards((prev) => [...prev, order]);
   };
 
-  // Executes a callback after ensuring the card's front side is shown and waiting for the flip animation to complete.
+  /**
+   * Executes a callback after ensuring the card's front side is shown
+   * and waiting for the flip animation to complete.
+   *
+   * @param {function} callback - The function to execute after the flip animation.
+   * @param {number} [buffer=200] - Additional time buffer (in milliseconds).
+   */
   const withFlipAnimation = (callback, buffer = 200) => {
     let flipTimeout = 0;
 
@@ -68,7 +96,11 @@ const FlashcardViewer = ({ flashcards }) => {
   // Handles flipping the card (front/back toggle)
   const handleFlip = () => setIsFront((prev) => !prev);
 
-  // Handles navigation to the next or previous card.
+  /**
+   * Handles navigation to the next or previous card.
+   *
+   * @param {number} dir - The direction of navigation. 1 for next, -1 for previous.
+   */
   const handleCardNavigation = (dir) => {
     // Define the navigation logic for moving to the next or previous card
     const navigate = () => {
@@ -128,7 +160,11 @@ const FlashcardViewer = ({ flashcards }) => {
     setShuffleButtonColor((prev) => (prev === '' ? 'var(--D50)' : ''));
   };
 
-  // Restarts the deck.
+  /**
+   * Restarts the deck.
+   *
+   * @param {boolean} [ordered] - Determines if the reset should maintain an ordered sequence.
+   */
   const handleReset = (ordered) => {
     // Define the reset logic
     const reset = () => {
@@ -157,21 +193,33 @@ const FlashcardViewer = ({ flashcards }) => {
     withFlipAnimation(reset, 400);
   };
 
-  // Renders the content for either side of the flashcard.
-  const renderContent = (side, ref, text, isScrollable) => (
-    <div className="flashcard-viewer__card-content">
-      <div
-        ref={ref}
-        className="flashcard-viewer__card-text"
-        style={isScrollable ? { paddingBottom: '2.5rem' } : {}}
-      >
-        {text}
+  /**
+   * Renders the content for either side of the flashcard.
+   *
+   * @param {string} side - The flashcard side ("front" or "back").
+   * @returns {React.ReactNode} The JSX representation of the flashcard content.
+   */
+  const renderContent = (side) => {
+    const ref = side === 'front' ? termRef : defRef; // Ref object used to reference the text div.
+    const text = side === 'front' ? currentCard?.term : currentCard?.definition; // Text content to display within the flashcard.
+    const isScrollable =
+      side === 'front' ? frontIsScrollable : backIsScrollable; // Determines if the text container should have an overlay to hint that the content is scrollable.
+
+    return (
+      <div className="flashcard-viewer__card-content">
+        <div
+          ref={ref}
+          className="flashcard-viewer__card-text"
+          style={isScrollable ? { paddingBottom: '2.5rem' } : {}}
+        >
+          {text}
+        </div>
+        {isScrollable && (
+          <div className={`flashcard-viewer__card-text-overlay ${side}`} />
+        )}
       </div>
-      {isScrollable && (
-        <div className={`flashcard-viewer__card-text-overlay ${side}`} />
-      )}
-    </div>
-  );
+    );
+  };
 
   // Common props for IconButtons
   const buttonProps = {
@@ -251,20 +299,10 @@ const FlashcardViewer = ({ flashcards }) => {
             onClick={handleFlip}
           >
             <div className="flashcard-viewer__card-front">
-              {renderContent(
-                'front',
-                termRef,
-                currentCard?.term,
-                frontIsScrollable
-              )}
+              {renderContent('front')}
             </div>
             <div className="flashcard-viewer__card-back">
-              {renderContent(
-                'back',
-                defRef,
-                currentCard?.definition,
-                backIsScrollable
-              )}
+              {renderContent('back')}
             </div>
           </motion.div>
         </AnimatePresence>
@@ -319,6 +357,16 @@ const FlashcardViewer = ({ flashcards }) => {
       </div>
     </div>
   );
+};
+
+FlashcardViewer.propTypes = {
+  flashcards: PropTypes.arrayOf(
+    PropTypes.shape({
+      order: PropTypes.number.isRequired,
+      term: PropTypes.string.isRequired,
+      definition: PropTypes.string.isRequired,
+    })
+  ).isRequired,
 };
 
 export default FlashcardViewer;
