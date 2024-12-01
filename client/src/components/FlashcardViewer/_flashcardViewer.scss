@@ -1,6 +1,7 @@
 @use '../../styles/util/' as u;
 
 .flashcard-viewer {
+  --card-width: unset; // Placeholder value; will be dynamically updated using ResizeObserver in JavaScript
   --front-color: white;
   --back-color: var(--P500);
 
@@ -12,8 +13,8 @@
 
   &__card-container {
     position: relative;
-    width: u.rem(300);
-    height: u.rem(200);
+    width: var(--card-width);
+    height: calc(var(--card-width) / 1.5);
   }
 
   &__card {
@@ -35,8 +36,8 @@
       backface-visibility: hidden;
       border-radius: u.rem(16);
       box-shadow: 0 u.rem(4) u.rem(24) 0 hsla(224, 22%, 20%, 0.122);
-      padding-inline: u.rem(30);
-      padding-block: u.rem(40);
+      padding-inline: calc(var(--card-width) * 0.1);
+      padding-block: calc(var(--card-width) * 0.15);
     }
 
     &-front {
@@ -61,6 +62,7 @@
       overflow: scroll;
       text-align: center;
       align-content: center;
+      font-size: clamp(u.rem(16), calc(var(--card-width) * 0.03), u.rem(18));
     }
 
     &-text-overlay {

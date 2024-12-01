@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import useScrollDetect from '../../hooks/useScrollDetect';
 import { motion, AnimatePresence } from 'framer-motion';
 import IconButton from '../IconButton/IconButton';
@@ -32,7 +32,8 @@ const FlashcardViewer = ({ flashcards }) => {
   const [shuffleButtonColor, setShuffleButtonColor] = useState(''); // Background color for shuffle button
   const [isResetting, setIsResetting] = useState(false); // Tracks whether the deck is resetting
 
-  // Refs for detecting scrollable content
+  // Refs
+  const viewerRef = useRef(null); // Ref for FlashcardViewer
   const termRef = useRef(null); // Ref for front content
   const defRef = useRef(null); // Ref for back content
 
@@ -53,6 +54,56 @@ const FlashcardViewer = ({ flashcards }) => {
 
   // Get current index in the viewedCards array
   const currentIndex = viewedCards.indexOf(currentOrder);
+
+  // Effect to dynamically update the flashcard width on resize,
+  // allowing SCSS to adjust height, padding, and font size based on the new width.
+  useEffect(() => {
+    if (viewerRef?.current) {
+      const cardContainer = viewerRef.current.querySelector(
+        '.flashcard-viewer__card-container'
+      );
+
+      if (cardContainer) {
+        // Avoid unnecessary updates that raise the error "ResizeObserver loop completed with undelivered notifications"
+        let lastWidth = null;
+        let timeoutId = null;
+
+        // Create a ResizeObserver to watch the FlashcardViewer size
+        const resizeObserver = new ResizeObserver((entries) => {
+          if (timeoutId) return; // Ignore while throttled
+
+          timeoutId = setTimeout(() => {
+            timeoutId = null; // Reset throttle
+
+            for (let entry of entries) {
+              // Get the element's current width in pixels
+              const cardWidthInPixels = Math.min(entry.contentRect.width, 800);
+
+              // Check if the width has actually changed
+              if (lastWidth !== cardWidthInPixels) {
+                lastWidth = cardWidthInPixels;
+
+                // Update the --card-width property to the new pixel width
+                cardContainer.style.setProperty(
+                  '--card-width',
+                  `${cardWidthInPixels}px`
+                );
+              }
+            }
+          }, 10); // Adjust the throttle interval as needed
+        });
+
+        // Start observing the FlashcardViewer
+        resizeObserver.observe(viewerRef.current);
+
+        // Cleanup function to disconnect the observer
+        return () => {
+          resizeObserver.disconnect();
+          if (timeoutId) clearTimeout(timeoutId);
+        };
+      }
+    }
+  }, [viewerRef?.current]);
 
   /**
    * Gets a random index from an array.
@@ -285,7 +336,7 @@ const FlashcardViewer = ({ flashcards }) => {
   if (!currentCard) return <div>No flashcards available</div>;
 
   return (
-    <div className="flashcard-viewer">
+    <div ref={viewerRef} className="flashcard-viewer">
       <div className="flashcard-viewer__card-container">
         <AnimatePresence custom={direction}>
           <motion.div
