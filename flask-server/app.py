@@ -1075,7 +1075,15 @@ def update_flashcard(flashcard_id):
             
             db.session.commit()
 
-            return jsonify({"message": "Flashcard updated successfully"}), 200
+            flashcard_data = {
+                "id": flashcard.id,
+                "term": flashcard.term,
+                "definition": flashcard.definition,
+                "order": flashcard.order,
+                "imagePath": flashcard.image_path,
+            }
+
+            return jsonify({"message": "Flashcard updated successfully", "flashcard": flashcard_data}), 200
         
         except Exception as e:
             return jsonify({"error": str(e)}), 400

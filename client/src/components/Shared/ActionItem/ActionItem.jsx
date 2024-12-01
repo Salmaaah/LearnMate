@@ -12,10 +12,13 @@ import { ReactComponent as NewIcon } from '../../../assets/icons/new.svg';
 import { ReactComponent as ExpandIcon } from '../../../assets/icons/expand.svg';
 import { ReactComponent as ReduceIcon } from '../../../assets/icons/reduce.svg';
 import { ReactComponent as StarsIcon } from '../../../assets/icons/stars.svg';
+import { ReactComponent as EditIcon } from '../../../assets/icons/edit.svg';
+import { ReactComponent as FlashcardsIcon } from '../../../assets/icons/flashcards.svg';
 import Button from '../Button/Button';
 import MenuItem from '../MenuItem/MenuItem';
 import Note from '../Note/Note';
 import FlashcardDeck from '../../FlashcardDeck/FlashcardDeck';
+import FlashcardViewer from '../../FlashcardViewer/FlashcardViewer';
 import { Draggable } from '@hello-pangea/dnd';
 
 /**
@@ -90,7 +93,11 @@ const ActionItem = ({
 
   // Effect to Synchronize the openSubItem state with data changes from the server.
   useEffect(() => {
-    openSubItemFromCtx && setOpenSubItem(openSubItemFromCtx);
+    openSubItemFromCtx &&
+      setOpenSubItem((prev) => ({
+        ...prev, // Retain mode key from the current state in case of open deck
+        ...openSubItemFromCtx,
+      }));
   }, [openSubItemFromCtx]);
 
   // Handles scrolling and focusing behaviors based on component state.
@@ -102,8 +109,8 @@ const ActionItem = ({
 
       // Align the actionItem to the top of the screen when opening an action item or sub-item
       if ((isOpen && isOpenChange) || (openSubItem.id && idChange)) {
-        if (openSubItem.type === 'deck') {
-          // In case of opened deck, wait for flascards to render before scrolling
+        if (openSubItem.mode === 'edit') {
+          // In case of opening deck in edit mode, wait for flascards to render before scrolling
           const targetCount = openSubItem.flashcards.length;
           await waitForSubItemsToRender(actionItemRef, targetCount);
         }
@@ -306,18 +313,32 @@ const ActionItem = ({
         // Deck level actions (if no sub-item is open)
 
         if (action === 'create' || action === 'multigen') {
+          let deck;
+
           // Handle new deck creation
-          const deck = await handleCreateFlashcardDeck(
+          deck = await handleCreateFlashcardDeck(
             fileId,
             action === 'multigen' // create an empty deck in case of batch generation
           );
-          setOpenSubItem(deck); // Set the new deck as the open sub-item
-
           // For 'multigen', trigger batch flashcard generation in the newly created deck
-          action === 'multigen' && handleMultigenFlashcards(deck.id, fileId, 0);
-        } else if (action === 'edit') {
+          if (action === 'multigen') {
+            deck['flashcards'] = await handleMultigenFlashcards(
+              deck.id,
+              fileId,
+              0
+            );
+          }
+          // Set the new deck as the open sub-item and make sure it opens in edit mode
+          setOpenSubItem({
+            ...deck,
+            mode: 'edit',
+          });
+        } else if (action === 'edit' || action === 'study') {
           // Handle opening an existing deck
-          setOpenSubItem(itemData);
+          setOpenSubItem({
+            ...itemData,
+            mode: action,
+          });
         }
       }
     } else if (label === 'Todos') {
@@ -347,11 +368,13 @@ const ActionItem = ({
       order += 1;
     }
 
-    await Promise.all(flashcardPromises);
+    const flashcards = await Promise.all(flashcardPromises);
     setScrollToListItem('noFocus');
+
+    return flashcards;
   };
 
-  // Effect to update the OpenDeckId state from DeckContext to to supply the onDragEnd function with the correct list of flashcards for dragging.
+  // Effect to update the OpenDeckId state from DeckContext to supply the onDragEnd function with the correct list of flashcards for dragging.
   useEffect(() => {
     label === 'Flashcards' && setOpenDeckId(openSubItem.id);
   }, [openSubItem.id]);
@@ -421,32 +444,36 @@ const ActionItem = ({
           handleDelete: handleDeleteFlashcardDeck,
           handleChildren,
         });
-      } else if (child.type === Draggable) {
-        // Extract the function passed to Draggable's children prop
-        const draggableChildFunction = child.props.children;
+      } else if (openSubItem.mode) {
+        if (child.type === FlashcardViewer && openSubItem.mode === 'study') {
+          return child;
+        } else if (child.type === Draggable && openSubItem.mode === 'edit') {
+          // Extract the function passed to Draggable's children prop
+          const draggableChildFunction = child.props.children;
 
-        // Wrap the child function to add the state to the correct element
-        const wrappedFunction = (provided) => {
-          const draggableChild = draggableChildFunction(provided);
+          // Wrap the child function to add the state to the correct element
+          const wrappedFunction = (provided) => {
+            const draggableChild = draggableChildFunction(provided);
 
-          // Check if the inner child is Flashcard
-          if (draggableChild.type.name === 'Flashcard') {
-            return React.cloneElement(draggableChild, {
-              ...draggableChild.props,
-              handleGenerate: handleButtonClick,
-            });
-          }
+            // Check if the inner child is Flashcard
+            if (draggableChild.type.name === 'Flashcard') {
+              return React.cloneElement(draggableChild, {
+                ...draggableChild.props,
+                handleGenerate: handleButtonClick,
+              });
+            }
 
-          return draggableChild;
-        };
+            return draggableChild;
+          };
 
-        return React.cloneElement(child, {
-          ...child.props,
-          children: wrappedFunction,
-        });
-      } else {
-        return child;
+          return React.cloneElement(child, {
+            ...child.props,
+            children: wrappedFunction,
+          });
+        }
+        return null;
       }
+      return child;
     });
   };
 
@@ -603,7 +630,7 @@ const ActionItem = ({
           <>{illustration}</>
         ) : (
           <div id="right-section">
-            {(label === 'Notes' || label === 'Flashcards') && (
+            {(!openSubItem.id || openSubItem.mode === 'edit') && ( // IS NOT an open note/deck, or IS an open deck in edit mode
               <Button
                 icon_l={<StarsIcon />}
                 variant="secondary"
@@ -621,6 +648,27 @@ const ActionItem = ({
                 } with AI`}
               />
             )}
+            {openSubItem.mode && // in case of an open deck
+              (() => {
+                const nextMode = openSubItem.mode === 'edit' ? 'study' : 'edit';
+                return (
+                  <Button
+                    icon_l={
+                      nextMode === 'study' ? <FlashcardsIcon /> : <EditIcon />
+                    }
+                    variant="secondary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenSubItem((prev) => ({
+                        ...prev,
+                        mode: nextMode,
+                      }));
+                    }}
+                    onKeyDown={(e) => e.key === 'Enter' && e.stopPropagation()}
+                    ariaLabel={`Click to switch to ${nextMode} mode`}
+                  />
+                );
+              })()}
             <Button
               icon_l={isEnlarged ? <ReduceIcon /> : <ExpandIcon />}
               variant="secondary"
@@ -637,12 +685,16 @@ const ActionItem = ({
       {isOpen && (
         <div
           className={`action-item__content${
-            label === 'Notes' && openSubItem.id ? ' open-note' : ''
+            openSubItem?.type === 'note'
+              ? ' open-note'
+              : openSubItem?.mode === 'study'
+              ? ' open-deck'
+              : ''
           }`}
           style={isEnlarged ? { height: '100%' } : {}}
           id={`${label.toLowerCase()}-content`}
         >
-          {label === 'Notes' && openSubItem.id ? (
+          {openSubItem?.type === 'note' || openSubItem?.mode === 'study' ? ( // Either an open note or deck in study mode
             handleChildren(children)
           ) : (
             <>
@@ -656,14 +708,16 @@ const ActionItem = ({
                 {provided?.placeholder}
                 <div ref={listEndRef} style={{ display: 'hidden' }} />
               </ul>
-              <MenuItem
-                as="div"
-                icon={<NewIcon />}
-                label={`New ${label.replace(/s$/, '')}${
-                  label === 'Flashcards' && !openSubItem.id ? ' Deck' : ''
-                }`}
-                onInteraction={() => handleButtonClick('create')}
-              />
+              {openSubItem.mode !== 'study' && (
+                <MenuItem
+                  as="div"
+                  icon={<NewIcon />}
+                  label={`New ${label.replace(/s$/, '')}${
+                    label === 'Flashcards' && !openSubItem.id ? ' Deck' : ''
+                  }`}
+                  onInteraction={() => handleButtonClick('create')}
+                />
+              )}
             </>
           )}
         </div>

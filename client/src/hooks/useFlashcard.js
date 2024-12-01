@@ -137,24 +137,27 @@ const useFlashcard = () => {
    * @param {string} [data.term] - The new term of the flashcard.
    * @param {string} [data.definition] - The new definition of the flashcard.
    * @param {number} [data.order] - The new order of the flashcard.
-   * @returns {Promise<void>}
+   * @returns {Promise<Object|null>} The updated flashcard object or null if failed.
    */
   const handleUpdateFlashcard = async (flashcardId, data) => {
     console.log('Updating flashcard');
 
-    axios
-      .post(`/updateFlashcard/${flashcardId}`, data)
-      .then((response) => {
-        fetchData();
-        console.log(response.data.message);
-      })
-      .catch((error) => {
-        if (error.response.status === 400) {
-          console.error(error.response.data.error);
-        } else {
-          console.error('Error updating flashcard:', error.message);
-        }
-      });
+    try {
+      const response = await axios.post(
+        `/updateFlashcard/${flashcardId}`,
+        data
+      );
+      fetchData();
+      console.log(response.data.message);
+      return response.data.flashcard;
+    } catch (error) {
+      if (error.response?.status === 400) {
+        console.error(error.response.data.error);
+      } else {
+        console.error('Error updating flashcard:', error.message);
+      }
+      return null;
+    }
   };
 
   /**
