@@ -13,6 +13,7 @@ import ActionItem from '../../components/Shared/ActionItem/ActionItem';
 import Note from '../../components/Shared/Note/Note';
 import Flashcard from '../../components/Flashcard/Flashcard';
 import FlashcardDeck from '../../components/FlashcardDeck/FlashcardDeck';
+import FlashcardViewer from '../../components/FlashcardViewer/FlashcardViewer';
 import Todo from '../../components/Todo/Todo';
 import { ReactComponent as NotesIllustration } from '../../assets/illustrations/notes.svg';
 import { ReactComponent as TodosIllustration } from '../../assets/illustrations/todos.svg';
@@ -163,21 +164,27 @@ const Learn = () => {
                       file.flashcard_decks.map((deck) => {
                         return (
                           <FlashcardDeck key={deck.id} deck={deck}>
-                            {openDeckFlashcards.length > 0 &&
-                              openDeckFlashcards.map((flashcard, index) => (
-                                <Draggable
-                                  key={flashcard.id.toString()}
-                                  draggableId={flashcard.id.toString()}
-                                  index={index}
-                                >
-                                  {(provided) => (
-                                    <Flashcard
-                                      provided={provided}
-                                      flashcard={flashcard}
-                                    />
-                                  )}
-                                </Draggable>
-                              ))}
+                            {openDeckFlashcards.length > 0 && (
+                              <>
+                                <FlashcardViewer
+                                  flashcards={openDeckFlashcards}
+                                />
+                                {openDeckFlashcards.map((flashcard, index) => (
+                                  <Draggable
+                                    key={flashcard.id.toString()}
+                                    draggableId={flashcard.id.toString()}
+                                    index={index}
+                                  >
+                                    {(provided) => (
+                                      <Flashcard
+                                        provided={provided}
+                                        flashcard={flashcard}
+                                      />
+                                    )}
+                                  </Draggable>
+                                ))}
+                              </>
+                            )}
                           </FlashcardDeck>
                         );
                       })}

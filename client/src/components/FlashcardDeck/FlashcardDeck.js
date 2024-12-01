@@ -1,3 +1,4 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 import ActionSubItem from '../ActionSubItem/ActionSubItem';
 
@@ -25,13 +26,21 @@ const FlashcardDeck = ({
 }) => {
   const nbrItems = deck?.flashcards?.length;
 
+  // Passes the nested children from the fragment to handleChildren
+  // for further processing and rendering.
+  const renderChildren = () => {
+    if (children?.type === React.Fragment) {
+      return handleChildren(children.props.children);
+    }
+  };
+
   return (
     <ActionSubItem
       item={deck}
       openSubItemId={openDeckId}
       handleEdit={handleEdit}
       handleDelete={handleDelete}
-      renderContent={() => handleChildren(children)}
+      renderContent={renderChildren}
       additionalInfo={
         <div aria-label="Number of items in flashcard deck">
           {`${nbrItems} ${nbrItems === 1 ? 'term' : 'terms'}`}
