@@ -98,50 +98,11 @@
         font-size: u.rem(15);
         color: var(--D100);
 
-        > svg {
-          height: u.rem(15);
-          width: auto;
-
-          > path {
-            stroke: var(--D100);
-          }
+        .icon-button {
+          padding: u.rem(4) !important;
         }
-
-        > button {
-          display: flex;
-          border-radius: 50%;
-          padding: u.rem(3);
-          background: none;
-          border: none;
-          cursor: pointer;
-          transition: all 100ms ease-in-out;
-          background-color: var(--M50);
-          box-shadow: 0 0 u.rem(2) 0 hsla(0, 0%, 0%, 0.15);
-
-          svg {
-            height: u.rem(15);
-            width: auto;
-
-            path {
-              stroke: var(--D100);
-              fill: var(--D100);
-            }
-          }
-
-          &:hover {
-            background-color: var(--M100);
-
-            svg > path {
-              stroke: var(--P300);
-              fill: var(--P300);
-            }
-          }
-        }
-        > button:nth-of-type(2) > svg {
-          height: u.rem(14);
-          path {
-            stroke-width: u.rem(20);
-          }
+        .icon-button:first-of-type path {
+          stroke-width: u.rem(19);
         }
       }
 
@@ -184,20 +145,11 @@
       display: flex;
       gap: u.rem(10);
     }
-    // Right side buttons of the header when open
-    // and left side back button of the header when open
-    #right-section > button,
-    #title-2 > button {
-      border-radius: 50%;
-      padding: u.rem(10);
-      border: none;
+
+    // All IconButtons of the header
+    .icon-button {
       box-shadow: 0 u.rem(2) u.rem(3) 0 hsl(254, 23%, 79%),
         0 0 u.rem(0.7) 0 var(--M100);
-
-      > svg {
-        height: u.rem(15);
-        width: auto;
-      }
     }
   }
 

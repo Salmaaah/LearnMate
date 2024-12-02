@@ -15,6 +15,7 @@ import { ReactComponent as StarsIcon } from '../../../assets/icons/stars.svg';
 import { ReactComponent as EditIcon } from '../../../assets/icons/edit.svg';
 import { ReactComponent as FlashcardsIcon } from '../../../assets/icons/flashcards.svg';
 import Button from '../Button/Button';
+import IconButton from '../../IconButton/IconButton';
 import MenuItem from '../MenuItem/MenuItem';
 import Note from '../Note/Note';
 import FlashcardDeck from '../../FlashcardDeck/FlashcardDeck';
@@ -486,6 +487,21 @@ const ActionItem = ({
     }
   }, [children]);
 
+  // Common styling props for IconButtons
+  const buttonProps = isOpen
+    ? {
+        size: '15px',
+        iColor: 'var(--P100)',
+        bColor: 'white',
+        bHcolor: 'var(--P50)',
+      }
+    : {
+        size: '14px',
+        iColor: 'var(--D100)',
+        bColor: 'white',
+        bHcolor: '',
+      };
+
   return (
     <section
       ref={actionItemRef}
@@ -516,11 +532,13 @@ const ActionItem = ({
           {openSubItem.id && isOpen ? (
             // aka a note or flashcard deck is open
             <div id="title-2">
-              <Button
-                icon_l={<BackIcon />}
-                variant="secondary"
+              <IconButton
+                icon={<BackIcon />}
                 onClick={handleBackClick}
-                ariaLabel={'Click to go back'}
+                {...buttonProps}
+                ariaProps={{
+                  'aria-label': 'Click to go back',
+                }}
               />
               <input
                 name="name"
@@ -559,34 +577,40 @@ const ActionItem = ({
                       ? '1 ITEM'
                       : `${subItems.length} ITEMS`}
                   </div>
-
-                  <button
-                    style={label === 'Todos' ? { display: 'none' } : {}}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleButtonClick(
-                        label === 'Flashcards' ? 'multigen' : 'generate'
-                      );
-                    }}
-                    onKeyDown={(e) => e.key === 'Enter' && e.stopPropagation()} // when pressing "Enter" on a button element, browsers automatically trigger the onClick event but with a delay, that's why we stop propagation in the meantime
-                    aria-label={`Generate ${label
-                      .toLowerCase()
-                      .replace(/s$/, '')} with AI`}
-                  >
-                    <StarsIcon />
-                  </button>
-                  <button
+                  <IconButton
+                    icon={<NewIcon />}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleButtonClick('create');
                     }}
                     onKeyDown={(e) => e.key === 'Enter' && e.stopPropagation()} // when pressing "Enter" on a button element, browsers automatically trigger the onClick event but with a delay, that's why we stop propagation in the meantime
-                    aria-label={`Create new ${label
-                      .toLowerCase()
-                      .replace(/s$/, '')}`}
-                  >
-                    <NewIcon />
-                  </button>
+                    {...buttonProps}
+                    ariaProps={{
+                      'aria-label': `Create new ${label
+                        .toLowerCase()
+                        .replace(/s$/, '')}`,
+                    }}
+                  />{' '}
+                  {label !== 'Todos' && (
+                    <IconButton
+                      icon={<StarsIcon />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleButtonClick(
+                          label === 'Flashcards' ? 'multigen' : 'generate'
+                        );
+                      }}
+                      onKeyDown={(e) =>
+                        e.key === 'Enter' && e.stopPropagation()
+                      } // when pressing "Enter" on a button element, browsers automatically trigger the onClick event but with a delay, that's why we stop propagation in the meantime
+                      {...buttonProps}
+                      ariaProps={{
+                        'aria-label': `Generate ${label
+                          .toLowerCase()
+                          .replace(/s$/, '')} with AI`,
+                      }}
+                    />
+                  )}
                 </>
               ) : label === 'Todos' ? (
                 <>Create your first todo list</>
@@ -633,9 +657,8 @@ const ActionItem = ({
         ) : (
           <div id="right-section">
             {(!openSubItem.id || openSubItem.mode === 'edit') && ( // IS NOT an open note/deck, or IS an open deck in edit mode
-              <Button
-                icon_l={<StarsIcon />}
-                variant="secondary"
+              <IconButton
+                icon={<StarsIcon />}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleButtonClick(
@@ -643,22 +666,24 @@ const ActionItem = ({
                   );
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && e.stopPropagation()} // when pressing "Enter" on a button element, browsers automatically trigger the onClick event but with a delay, that's why we stop propagation in the meantime
-                ariaLabel={`Click to ${
-                  label === 'Notes'
-                    ? 'generate note'
-                    : 'batch generate flashcards'
-                } with AI`}
+                {...buttonProps}
+                ariaProps={{
+                  'aria-label': `Click to ${
+                    label === 'Notes'
+                      ? 'generate note'
+                      : 'batch generate flashcards'
+                  } with AI`,
+                }}
               />
             )}
             {openSubItem.mode && // in case of an open deck
               (() => {
                 const nextMode = openSubItem.mode === 'edit' ? 'study' : 'edit';
                 return (
-                  <Button
-                    icon_l={
+                  <IconButton
+                    icon={
                       nextMode === 'study' ? <FlashcardsIcon /> : <EditIcon />
                     }
-                    variant="secondary"
                     onClick={(e) => {
                       e.stopPropagation();
                       setOpenSubItem((prev) => ({
@@ -666,20 +691,24 @@ const ActionItem = ({
                         mode: nextMode,
                       }));
                     }}
-                    onKeyDown={(e) => e.key === 'Enter' && e.stopPropagation()}
-                    ariaLabel={`Click to switch to ${nextMode} mode`}
+                    {...buttonProps}
+                    ariaProps={{
+                      'aria-label': `Click to switch to ${nextMode} mode`,
+                    }}
                   />
                 );
               })()}
-            <Button
-              icon_l={isEnlarged ? <ReduceIcon /> : <ExpandIcon />}
-              variant="secondary"
+            <IconButton
+              icon={isEnlarged ? <ReduceIcon /> : <ExpandIcon />}
               onClick={(e) => {
                 e.stopPropagation();
                 toggleSize();
               }}
               onKeyDown={(e) => e.key === 'Enter' && e.stopPropagation()} // when pressing "Enter" on a button element, browsers automatically trigger the onClick event but with a delay, that's why we stop propagation in the meantime
-              ariaLabel={`Click to ${isEnlarged ? 'reduce' : 'enlarge'}`}
+              {...buttonProps}
+              ariaProps={{
+                'aria-label': `Click to ${isEnlarged ? 'reduce' : 'enlarge'}`,
+              }}
             />
           </div>
         )}
